@@ -91,33 +91,41 @@ sonarcloud-scan:
     - dotnet tool install --global dotnet-sonarscanner
     - export PATH="$PATH:$HOME/.dotnet/tools"
     
+    - echo "📦 Installing Java (required for SonarScanner)..."
+    - apt-get update && apt-get install -y openjdk-17-jre-headless
+    
     - echo "📦 Installing code coverage tools..."
     - dotnet add $TEST_PATH package coverlet.collector
     - dotnet add $TEST_PATH package coverlet.msbuild
     
+    - echo "🔧 Restoring dependencies..."
+    - dotnet restore $PROJECT_PATH
+    
     - echo "📊 Starting SonarCloud analysis..."
-    - dotnet sonarscanner begin 
-        /k:"capstone-api" 
-        /o:"your-organization-key" 
-        /d:sonar.host.url="${SONAR_HOST_URL}" 
-        /d:sonar.login="${SONAR_TOKEN}" 
-        /d:sonar.cs.opencover.reportsPaths="tests/**/coverage.opencover.xml"
-        /d:sonar.coverage.exclusions="**Tests.cs,**/Program.cs"
+    - |
+      dotnet sonarscanner begin \
+        /k:"capstone-api" \
+        /o:"your-organization-key" \
+        /d:sonar.host.url="${SONAR_HOST_URL}" \
+        /d:sonar.token="${SONAR_TOKEN}" \
+        /d:sonar.cs.opencover.reportsPaths="tests/**/coverage.opencover.xml" \
+        /d:sonar.coverage.exclusions="**Tests.cs,**/Program.cs" \
         /d:sonar.exclusions="**/obj/**,**/bin/**"
     
     - echo "🔨 Building project for analysis..."
-    - dotnet build $PROJECT_PATH --configuration Release
+    - dotnet build $PROJECT_PATH --configuration Release --no-restore
     
     - echo "🧪 Running tests with coverage collection..."
-    - dotnet test $TEST_PATH 
-        --configuration Release 
-        --no-build 
-        /p:CollectCoverage=true 
-        /p:CoverletOutputFormat=opencover 
+    - |
+      dotnet test $TEST_PATH \
+        --configuration Release \
+        --no-build \
+        /p:CollectCoverage=true \
+        /p:CoverletOutputFormat=opencover \
         /p:CoverletOutput=./coverage.opencover.xml
     
     - echo "📤 Uploading results to SonarCloud..."
-    - dotnet sonarscanner end /d:sonar.login="${SONAR_TOKEN}"
+    - dotnet sonarscanner end /d:sonar.token="${SONAR_TOKEN}"
     
     - echo "✅ SonarCloud analysis complete! View results at https://sonarcloud.io"
   allow_failure: false                           # BLOCK pipeline if quality gate fails
