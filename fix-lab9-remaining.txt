@@ -1,0 +1,11 @@
+SECTIONS TO REPLACE IN LAB 9 - Steps 4-12
+
+Step 4: Examine Integration Tests (CalcControllerTests)
+Step 5: Understand WebApplicationFactory
+Step 6: Run Unit Tests Only
+Step 7: Run Integration Tests Only  
+Step 8: Run All Tests Together
+Step 9: Understand Test Filtering in CI/CD
+Step 10: Compare Unit vs Integration
+Step 11: Understand When to Use Each
+Step 12: Summary and Next Steps

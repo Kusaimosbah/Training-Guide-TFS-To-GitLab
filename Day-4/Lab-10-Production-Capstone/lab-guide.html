@@ -169,19 +169,27 @@
 
         <div class="overview">
             <h3>📖 Overview</h3>
-            <p><strong>Final Scenario:</strong> You're taking a legacy monolithic app from TFS and transforming it into a modern, cloud-ready microservice with full GitLab CI/CD automation, comprehensive testing, and production deployment capabilities.</p>
+            <p><strong>Final Scenario:</strong> You have a complete Calculator API (CapstoneApi) with full test coverage. In this capstone lab, you'll practice the complete production workflow: testing locally, pushing to GitLab, triggering CI/CD, deploying, and handling rollbacks.</p>
+            
+            <p><strong>✅ STARTER CODE PROVIDED:</strong></p>
+            <ul>
+                <li>✅ Complete CapstoneApi with CalcController, InfoController, StatusController</li>
+                <li>✅ CalculatorService with 6 mathematical operations</li>
+                <li>✅ Full test suite in CapstoneApi.Tests (Unit/ and Integration/)</li>
+                <li>✅ CI/CD pipeline (.gitlab-ci.yml) with 4 stages</li>
+                <li>✅ Deployment scripts (deploy.ps1/.sh, rollback.ps1/.sh)</li>
+            </ul>
             
             <p><strong>Complete SDLC Journey:</strong></p>
             <ol>
-                <li>📂 <strong>Migrate</strong> code from tfs-legacy-source to GitLab</li>
-                <li>🌿 <strong>Create feature branch</strong> for new functionality</li>
-                <li>✅ <strong>Write tests</strong> (unit + integration)</li>
-                <li>💬 <strong>Create merge request</strong> with detailed description</li>
+                <li>🔍 <strong>Review</strong> the complete CapstoneApi code and tests</li>
+                <li>✅ <strong>Run tests locally</strong> (unit + integration)</li>
+                <li>🚀 <strong>Create GitLab repository</strong> and push code</li>
                 <li>🔧 <strong>Trigger CI/CD pipeline</strong> automatically</li>
-                <li>🚀 <strong>Deploy to staging</strong> on successful tests</li>
-                <li>🎯 <strong>Deploy to production</strong> with manual gate</li>
-                <li>⚠️ <strong>Simulate incident</strong> and execute rollback</li>
-                <li>📊 <strong>Generate final report</strong> documenting the journey</li>
+                <li>📊 <strong>Monitor pipeline</strong> execution (build, test, deploy)</li>
+                <li>🎯 <strong>Test deployment scripts</strong> locally</li>
+                <li>⚠️ <strong>Practice rollback</strong> procedures</li>
+                <li>📝 <strong>Document</strong> the complete workflow</li>
             </ol>
             
             <div class="success">
@@ -189,29 +197,31 @@
             </div>
         </div>
 
-        <h2>🏗️ What You'll Build</h2>
-        <p><strong>E-Commerce Order API</strong> - Complete production-ready microservice</p>
+        <h2>🏗️ Project Structure (Provided Starter Code)</h2>
+        <p><strong>Calculator API (CapstoneApi)</strong> - Complete production-ready API</p>
         <pre><code>Lab-10-Production-Capstone/
-├── tfs-legacy-source/
-│   └── LegacyOrderSystem.cs        # Monolithic legacy code from TFS
 ├── src/
-│   └── CapstoneApi/
+│   └── CapstoneApi/                     ✅ ALREADY PROVIDED
 │       ├── Controllers/
-│       │   ├── OrdersController.cs
-│       │   └── HealthController.cs
+│       │   ├── CalcController.cs        # Mathematical operations
+│       │   ├── InfoController.cs        # API information
+│       │   └── StatusController.cs      # Health checks
 │       ├── Services/
-│       │   ├── IOrderService.cs
-│       │   └── OrderService.cs
-│       ├── Models/
-│       │   └── Order.cs
-│       └── Program.cs
+│       │   ├── ICalculatorService.cs    # Service interface
+│       │   └── CalculatorService.cs     # Business logic
+│       └── Program.cs                   # Startup with DI
 ├── tests/
-│   ├── CapstoneApi.UnitTests/
-│   │   └── OrderServiceTests.cs
-│   └── CapstoneApi.IntegrationTests/
-│       └── OrdersControllerTests.cs
-├── .gitlab-ci.yml                   # Full CI/CD pipeline
-├── deploy.ps1                       # Deployment automation
+│   └── CapstoneApi.Tests/               ✅ ALREADY PROVIDED
+│       ├── Unit/
+│       │   └── CalculatorServiceTests.cs   # Unit tests
+│       └── Integration/
+│           ├── CalcControllerTests.cs      # API endpoint tests
+│           ├── InfoControllerTests.cs      # Info endpoint tests
+│           └── StatusControllerTests.cs    # Status endpoint tests
+├── .gitlab-ci.yml                   # Full CI/CD pipeline (4 stages)
+├── deploy.ps1                       # Deployment automation (Windows)
+├── deploy.sh                        # Deployment automation (Linux)
+├── rollback.ps1                     # Rollback automation (Windows)
 ├── rollback.ps1                     # Rollback automation
 └── .gitignore</code></pre>
 
