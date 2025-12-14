@@ -283,63 +283,71 @@ ls tests/CapstoneApi.Tests/Integration/</code></pre>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">6</span>Create First Integration Test</h3>
-            <p>📍 <strong>Where to create:</strong> Create a NEW file <code>ProductsControllerTests.cs</code> in the <code>tests/CapstoneApi.IntegrationTests/</code> directory:</p>
+            <h3><span class="step-number">4</span>Examine Integration Tests</h3>
+            <pre><code>cat tests/CapstoneApi.Tests/Integration/CalcControllerTests.cs</code></pre>
             
-            <div class="note">
-                <strong>💡 File Location:</strong>
-                <pre>tests/
-  └── CapstoneApi.IntegrationTests/
-      ├── CapstoneApi.IntegrationTests.csproj
-      ├── Usings.cs
-      └── <strong>ProductsControllerTests.cs  ← CREATE THIS NEW FILE</strong></pre>
-            </div>
-            
-            <p>Add the following complete test class:</p>
+            <p>Integration tests use WebApplicationFactory to test HTTP endpoints:</p>
             
             <pre><code>using System.Net;
-using System.Net.Http.Json;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using CapstoneApi;
-using CapstoneApi.Models;
+using Xunit;
 
-namespace CapstoneApi.IntegrationTests;
+namespace CapstoneApi.Tests.Integration;
 
-public class ProductsControllerTests : IClassFixture&lt;WebApplicationFactory&lt;Program&gt;&gt;
+public class CalcControllerTests : IClassFixture&lt;WebApplicationFactory&lt;Program&gt;&gt;
 {
     private readonly HttpClient _client;
 
-    public ProductsControllerTests(WebApplicationFactory&lt;Program&gt; factory)
+    public CalcControllerTests(WebApplicationFactory&lt;Program&gt; factory)
     {
-        _client = factory.CreateClient();
+        _client = factory.CreateClient();  // Creates test HTTP client
     }
 
     [Fact]
-    public async Task GetAllProducts_ReturnsOkWithProducts()
+    public async Task Add_TwoNumbers_ReturnsCorrectResult()
+    {
+        // Act - Make HTTP GET request
+        var response = await _client.GetAsync("/api/calc/add?a=5&b=3");
+
+        // Assert - Check status and response
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("\"result\":8", content);
+    }
+    
+    [Fact]
+    public async Task Divide_ByZero_ReturnsBadRequest()
     {
         // Act
-        var response = await _client.GetAsync("/api/products");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var response = await _client.GetAsync("/api/calc/divide?a=10&b=0");
         
-        var products = await response.Content.ReadFromJsonAsync&lt;List&lt;Product&gt;&gt;();
-        products.Should().NotBeNull();
-        products.Should().NotBeEmpty();
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }</code></pre>
+            
+            <div class="note">
+                <strong>📌 Integration Test Characteristics:</strong>
+                <ul>
+                    <li>Tests full HTTP request/response cycle</li>
+                    <li>API starts in-memory (WebApplicationFactory)</li>
+                    <li>Tests routing, controllers, services together</li>
+                    <li>Slower than unit tests (100ms+ per test)</li>
+                    <li>More realistic - tests what users experience</li>
+                </ul>
+            </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">7</span>Understand WebApplicationFactory</h3>
+            <h3><span class="step-number">5</span>Understand WebApplicationFactory</h3>
             <div class="success">
                 <strong>✅ What WebApplicationFactory Does:</strong>
                 <ul>
                     <li>Starts your API in-memory (no real server needed!)</li>
                     <li>Creates an HttpClient to make requests</li>
                     <li>Runs the ENTIRE API stack (controllers, services, middleware)</li>
-                    <li>Resets state between tests</li>
+                    <li>Tests run isolated - no conflicts between tests</li>
+                    <li>Requires <code>public partial class Program { }</code> in Program.cs (already done!)</li>
                 </ul>
             </div>
             
@@ -349,131 +357,78 @@ public class ProductsControllerTests : IClassFixture&lt;WebApplicationFactory&lt
         </div>
 
         <div class="step">
-            <h3><span class="step-number">8</span>Run First Integration Test</h3>
-            <pre><code>dotnet test</code></pre>
+            <h3><span class="step-number">6</span>Run Unit Tests Only</h3>
+            <pre><code>dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj --filter "FullyQualifiedName~Unit"</code></pre>
             
             <div class="success">
-                <strong>✅ Expected:</strong> Test passes! Your API was started, GET request made, and response validated.
-            </div>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">9</span>Add Test for Getting Product by ID</h3>
-            <p>Add to ProductsControllerTests.cs:</p>
-            <pre><code>[Fact]
-public async Task GetProductById_ValidId_ReturnsProduct()
-{
-    // Arrange
-    int productId = 1;
-
-    // Act
-    var response = await _client.GetAsync($"/api/products/{productId}");
-
-    // Assert
-    response.StatusCode.Should().Be(HttpStatusCode.OK);
-    
-    var product = await response.Content.ReadFromJsonAsync&lt;Product&gt;();
-    product.Should().NotBeNull();
-    product!.Id.Should().Be(productId);
-}</code></pre>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">10</span>Add Test for Not Found Scenario</h3>
-            <pre><code>[Fact]
-public async Task GetProductById_InvalidId_ReturnsNotFound()
-{
-    // Arrange
-    int invalidId = 9999;
-
-    // Act
-    var response = await _client.GetAsync($"/api/products/{invalidId}");
-
-    // Assert
-    response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-}</code></pre>
-            
-            <div class="note">
-                <strong>📌 Testing Edge Cases:</strong> Always test both happy path AND error scenarios!
-            </div>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">11</span>Add Test for POST Endpoint</h3>
-            <pre><code>[Fact]
-public async Task CreateProduct_ValidProduct_ReturnsCreated()
-{
-    // Arrange
-    var newProduct = new Product
-    {
-        Name = "Test Widget",
-        Description = "Integration test product",
-        Price = 99.99m,
-        CategoryId = 1
-    };
-
-    // Act
-    var response = await _client.PostAsJsonAsync("/api/products", newProduct);
-
-    // Assert
-    response.StatusCode.Should().Be(HttpStatusCode.Created);
-    
-    var createdProduct = await response.Content.ReadFromJsonAsync&lt;Product&gt;();
-    createdProduct.Should().NotBeNull();
-    createdProduct!.Name.Should().Be("Test Widget");
-    createdProduct.Id.Should().BeGreaterThan(0);
-}</code></pre>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">12</span>Run All Tests</h3>
-            <pre><code>dotnet test --logger "console;verbosity=detailed"</code></pre>
-            
-            <div class="success">
-                <strong>✅ Expected:</strong> 4 tests passing
+                <strong>✅ Expected Output:</strong>
                 <ul>
-                    <li>GetAllProducts_ReturnsOkWithProducts</li>
-                    <li>GetProductById_ValidId_ReturnsProduct</li>
-                    <li>GetProductById_InvalidId_ReturnsNotFound</li>
-                    <li>CreateProduct_ValidProduct_ReturnsCreated</li>
+                    <li>Tests from Unit/ folder only</li>
+                    <li>CalculatorServiceTests (7-8 tests)</li>
+                    <li>Fast execution (under 1 second)</li>
+                    <li>All tests passing</li>
                 </ul>
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">13</span>Add DELETE Test (Complete Workflow)</h3>
-            <pre><code>[Fact]
-public async Task DeleteProduct_ValidId_ReturnsNoContent()
-{
-    // Arrange - First create a product to delete
-    var product = new Product
-    {
-        Name = "To Delete",
-        Description = "Will be deleted",
-        Price = 1.00m,
-        CategoryId = 1
-    };
-    var createResponse = await _client.PostAsJsonAsync("/api/products", product);
-    var createdProduct = await createResponse.Content.ReadFromJsonAsync&lt;Product&gt;();
-
-    // Act - Delete it
-    var deleteResponse = await _client.DeleteAsync($"/api/products/{createdProduct!.Id}");
-
-    // Assert
-    deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
-    
-    // Verify it's gone
-    var getResponse = await _client.GetAsync($"/api/products/{createdProduct.Id}");
-    getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
-}</code></pre>
+            <h3><span class="step-number">7</span>Run Integration Tests Only</h3>
+            <pre><code>dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj --filter "FullyQualifiedName~Integration"</code></pre>
             
             <div class="success">
-                <strong>✅ Complete Flow Test:</strong> Create → Delete → Verify deletion!
+                <strong>✅ Expected Output:</strong>
+                <ul>
+                    <li>Tests from Integration/ folder only</li>
+                    <li>CalcControllerTests, InfoControllerTests, StatusControllerTests</li>
+                    <li>Slower execution (2-3 seconds)</li>
+                    <li>API starts in-memory for each test class</li>
+                    <li>All tests passing</li>
+                </ul>
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">14</span>Compare Unit vs Integration Tests</h3>
+            <h3><span class="step-number">8</span>Run All Tests Together</h3>
+            <pre><code>dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj</code></pre>
+            
+            <div class="success">
+                <strong>✅ Expected Output:</strong>
+                <ul>
+                    <li>All unit AND integration tests run</li>
+                    <li>Total tests: ~15 tests</li>
+                    <li>Unit tests run first (fast)</li>
+                    <li>Integration tests run second (slower)</li>
+                    <li>Total time: 3-5 seconds</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Understand Test Filtering in CI/CD</h3>
+            <p>Open <code>.gitlab-ci.yml</code> and see how tests are separated:</p>
+            <pre><code>unit-test:
+  stage: test
+  script:
+    - dotnet test --filter "FullyQualifiedName~Unit"
+  
+integration-test:
+  stage: test
+  script:
+    - dotnet test --filter "FullyQualifiedName~Integration"</code></pre>
+            
+            <div class="note">
+                <strong>📌 Why Separate in CI/CD?</strong>
+                <ul>
+                    <li>Parallel execution - both stages run at same time</li>
+                    <li>Faster feedback - unit tests finish quickly</li>
+                    <li>Better diagnostics - know which type failed</li>
+                    <li>Independent reporting - separate test results</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Compare Unit vs Integration Tests</h3>
             <table>
                 <tr>
                     <th>Aspect</th>
@@ -502,222 +457,61 @@ public async Task DeleteProduct_ValidId_ReturnsNoContent()
                 </tr>
                 <tr>
                     <td><strong>Example</strong></td>
-                    <td>ProductService.GetAllProducts()</td>
-                    <td>GET /api/products HTTP request</td>
+                    <td>CalculatorService.Add(5, 3)</td>
+                    <td>GET /api/calc/add?a=5&b=3 HTTP request</td>
                 </tr>
             </table>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">15</span>Understand When to Use Each</h3>
+            <h3><span class="step-number">11</span>Understand When to Use Each</h3>
             <div class="note">
-                <strong>🎯 Testing Strategy:</strong>
+                <strong>🎯 Testing Strategy for CapstoneApi:</strong>
                 <ul>
-                    <li><strong>Unit Tests:</strong> Use for business logic, algorithms, calculations</li>
-                    <li><strong>Integration Tests:</strong> Use for API contracts, HTTP behavior, end-to-end flows</li>
-                    <li><strong>Both Together:</strong> Comprehensive coverage!</li>
+                    <li><strong>Unit Tests:</strong> Test CalculatorService methods (Add, Subtract, Divide, etc.)</li>
+                    <li><strong>Integration Tests:</strong> Test API endpoints (/api/calc/add, /api/info, /api/status/health)</li>
+                    <li><strong>Both Together:</strong> Comprehensive coverage - fast feedback + realistic behavior!</li>
                 </ul>
             </div>
             
             <p><strong>Typical Ratio:</strong> 70% unit tests, 30% integration tests</p>
-            
-            <div class="success">
-                <strong>🎉 Lab Complete!</strong> You now understand:<br>
-                ✅ WebApplicationFactory for API testing<br>
-                ✅ End-to-end HTTP request/response testing<br>
-                ✅ Testing status codes and JSON responses<br>
-                ✅ Unit vs Integration test trade-offs<br>
-                ✅ Complete testing strategy
-            </div>
+            <p><strong>CapstoneApi follows this:</strong> ~8 unit tests, ~7 integration tests</p>
         </div>
 
-        <div class="step">
-            <h3><span class="step-number">3</span>Run Application Locally</h3>
-            <p>Build and run the API locally:</p>
-            <pre><code># Restore dependencies
-dotnet restore src/CapstoneApi/CapstoneApi.csproj
-
-# Run the application
-dotnet run --project src/CapstoneApi/CapstoneApi.csproj</code></pre>
-            
-            <div class="success">
-                <strong>✅ Expected Output:</strong><br>
-                Application should start on <code>https://localhost:5001</code><br>
-                Swagger UI available at: <code>https://localhost:5001/swagger</code>
-            </div>
-            
-            <p>Open your browser to <code>https://localhost:5001/swagger</code> and explore the API endpoints.</p>
-        </div>
+        <h2>📊 Lab Review</h2>
 
         <div class="step">
-            <h3><span class="step-number">4</span>Test API Endpoints Manually</h3>
-            <p>Use Swagger UI or curl to test endpoints:</p>
+            <h3><span class="step-number">12</span>Review CI/CD Pipeline Test Stages</h3>
+            <p>Open <code>.gitlab-ci.yml</code> and see how tests are organized:</p>
             
-            <pre><code># Test status endpoint
-curl https://localhost:5001/api/status -k
+            <pre><code>unit-test:
+  stage: test
+  script:
+    - dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj 
+        --filter "FullyQualifiedName~Unit" 
+        --logger "junit;LogFilePath=test-results/unit-tests.xml"
+  artifacts:
+    reports:
+      junit: test-results/unit-tests.xml
 
-# Test calculator addition
-curl https://localhost:5001/api/calc/add?a=5&b=3 -k
-
-# Test health check
-curl https://localhost:5001/api/info/health -k</code></pre>
+integration-test:
+  stage: test  
+  script:
+    - dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj 
+        --filter "FullyQualifiedName~Integration"
+        --logger "junit;LogFilePath=test-results/integration-tests.xml"
+  artifacts:
+    reports:
+      junit: test-results/integration-tests.xml</code></pre>
             
-            <div class="success">
-                <strong>✅ Expected Results:</strong>
+            <div class="note">
+                <strong>📌 CI/CD Benefits:</strong>
                 <ul>
-                    <li>/api/status returns JSON with version and timestamp</li>
-                    <li>/api/calc/add returns result: 8</li>
-                    <li>/api/info/health returns "Healthy"</li>
+                    <li>Parallel execution - unit and integration tests run simultaneously</li>
+                    <li>Separate reporting - GitLab shows results separately</li>
+                    <li>Fast feedback - unit tests finish first</li>
+                    <li>Better diagnostics - know which type of test failed</li>
                 </ul>
-            </div>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">5</span>Run Automated Tests</h3>
-            <p>Execute the full test suite:</p>
-            <pre><code># Run all tests with detailed output
-dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj \
-    --logger "console;verbosity=detailed"
-
-# Run with code coverage
-dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj \
-    --collect:"XPlat Code Coverage"</code></pre>
-            
-            <div class="success">
-                <strong>✅ Expected Test Results:</strong>
-                <ul>
-                    <li>✅ 8 unit tests for CalculatorService (all passing)</li>
-                    <li>✅ 7 integration tests for API endpoints (all passing)</li>
-                    <li>✅ <strong>Total: 15 tests passing</strong></li>
-                    <li>✅ Test run duration: ~3 seconds</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">6</span>Create GitLab Repository</h3>
-            <p>Initialize Git and push to GitLab:</p>
-            <pre><code># Initialize Git (if not already done)
-git init
-git add .
-git commit -m "Initial commit: Capstone API with full test suite"
-
-# Create new GitLab project and push
-git remote add origin https://gitlab.alleen-ly.online/YOUR_USERNAME/capstone-api.git
-git branch -M main
-git push -u origin main</code></pre>
-            
-            <div class="warning">
-                <strong>⚠️ Replace:</strong> <code>YOUR_USERNAME</code> with your actual GitLab username.
-            </div>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">7</span>Review CI/CD Pipeline</h3>
-            <p>Open <code>.gitlab-ci.yml</code> and review the 5-stage pipeline:</p>
-            
-            <table>
-                <tr>
-                    <th>Stage</th>
-                    <th>Purpose</th>
-                    <th>Duration</th>
-                </tr>
-                <tr>
-                    <td><strong>build</strong></td>
-                    <td>Compile code, create artifacts</td>
-                    <td>~2 min</td>
-                </tr>
-                <tr>
-                    <td><strong>test</strong></td>
-                    <td>Run unit & integration tests</td>
-                    <td>~3 min</td>
-                </tr>
-                <tr>
-                    <td><strong>deploy_staging</strong></td>
-                    <td>Deploy to staging environment</td>
-                    <td>~1 min</td>
-                </tr>
-                <tr>
-                    <td><strong>quality_gate</strong></td>
-                    <td>Code quality checks (simulated)</td>
-                    <td>~1 min</td>
-                </tr>
-                <tr>
-                    <td><strong>rollback</strong></td>
-                    <td>Manual rollback to previous version</td>
-                    <td>~1 min</td>
-                </tr>
-            </table>
-            
-            <p>Key pipeline features:</p>
-            <ul>
-                <li>✅ <strong>Artifact Management:</strong> Build artifacts stored for 1 hour</li>
-                <li>✅ <strong>Automated Testing:</strong> Tests run on every commit</li>
-                <li>✅ <strong>Staging Deployment:</strong> Automatic deployment to staging</li>
-                <li>✅ <strong>Manual Gates:</strong> Rollback requires manual trigger</li>
-            </ul>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">8</span>Trigger Pipeline</h3>
-            <p>Make a small change and push to trigger the pipeline:</p>
-            <pre><code># Make a small change
-echo "# Capstone API Project" >> README.md
-git add README.md
-git commit -m "Add project README"
-git push origin main</code></pre>
-            
-            <p>Go to GitLab → <strong>CI/CD</strong> → <strong>Pipelines</strong> and watch your pipeline execute through all stages.</p>
-            
-            <div class="success">
-                <strong>✅ Pipeline Success Indicators:</strong>
-                <ul>
-                    <li>✅ Build stage completes with artifacts</li>
-                    <li>✅ Test stage passes all 15 tests</li>
-                    <li>✅ Deploy stage shows staging URL</li>
-                    <li>✅ Quality gate passes checks</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">9</span>Local Deployment Test</h3>
-            <p>Test the deployment script locally:</p>
-            <pre><code># Build and publish
-dotnet publish src/CapstoneApi/CapstoneApi.csproj -c Release -o publish
-
-# Run deployment script
-pwsh deploy.ps1</code></pre>
-            
-            <div class="success">
-                <strong>✅ Deployment Actions:</strong>
-                <ul>
-                    <li>Creates backup of previous deployment</li>
-                    <li>Copies new artifacts to deployment folder</li>
-                    <li>Updates version tracking file</li>
-                    <li>Shows deployment summary</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">10</span>Test Rollback Capability</h3>
-            <p>Practice rolling back to a previous version:</p>
-            <pre><code># Trigger rollback
-pwsh rollback.ps1</code></pre>
-            
-            <div class="success">
-                <strong>✅ Rollback Actions:</strong>
-                <ul>
-                    <li>Identifies previous backup</li>
-                    <li>Restores previous version</li>
-                    <li>Updates version tracking</li>
-                    <li>Confirms rollback success</li>
-                </ul>
-            </div>
-            
-            <div class="warning">
-                <strong>⚠️ Note:</strong> In production, rollback would be triggered via GitLab CI/CD manual action, not local script.
             </div>
         </div>
 
@@ -790,27 +584,64 @@ dotnet build</code></pre>
             </ul>
         </div>
 
+        <h2>🎓 Lab 9 Checklist</h2>
+
+        <div class="verification">
+            <h3>✅ Verify You Can:</h3>
+            <ol>
+                <li>☐ Explain the difference between unit and integration tests</li>
+                <li>☐ Navigate CapstoneApi.Tests structure (Unit/ and Integration/ folders)</li>
+                <li>☐ Understand how WebApplicationFactory works</li>
+                <li>☐ Run unit tests only (--filter "FullyQualifiedName~Unit")</li>
+                <li>☐ Run integration tests only (--filter "FullyQualifiedName~Integration")</li>
+                <li>☐ Run all tests together</li>
+                <li>☐ Understand why CI/CD separates test stages</li>
+                <li>☐ Know when to use unit vs integration tests</li>
+                <li>☐ Recognize integration test patterns (IClassFixture, HttpClient)</li>
+                <li>☐ Understand test organization benefits</li>
+            </ol>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>🔧 Troubleshooting</h3>
+            
+            <h4>Integration Tests Failing</h4>
+            <ul>
+                <li>Ensure Program.cs has <code>public partial class Program { }</code> at the end</li>
+                <li>Check project reference: CapstoneApi.Tests should reference CapstoneApi</li>
+                <li>Verify Microsoft.AspNetCore.Mvc.Testing package is installed</li>
+            </ul>
+            
+            <h4>Tests Not Found with Filter</h4>
+            <pre><code># Check test names include namespace
+dotnet test --list-tests
+
+# Verify filter matches namespace path
+--filter "FullyQualifiedName~Integration"</code></pre>
+            
+            <h4>WebApplicationFactory Errors</h4>
+            <ul>
+                <li>Make sure Program class is public and partial</li>
+                <li>Ensure all services are properly registered in Program.cs</li>
+                <li>Check that CapstoneApi.csproj builds successfully</li>
+            </ul>
+        </div>
+
         <div class="success" style="margin-top: 30px; padding: 20px;">
-            <h2 style="color: #28a745; margin-top: 0;">🎉 Congratulations!</h2>
-            <p>You've completed the <strong>4-Day Git Enablement Program for .NET Developers</strong>!</p>
+            <h2 style="color: #28a745; margin-top: 0;">🎉 Lab 9 Complete!</h2>
+            <p>You've explored comprehensive API testing strategies!</p>
             
-            <h3>What You've Mastered:</h3>
+            <h3>What You've Learned:</h3>
             <ul>
-                <li>✅ <strong>Day 1:</strong> Git fundamentals and TFS migration</li>
-                <li>✅ <strong>Day 2:</strong> Branching, merge requests, and code review</li>
-                <li>✅ <strong>Day 3:</strong> CI/CD pipelines and deployment automation</li>
-                <li>✅ <strong>Day 4:</strong> Full SDLC with production-ready practices</li>
+                <li>✅ <strong>Test Organization:</strong> Unit/ and Integration/ folder structure</li>
+                <li>✅ <strong>WebApplicationFactory:</strong> In-memory API testing</li>
+                <li>✅ <strong>Test Filtering:</strong> Running specific test types</li>
+                <li>✅ <strong>Unit vs Integration:</strong> When to use each type</li>
+                <li>✅ <strong>CI/CD Integration:</strong> Parallel test execution</li>
+                <li>✅ <strong>Testing Strategy:</strong> 70/30 ratio for comprehensive coverage</li>
             </ul>
             
-            <p><strong>You're now ready to:</strong></p>
-            <ul>
-                <li>🚀 Lead TFS to GitLab migrations in your organization</li>
-                <li>🚀 Build and maintain CI/CD pipelines</li>
-                <li>🚀 Implement modern DevOps practices</li>
-                <li>🚀 Mentor other developers on Git and GitLab</li>
-            </ul>
-            
-            <p style="font-size: 1.2em; font-weight: bold; color: #fc6d26;">Keep building amazing things! 🎯</p>
+            <p><strong>Next Step:</strong> Lab 10 brings everything together - complete SDLC with deployment and production practices!</p>
         </div>
     </div>
 </body>
