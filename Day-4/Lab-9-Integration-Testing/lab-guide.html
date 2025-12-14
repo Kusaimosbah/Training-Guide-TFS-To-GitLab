@@ -150,10 +150,10 @@
             <h3>🎯 Learning Objectives</h3>
             <ol>
                 <li>Understand unit tests vs integration tests</li>
-                <li>Use WebApplicationFactory to test APIs end-to-end</li>
-                <li>Write integration tests with HttpClient</li>
-                <li>Test complete HTTP request/response flows</li>
-                <li>Use in-memory test servers</li>
+                <li>Explore existing WebApplicationFactory integration tests</li>
+                <li>Learn how integration tests make HTTP requests</li>
+                <li>Understand test organization (Unit/ vs Integration/ folders)</li>
+                <li>Run filtered tests (unit only, integration only, or both)</li>
                 <li>Assert on HTTP status codes and response bodies</li>
                 <li>Understand testing best practices for APIs</li>
             </ol>
@@ -161,34 +161,50 @@
 
         <div class="overview">
             <h3>📖 Overview</h3>
-            <p><strong>Scenario:</strong> Your Product Catalog API (Lab 8) works great manually via Swagger. Now you need automated integration tests that verify the entire API behaves correctly end-to-end.</p>
+            <p><strong>Scenario:</strong> Your Calculator API (CapstoneApi from Lab 8) has a complete test suite already built. In this lab, you'll explore the existing unit and integration tests to understand how to test APIs comprehensively.</p>
+            
+            <p><strong>✅ STARTER CODE PROVIDED:</strong></p>
+            <ul>
+                <li>✅ Complete CapstoneApi.Tests project</li>
+                <li>✅ Unit tests in tests/CapstoneApi.Tests/Unit/</li>
+                <li>✅ Integration tests in tests/CapstoneApi.Tests/Integration/</li>
+                <li>✅ WebApplicationFactory pattern already implemented</li>
+                <li>✅ All tests passing and ready to run</li>
+            </ul>
             
             <p>In this lab, you'll:</p>
             <ul>
-                <li>Learn the difference between unit and integration tests</li>
-                <li>Use <strong>WebApplicationFactory</strong> to spin up in-memory test server</li>
-                <li>Write tests that make HTTP requests to your API</li>
-                <li>Verify responses (status codes, JSON content)</li>
-                <li>Test GET, POST, DELETE endpoints</li>
-                <li>Understand why integration tests matter</li>
+                <li>Explore the difference between unit and integration tests</li>
+                <li>Understand <strong>WebApplicationFactory</strong> in-memory test server</li>
+                <li>Examine tests that make HTTP requests to the API</li>
+                <li>See how tests verify responses (status codes, JSON content)</li>
+                <li>Run tests with filters (unit only, integration only)</li>
+                <li>Understand why both test types matter</li>
             </ul>
             
             <div class="note">
                 <strong>📌 Key Difference:</strong><br>
-                <strong>Unit Tests (Lab 4):</strong> Test individual methods/classes in isolation<br>
-                <strong>Integration Tests (Lab 9):</strong> Test full API behavior with HTTP requests
+                <strong>Unit Tests:</strong> Test CalculatorService methods directly (isolated, fast)<br>
+                <strong>Integration Tests:</strong> Test full API endpoints via HTTP (realistic, slower)
             </div>
         </div>
 
-        <h2>🏗️ Project Structure</h2>
+        <h2>🏗️ Project Structure (Provided Starter Code)</h2>
         <pre><code>Lab-9-Integration-Testing/
 ├── src/
-│   └── CapstoneApi/  (Same as Lab 8)
+│   └── CapstoneApi/                     ✅ Same as Lab 8
+│       ├── Controllers/
+│       ├── Services/
+│       └── Program.cs
 └── tests/
-    └── CapstoneApi.IntegrationTests/
-        ├── ProductsControllerTests.cs
-        ├── CategoriesControllerTests.cs
-        └── CapstoneApi.IntegrationTests.csproj</code></pre>
+    └── CapstoneApi.Tests/               ✅ ALREADY PROVIDED
+        ├── Unit/                        # Unit tests for services
+        │   └── CalculatorServiceTests.cs
+        ├── Integration/                 # Integration tests for endpoints
+        │   ├── CalcControllerTests.cs
+        │   ├── InfoControllerTests.cs
+        │   └── StatusControllerTests.cs
+        └── CapstoneApi.Tests.csproj</code></pre>
 
         <h2>🚀 Step-by-Step Guide</h2>
 
@@ -196,34 +212,74 @@
             <h3><span class="step-number">1</span>Navigate to Lab Folder</h3>
             <pre><code>cd "Day-4/Lab-9-Integration-Testing"
 ls</code></pre>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">2</span>Create Integration Test Project</h3>
-            <pre><code>dotnet new xunit -n CapstoneApi.IntegrationTests -o tests/CapstoneApi.IntegrationTests
-cd tests/CapstoneApi.IntegrationTests</code></pre>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">3</span>Add Required NuGet Packages</h3>
-            <pre><code>dotnet add package Microsoft.AspNetCore.Mvc.Testing
-dotnet add package FluentAssertions</code></pre>
             
-            <div class="note">
-                <strong>📦 Packages:</strong><br>
-                <strong>Microsoft.AspNetCore.Mvc.Testing:</strong> Provides WebApplicationFactory<br>
-                <strong>FluentAssertions:</strong> Readable assertion syntax
+            <div class="success">
+                <strong>✅ You should see:</strong> src/, tests/, deploy.ps1, deploy.sh, rollback.ps1, rollback.sh, .gitlab-ci.yml
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">4</span>Add Reference to API Project</h3>
-            <pre><code>dotnet add reference ../../src/CapstoneApi/CapstoneApi.csproj</code></pre>
+            <h3><span class="step-number">2</span>Explore Test Project Structure</h3>
+            <pre><code>ls tests/CapstoneApi.Tests/
+ls tests/CapstoneApi.Tests/Unit/
+ls tests/CapstoneApi.Tests/Integration/</code></pre>
+            
+            <div class="success">
+                <strong>✅ Test Organization:</strong>
+                <ul>
+                    <li><strong>Unit/</strong> - CalculatorServiceTests.cs (tests service methods directly)</li>
+                    <li><strong>Integration/</strong> - CalcControllerTests.cs, InfoControllerTests.cs, StatusControllerTests.cs (test HTTP endpoints)</li>
+                </ul>
+            </div>
+            
+            <div class="note">
+                <strong>📌 Note:</strong> The test project is already created and configured with all required packages:
+                <ul>
+                    <li>✅ Microsoft.AspNetCore.Mvc.Testing (WebApplicationFactory)</li>
+                    <li>✅ xUnit test framework</li>
+                    <li>✅ Project reference to CapstoneApi</li>
+                </ul>
+            </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">5</span>Delete Default Test File</h3>
-            <pre><code>rm UnitTest1.cs</code></pre>
+            <h3><span class="step-number">3</span>Examine Unit Tests</h3>
+            <pre><code>cat tests/CapstoneApi.Tests/Unit/CalculatorServiceTests.cs</code></pre>
+            
+            <p>Unit tests test service methods directly:</p>
+            <pre><code>public class CalculatorServiceTests
+{
+    private readonly CalculatorService _service;
+    
+    public CalculatorServiceTests()
+    {
+        var logger = new Mock&lt;ILogger&lt;CalculatorService&gt;&gt;().Object;
+        _service = new CalculatorService(logger);
+    }
+    
+    [Fact]
+    public void Add_TwoNumbers_ReturnsSum()
+    {
+        // Arrange
+        int a = 5, b = 3;
+        
+        // Act
+        var result = _service.Add(a, b);
+        
+        // Assert
+        Assert.Equal(8, result);
+    }
+}</code></pre>
+            
+            <div class="note">
+                <strong>📌 Unit Test Characteristics:</strong>
+                <ul>
+                    <li>Fast execution (milliseconds)</li>
+                    <li>Tests single method in isolation</li>
+                    <li>No HTTP, no API startup</li>
+                    <li>Direct method calls</li>
+                </ul>
+            </div>
         </div>
 
         <div class="step">

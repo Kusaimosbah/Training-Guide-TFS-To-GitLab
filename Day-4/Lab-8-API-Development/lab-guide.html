@@ -133,7 +133,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🛍️ Lab 8: Building Enterprise ASP.NET Core Web APIs</h1>
+        <h1>🧮 Lab 8: Building Enterprise ASP.NET Core Web APIs</h1>
         <p><strong>Duration:</strong> 90 minutes | <strong>Time Slot:</strong> 9:00am - 10:30am (Day 4)</p>
         
         <div class="prerequisites">
@@ -151,80 +151,112 @@
             <h3>🎯 Learning Objectives</h3>
             <ol>
                 <li>Understand ASP.NET Core Web API project structure</li>
-                <li>Explore Controllers, Services, and Models architecture</li>
+                <li>Explore Controllers, Services architecture</li>
                 <li>Work with dependency injection in .NET</li>
-                <li>Test APIs using Swagger UI</li>
-                <li>Add new endpoints following REST conventions</li>
+                <li>Test APIs using Swagger UI and curl</li>
+                <li>Understand REST API endpoints and query parameters</li>
                 <li>Implement business logic in service layers</li>
-                <li>Use minimal APIs vs Controller-based approach</li>
+                <li>Learn error handling in Web APIs</li>
             </ol>
         </div>
 
         <div class="overview">
             <h3>📖 Overview</h3>
-            <p><strong>Scenario:</strong> Your team is building a modern Product Catalog API. The initial scaffolding is in place, but you need to understand the architecture and extend it with new features.</p>
+            <p><strong>Scenario:</strong> Your team has built a Calculator API (CapstoneApi) with mathematical operations. The complete API is provided as starter code - your job is to explore, understand, and test the architecture.</p>
+            
+            <p><strong>✅ STARTER CODE PROVIDED:</strong></p>
+            <ul>
+                <li>✅ Complete CapstoneApi project with 3 controllers</li>
+                <li>✅ CalculatorService with 6 mathematical operations</li>
+                <li>✅ Full test suite (Unit + Integration tests)</li>
+                <li>✅ Swagger documentation already configured</li>
+                <li>✅ Deployment and rollback scripts</li>
+            </ul>
             
             <p>In this lab, you'll:</p>
             <ul>
-                <li>Explore a complete ASP.NET Core Web API project</li>
-                <li>Understand Controllers (presentation layer)</li>
-                <li>Understand Services (business logic layer)</li>
-                <li>Understand Models (data structures)</li>
+                <li>Explore the existing ASP.NET Core Web API project</li>
+                <li>Understand Controllers (CalcController, InfoController, StatusController)</li>
+                <li>Understand Services (CalculatorService with business logic)</li>
                 <li>Learn dependency injection patterns</li>
-                <li>Work with Swagger for API documentation</li>
-                <li>Add new endpoints and test them</li>
+                <li>Test the API using Swagger and curl</li>
+                <li>Run unit and integration tests locally</li>
             </ul>
             
             <div class="note">
-                <strong>📌 Focus:</strong> This lab is about understanding API architecture, not CI/CD. You'll run everything locally and explore the codebase.
+                <strong>📌 Focus:</strong> This lab is about understanding existing API architecture through hands-on exploration, not building from scratch. You'll run everything locally and explore the provided codebase.
             </div>
         </div>
 
-        <h2>🏗️ Project Structure</h2>
+        <h2>🏗️ Project Structure (Provided Starter Code)</h2>
         <pre><code>Lab-8-API-Development/
 ├── src/
-│   └── ProductCatalogApi/
+│   └── CapstoneApi/                     ✅ ALREADY PROVIDED
 │       ├── Controllers/
-│       │   ├── ProductsController.cs    # Product CRUD operations
-│       │   └── CategoriesController.cs  # Category management
+│       │   ├── CalcController.cs        # Mathematical operations (add, subtract, etc.)
+│       │   ├── InfoController.cs        # API information endpoints
+│       │   └── StatusController.cs      # Health check endpoints
 │       ├── Services/
-│       │   ├── IProductService.cs       # Interface
-│       │   └── ProductService.cs        # Business logic
-│       ├── Models/
-│       │   ├── Product.cs
-│       │   └── Category.cs
-│       ├── Data/
-│       │   └── InMemoryDataStore.cs     # Mock database
-│       └── Program.cs                   # Startup configuration
-└── ProductCatalogApi.csproj</code></pre>
+│       │   ├── ICalculatorService.cs    # Service interface
+│       │   └── CalculatorService.cs     # Business logic (6 math operations)
+│       └── Program.cs                   # Startup configuration with DI
+├── tests/
+│   └── CapstoneApi.Tests/               ✅ ALREADY PROVIDED
+│       ├── Unit/
+│       │   └── CalculatorServiceTests.cs   # Unit tests for service
+│       └── Integration/
+│           ├── CalcControllerTests.cs      # API endpoint tests
+│           ├── InfoControllerTests.cs      # Info endpoint tests
+│           └── StatusControllerTests.cs    # Status endpoint tests
+├── deploy.ps1                           # Deployment automation
+├── deploy.sh                            # Linux deployment
+├── rollback.ps1                         # Rollback automation
+└── .gitlab-ci.yml                       # CI/CD pipeline</code></pre>
 
-        <h2>🔗 API Endpoints Overview</h2>
+        <h2>🔗 API Endpoints Overview (Existing in Starter Code)</h2>
         
-        <h3>Products Controller</h3>
-        <div class="endpoint">GET /api/products</div>
-        <p>Get all products</p>
+        <h3>CalcController - Mathematical Operations</h3>
+        <div class="endpoint">GET /api/calc/add?a=5&b=3</div>
+        <p>Add two numbers (returns 8)</p>
         
-        <div class="endpoint">GET /api/products/{id}</div>
-        <p>Get specific product by ID</p>
+        <div class="endpoint">GET /api/calc/subtract?a=10&b=4</div>
+        <p>Subtract two numbers (returns 6)</p>
         
-        <div class="endpoint">POST /api/products</div>
-        <p>Create new product</p>
+        <div class="endpoint">GET /api/calc/multiply?a=6&b=7</div>
+        <p>Multiply two numbers (returns 42)</p>
         
-        <h3>Categories Controller</h3>
-        <div class="endpoint">GET /api/categories</div>
-        <p>Get all categories</p>
+        <div class="endpoint">GET /api/calc/divide?a=20&b=4</div>
+        <p>Divide two numbers (returns 5)</p>
+        
+        <div class="endpoint">GET /api/calc/power?base=2&exponent=3</div>
+        <p>Calculate power (returns 8)</p>
+        
+        <div class="endpoint">GET /api/calc/squareroot?number=16</div>
+        <p>Calculate square root (returns 4)</p>
+        
+        <h3>InfoController - API Information</h3>
+        <div class="endpoint">GET /api/info</div>
+        <p>Get API version and information</p>
+        
+        <h3>StatusController - Health Checks</h3>
+        <div class="endpoint">GET /api/status/health</div>
+        <p>Check API health status</p>
 
         <h2>🚀 Step-by-Step Guide</h2>
 
         <div class="step">
             <h3><span class="step-number">1</span>Navigate to Lab Folder</h3>
             <pre><code>cd "Day-4/Lab-8-API-Development"
-ls src/ProductCatalogApi/</code></pre>
+ls src/CapstoneApi/</code></pre>
+            
+            <div class="success">
+                <strong>✅ You should see:</strong> Controllers/, Services/, Program.cs, appsettings.json, CapstoneApi.csproj
+            </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">2</span>Explore Program.cs - API Startup</h3>
-            <pre><code>cat src/ProductCatalogApi/Program.cs</code></pre>
+            <h3><span class="step-number">2</span>Explore Program.cs - API Startup Configuration</h3>
+            <pre><code>cat src/CapstoneApi/Program.cs</code></pre>
             
             <p>Key sections to understand:</p>
             <h4>Service Registration (Dependency Injection):</h4>
@@ -232,8 +264,8 @@ ls src/ProductCatalogApi/</code></pre>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Register custom services
-builder.Services.AddSingleton&lt;IProductService, ProductService&gt;();</code></pre>
+// Register custom services (CalculatorService)
+builder.Services.AddScoped&lt;ICalculatorService, CalculatorService&gt;();</code></pre>
             
             <h4>Middleware Pipeline:</h4>
             <pre><code>app.UseSwagger();        // API documentation
@@ -242,110 +274,117 @@ app.UseAuthorization();  // Security
 app.MapControllers();    // Route mapping</code></pre>
             
             <div class="note">
-                <strong>📌 Dependency Injection:</strong> Services are registered once and injected into controllers automatically!
+                <strong>📌 Dependency Injection:</strong> CalculatorService is registered once and injected into CalcController automatically!
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">3</span>Explore Models - Data Structures</h3>
-            <pre><code>cat src/ProductCatalogApi/Models/Product.cs</code></pre>
-            
-            <p>Example Product model:</p>
-            <pre><code>public class Product
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public int CategoryId { get; set; }
-    public DateTime CreatedAt { get; set; }
-}</code></pre>
-            
-            <p>Models represent data structure - pure C# classes (POCOs).</p>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">4</span>Explore Services - Business Logic Layer</h3>
-            <pre><code>cat src/ProductCatalogApi/Services/IProductService.cs
-cat src/ProductCatalogApi/Services/ProductService.cs</code></pre>
+            <h3><span class="step-number">3</span>Explore Services - Business Logic Layer</h3>
+            <pre><code>cat src/CapstoneApi/Services/ICalculatorService.cs
+cat src/CapstoneApi/Services/CalculatorService.cs</code></pre>
             
             <h4>Interface defines contract:</h4>
-            <pre><code>public interface IProductService
+            <pre><code>public interface ICalculatorService
 {
-    Task&lt;List&lt;Product&gt;&gt; GetAllProductsAsync();
-    Task&lt;Product?&gt; GetProductByIdAsync(int id);
-    Task&lt;Product&gt; CreateProductAsync(Product product);
+    int Add(int a, int b);
+    int Subtract(int a, int b);
+    int Multiply(int a, int b);
+    double Divide(int a, int b);
+    double Power(int baseNumber, int exponent);
+    double SquareRoot(int number);
 }</code></pre>
             
-            <h4>Service implements business logic:</h4>
-            <pre><code>public class ProductService : IProductService
+            <h4>Service implements mathematical operations:</h4>
+            <pre><code>public class CalculatorService : ICalculatorService
 {
-    private readonly InMemoryDataStore _dataStore;
+    private readonly ILogger&lt;CalculatorService&gt; _logger;
     
-    public ProductService(InMemoryDataStore dataStore)
+    public CalculatorService(ILogger&lt;CalculatorService&gt; logger)
     {
-        _dataStore = dataStore;
+        _logger = logger;
     }
     
-    public async Task&lt;List&lt;Product&gt;&gt; GetAllProductsAsync()
+    public int Add(int a, int b)
     {
-        // Business logic here
-        return await Task.FromResult(_dataStore.Products.ToList());
+        _logger.LogInformation("Adding {A} + {B}", a, b);
+        return a + b;
     }
+    
+    public double Divide(int a, int b)
+    {
+        if (b == 0)
+            throw new DivideByZeroException("Cannot divide by zero");
+        return (double)a / b;
+    }
+    // ... more operations
 }</code></pre>
             
             <div class="success">
-                <strong>✅ Separation of Concerns:</strong> Business logic is isolated from HTTP concerns!
+                <strong>✅ Separation of Concerns:</strong> Business logic (math operations) is isolated from HTTP concerns!
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">5</span>Explore Controllers - Presentation Layer</h3>
-            <pre><code>cat src/ProductCatalogApi/Controllers/ProductsController.cs</code></pre>
+            <h3><span class="step-number">4</span>Explore Controllers - Presentation Layer</h3>
+            <pre><code>cat src/CapstoneApi/Controllers/CalcController.cs
+cat src/CapstoneApi/Controllers/InfoController.cs
+cat src/CapstoneApi/Controllers/StatusController.cs</code></pre>
             
-            <p>Example controller structure:</p>
+            <p>Example CalcController structure:</p>
             <pre><code>[ApiController]
 [Route("api/[controller]")]
-public class ProductsController : ControllerBase
+public class CalcController : ControllerBase
 {
-    private readonly IProductService _productService;
+    private readonly ICalculatorService _calculatorService;
     
-    public ProductsController(IProductService productService)
+    public CalcController(ICalculatorService calculatorService)
     {
-        _productService = productService;  // Injected!
+        _calculatorService = calculatorService;  // Injected!
     }
     
-    [HttpGet]
-    public async Task&lt;ActionResult&lt;List&lt;Product&gt;&gt;&gt; GetAll()
+    [HttpGet("add")]
+    public IActionResult Add([FromQuery] int a, [FromQuery] int b)
     {
-        var products = await _productService.GetAllProductsAsync();
-        return Ok(products);
+        try
+        {
+            var result = _calculatorService.Add(a, b);
+            return Ok(new { operation = "add", a, b, result });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
     
-    [HttpGet("{id}")]
-    public async Task&lt;ActionResult&lt;Product&gt;&gt; GetById(int id)
+    [HttpGet("divide")]
+    public IActionResult Divide([FromQuery] int a, [FromQuery] int b)
     {
-        var product = await _productService.GetProductByIdAsync(id);
-        if (product == null)
-            return NotFound();
-        return Ok(product);
+        try
+        {
+            var result = _calculatorService.Divide(a, b);
+            return Ok(new { operation = "divide", a, b, result });
+        }
+        catch (DivideByZeroException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 }</code></pre>
             
             <h4>Key Concepts:</h4>
             <ul>
                 <li><strong>[ApiController]</strong> - Enables automatic model validation, binding</li>
-                <li><strong>[Route]</strong> - Defines URL pattern</li>
-                <li><strong>[HttpGet]</strong> - Maps to HTTP GET method</li>
-                <li><strong>ActionResult</strong> - Flexible return type (Ok, NotFound, BadRequest, etc.)</li>
+                <li><strong>[Route("api/[controller]")]</strong> - Creates /api/calc route</li>
+                <li><strong>[HttpGet("add")]</strong> - Creates /api/calc/add endpoint</li>
+                <li><strong>[FromQuery]</strong> - Gets parameters from URL query string (?a=5&b=3)</li>
+                <li><strong>IActionResult</strong> - Flexible return type (Ok, BadRequest, NotFound, etc.)</li>
                 <li><strong>Constructor injection</strong> - Service is injected automatically</li>
             </ul>
         </div>
-        </div>
 
         <div class="step">
-            <h3><span class="step-number">6</span>Run the API Locally</h3>
-            <pre><code>cd src/ProductCatalogApi
+            <h3><span class="step-number">5</span>Run the API Locally</h3>
+            <pre><code>cd src/CapstoneApi
 dotnet restore
 dotnet build
 dotnet run</code></pre>
@@ -356,210 +395,179 @@ dotnet run</code></pre>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">7</span>Explore Swagger UI</h3>
+            <h3><span class="step-number">6</span>Explore Swagger UI</h3>
             <ol>
                 <li>Open browser to <code>http://localhost:5000/swagger</code></li>
-                <li>See all endpoints documented automatically</li>
-                <li>Click <strong>GET /api/products</strong></li>
+                <li>See all endpoints documented automatically (CalcController, InfoController, StatusController)</li>
+                <li>Click <strong>GET /api/calc/add</strong></li>
                 <li>Click <strong>Try it out</strong></li>
+                <li>Enter values: a = 5, b = 3</li>
                 <li>Click <strong>Execute</strong></li>
-                <li>See JSON response with sample products</li>
+                <li>See JSON response: <code>{"operation": "add", "a": 5, "b": 3, "result": 8}</code></li>
             </ol>
             
             <div class="note">
-                <strong>📌 Swagger:</strong> Auto-generated API documentation and testing UI!
+                <strong>📌 Swagger:</strong> Auto-generated API documentation and testing UI - all 8 endpoints are already documented!
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">8</span>Test All Endpoints via Swagger</h3>
-            <p>Test each endpoint:</p>
+            <h3><span class="step-number">7</span>Test All Calculator Endpoints via Swagger</h3>
+            <p>Test each mathematical operation:</p>
             <ul>
-                <li><strong>GET /api/products</strong> - Returns all products</li>
-                <li><strong>GET /api/products/1</strong> - Returns product with ID 1</li>
-                <li><strong>GET /api/categories</strong> - Returns all categories</li>
+                <li><strong>GET /api/calc/add?a=10&b=5</strong> - Returns 15</li>
+                <li><strong>GET /api/calc/subtract?a=10&b=5</strong> - Returns 5</li>
+                <li><strong>GET /api/calc/multiply?a=6&b=7</strong> - Returns 42</li>
+                <li><strong>GET /api/calc/divide?a=20&b=4</strong> - Returns 5</li>
+                <li><strong>GET /api/calc/power?base=2&exponent=3</strong> - Returns 8</li>
+                <li><strong>GET /api/calc/squareroot?number=16</strong> - Returns 4</li>
             </ul>
             
-            <p>Try the POST endpoint:</p>
+            <p>Test error handling:</p>
             <ol>
-                <li>Click <strong>POST /api/products</strong></li>
-                <li>Click <strong>Try it out</strong></li>
-                <li>Edit request body JSON:</li>
+                <li>Try <strong>GET /api/calc/divide?a=10&b=0</strong></li>
+                <li>See 400 Bad Request with error message: "Cannot divide by zero"</li>
             </ol>
-            <pre><code>{
-  "name": "New Widget",
-  "description": "Test product",
-  "price": 29.99,
-  "categoryId": 1
-}</code></pre>
-            <li>Click <strong>Execute</strong></li>
-            <li>See 201 Created response with new product</li>
+            
+            <p>Test info and status endpoints:</p>
+            <ul>
+                <li><strong>GET /api/info</strong> - Returns API version and name</li>
+                <li><strong>GET /api/status/health</strong> - Returns API health status</li>
+            </ul>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">9</span>Test with curl (Alternative)</h3>
+            <h3><span class="step-number">8</span>Test with curl (Alternative)</h3>
             <p>Open new terminal (keep API running):</p>
-            <pre><code># Get all products
-curl http://localhost:5000/api/products
+            <pre><code># Test addition
+curl "http://localhost:5000/api/calc/add?a=15&b=7"
 
-# Get specific product
-curl http://localhost:5000/api/products/1
+# Test division
+curl "http://localhost:5000/api/calc/divide?a=100&b=5"
 
-# Create new product
-curl -X POST http://localhost:5000/api/products \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test","description":"Test product","price":19.99,"categoryId":1}'</code></pre>
+# Test error handling (divide by zero)
+curl "http://localhost:5000/api/calc/divide?a=10&b=0"
+
+# Test power
+curl "http://localhost:5000/api/calc/power?base=3&exponent=4"
+
+# Test API info
+curl http://localhost:5000/api/info
+
+# Test health check
+curl http://localhost:5000/api/status/health</code></pre>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">10</span>Add a New Endpoint - Delete Product</h3>
-            <p>📍 <strong>Where to add:</strong> Open <code>Controllers/ProductsController.cs</code> and add this method <strong>INSIDE the ProductsController class</strong>, after the existing methods (like Create/Update):</p>
+            <h3><span class="step-number">9</span>Run Unit Tests</h3>
+            <p>Stop the API (Ctrl+C) and run the unit tests:</p>
+            <pre><code>cd ../..
+dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj --filter "FullyQualifiedName~Unit"</code></pre>
             
-            <div class="note">
-                <strong>Visual structure:</strong>
-                <pre>public class ProductsController : ControllerBase
-{
-    // ... existing methods (Get, GetById, Create, Update) ...
-    
-    <strong>// ADD THIS NEW Delete METHOD HERE (inside the class):</strong>
-    [HttpDelete("{id}")]
-    public async Task&lt;ActionResult&gt; Delete(int id)
-    {
-        // ... method code ...
-    }
-}  // ← Closing brace of class</pre>
+            <div class="success">
+                <strong>✅ Expected:</strong> All unit tests pass (testing CalculatorService methods)
             </div>
             
-            <pre><code>[HttpDelete("{id}")]
-public async Task&lt;ActionResult&gt; Delete(int id)
-{
-    var product = await _productService.GetProductByIdAsync(id);
-    if (product == null)
-        return NotFound(new { message = $"Product {id} not found" });
-    
-    await _productService.DeleteProductAsync(id);
-    return NoContent();  // 204 No Content
-}</code></pre>
+            <p>Unit tests verify:</p>
+            <ul>
+                <li>✅ Add operation works correctly</li>
+                <li>✅ Subtract operation works correctly</li>
+                <li>✅ Multiply operation works correctly</li>
+                <li>✅ Divide operation works correctly</li>
+                <li>✅ Divide by zero throws exception</li>
+                <li>✅ Power calculation works correctly</li>
+                <li>✅ Square root calculation works correctly</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Run Integration Tests</h3>
+            <p>Run integration tests that test actual HTTP endpoints:</p>
+            <pre><code>dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj --filter "FullyQualifiedName~Integration"</code></pre>
             
-            <div class="warning">
-                <strong>⚠️ Common Mistake:</strong> Don't add this method outside the class braces or in a different file!
+            <div class="success">
+                <strong>✅ Expected:</strong> All integration tests pass (testing CalcController endpoints via HTTP)
+            </div>
+            
+            <p>Integration tests verify:</p>
+            <ul>
+                <li>✅ /api/calc/add endpoint returns correct result</li>
+                <li>✅ /api/calc/subtract endpoint returns correct result</li>
+                <li>✅ /api/calc/divide handles zero correctly (400 Bad Request)</li>
+                <li>✅ /api/info endpoint returns API information</li>
+                <li>✅ /api/status/health endpoint returns healthy status</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>Run All Tests Together</h3>
+            <p>Run both unit and integration tests:</p>
+            <pre><code>dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj</code></pre>
+            
+            <div class="success">
+                <strong>✅ Expected:</strong> All tests pass (unit + integration)
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">11</span>Add Delete Method to Service</h3>
-            <p>📍 <strong>First:</strong> Open <code>Services/IProductService.cs</code> and add this method signature <strong>INSIDE the interface</strong>, after the existing method signatures:</p>
-            
+            <h3><span class="step-number">12</span>Understand Data Flow</h3>
             <div class="note">
-                <strong>Visual structure (interface):</strong>
-                <pre>public interface IProductService
-{
-    Task&lt;List&lt;Product&gt;&gt; GetAllProductsAsync();
-    Task&lt;Product?&gt; GetProductByIdAsync(int id);
-    Task&lt;Product&gt; CreateProductAsync(Product product);
-    
-    <strong>// ADD THIS NEW method signature HERE:</strong>
-    Task DeleteProductAsync(int id);
-}</pre>
-            </div>
-            
-            <pre><code>Task DeleteProductAsync(int id);</code></pre>
-            
-            <p>📍 <strong>Second:</strong> Open <code>Services/ProductService.cs</code> and add the implementation <strong>INSIDE the ProductService class</strong>, after the existing methods:</p>
-            
-            <div class="note">
-                <strong>Visual structure (implementation):</strong>
-                <pre>public class ProductService : IProductService
-{
-    // ... existing methods (GetAllProductsAsync, GetProductByIdAsync, etc.) ...
-    
-    <strong>// ADD THIS NEW implementation HERE:</strong>
-    public async Task DeleteProductAsync(int id)
-    {
-        // ... method code ...
-    }
-}  // ← Closing brace of class</pre>
-            </div>
-            
-            <pre><code>public async Task DeleteProductAsync(int id)
-{
-    var product = _dataStore.Products.FirstOrDefault(p => p.Id == id);
-    if (product != null)
-    {
-        _dataStore.Products.Remove(product);
-    }
-    await Task.CompletedTask;
-}</code></pre>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">12</span>Test New Delete Endpoint</h3>
-            <p>Stop and restart the API:</p>
-            <pre><code># Stop with Ctrl+C
-dotnet run</code></pre>
-            
-            <p>Refresh Swagger UI - you should now see:</p>
-            <div class="endpoint">DELETE /api/products/{id}</div>
-            
-            <p>Test it:</p>
-            <ol>
-                <li>Try it out</li>
-                <li>Enter id: 1</li>
-                <li>Execute</li>
-                <li>See 204 No Content response</li>
-                <li>Try GET /api/products - product 1 is gone!</li>
-            </ol>
-        </div>
-
-        <div class="step">
-            <h3><span class="step-number">13</span>Understand Data Flow</h3>
-            <div class="note">
-                <strong>📊 Request Flow:</strong>
+                <strong>📊 Request Flow for Calculator API:</strong>
                 <ol>
-                    <li><strong>HTTP Request</strong> → Arrives at controller endpoint</li>
-                    <li><strong>Controller</strong> → Validates input, calls service method</li>
-                    <li><strong>Service</strong> → Executes business logic</li>
-                    <li><strong>Data Store</strong> → Performs CRUD operation</li>
-                    <li><strong>Service</strong> → Returns data to controller</li>
-                    <li><strong>Controller</strong> → Formats HTTP response (Ok, NotFound, etc.)</li>
-                    <li><strong>HTTP Response</strong> → Returned to client</li>
+                    <li><strong>HTTP Request</strong> → GET /api/calc/add?a=5&b=3</li>
+                    <li><strong>CalcController</strong> → Receives request, extracts query parameters</li>
+                    <li><strong>CalcController</strong> → Calls _calculatorService.Add(5, 3)</li>
+                    <li><strong>CalculatorService</strong> → Executes business logic (5 + 3 = 8)</li>
+                    <li><strong>CalculatorService</strong> → Logs operation, returns result (8)</li>
+                    <li><strong>CalcController</strong> → Formats HTTP response: Ok(new { operation, a, b, result })</li>
+                    <li><strong>HTTP Response</strong> → 200 OK with JSON: {"operation": "add", "a": 5, "b": 3, "result": 8}</li>
                 </ol>
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">14</span>Understand Dependency Injection Benefits</h3>
+            <h3><span class="step-number">13</span>Understand Dependency Injection Benefits</h3>
             <div class="success">
-                <strong>✅ Why DI is Powerful:</strong>
+                <strong>✅ Why DI is Powerful in CapstoneApi:</strong>
                 <ul>
-                    <li><strong>Testability:</strong> Easy to mock services for unit tests</li>
-                    <li><strong>Flexibility:</strong> Swap implementations without changing controllers</li>
-                    <li><strong>Maintainability:</strong> Single responsibility - controllers handle HTTP, services handle logic</li>
-                    <li><strong>Decoupling:</strong> Controllers don't create service instances</li>
+                    <li><strong>Testability:</strong> Easy to mock CalculatorService for unit tests (as you saw in tests/)</li>
+                    <li><strong>Flexibility:</strong> Can swap CalculatorService with different implementation</li>
+                    <li><strong>Maintainability:</strong> Single responsibility - CalcController handles HTTP, CalculatorService handles math</li>
+                    <li><strong>Decoupling:</strong> CalcController doesn't create CalculatorService - it's injected</li>
+                    <li><strong>Logging:</strong> ILogger is also injected, enabling structured logging throughout</li>
                 </ul>
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">15</span>Compare to Minimal APIs (Bonus)</h3>
-            <p>ASP.NET Core also supports minimal API style (no controllers):</p>
-            <pre><code>// In Program.cs
-app.MapGet("/api/products", async (IProductService service) => 
-{
-    return await service.GetAllProductsAsync();
-});
-
-app.MapGet("/api/products/{id}", async (int id, IProductService service) =>
-{
-    var product = await service.GetProductByIdAsync(id);
-    return product is not null ? Results.Ok(product) : Results.NotFound();
-});</code></pre>
+            <h3><span class="step-number">14</span>Explore Test Architecture</h3>
+            <p>Examine the test structure:</p>
+            <pre><code>cat tests/CapstoneApi.Tests/Unit/CalculatorServiceTests.cs
+cat tests/CapstoneApi.Tests/Integration/CalcControllerTests.cs</code></pre>
             
             <div class="note">
-                <strong>📌 Two Approaches:</strong><br>
-                <strong>Controllers:</strong> Better for large APIs, organization, testability<br>
-                <strong>Minimal APIs:</strong> Better for small APIs, microservices, simplicity
+                <strong>📌 Two Test Layers:</strong><br>
+                <strong>Unit Tests:</strong> Test CalculatorService directly (isolated, fast)<br>
+                <strong>Integration Tests:</strong> Test full HTTP endpoints using WebApplicationFactory (realistic, slower)
             </div>
+            
+            <p>Integration tests use WebApplicationFactory to spin up an in-memory test server:</p>
+            <pre><code>public class CalcControllerTests : IClassFixture&lt;WebApplicationFactory&lt;Program&gt;&gt;
+{
+    private readonly HttpClient _client;
+    
+    public CalcControllerTests(WebApplicationFactory&lt;Program&gt; factory)
+    {
+        _client = factory.CreateClient();  // Test HTTP client
+    }
+    
+    [Fact]
+    public async Task Add_ReturnsCorrectResult()
+    {
+        var response = await _client.GetAsync("/api/calc/add?a=5&b=3");
+        // ... assertions
+    }
+}</code></pre>
         </div>
                 </tr>
                 <tr>
@@ -646,96 +654,110 @@ pwsh rollback.ps1</code></pre>
             </div>
         </div>
 
-        <h2>📊 Key Features Review</h2>
+        <h2>📊 Key Architecture Review</h2>
 
-        <h3>Service Architecture</h3>
+        <h3>What's Already Provided (Starter Code)</h3>
         <ul>
-            <li><strong>CalculatorService:</strong> Business logic with 6 mathematical operations</li>
-            <li><strong>Dependency Injection:</strong> Services registered and injected via DI</li>
-            <li><strong>Logging:</strong> Comprehensive logging with ILogger</li>
-            <li><strong>Error Handling:</strong> Try-catch blocks with appropriate HTTP status codes</li>
+            <li>✅ <strong>CalculatorService:</strong> 6 mathematical operations (Add, Subtract, Multiply, Divide, Power, SquareRoot)</li>
+            <li>✅ <strong>CalcController:</strong> HTTP endpoints for all operations with query parameters</li>
+            <li>✅ <strong>InfoController:</strong> API information endpoint</li>
+            <li>✅ <strong>StatusController:</strong> Health check endpoint</li>
+            <li>✅ <strong>Dependency Injection:</strong> Services registered in Program.cs</li>
+            <li>✅ <strong>Logging:</strong> Comprehensive logging with ILogger</li>
+            <li>✅ <strong>Error Handling:</strong> Try-catch with appropriate HTTP status codes</li>
+            <li>✅ <strong>Swagger:</strong> Auto-generated API documentation</li>
         </ul>
 
-        <h3>Testing Strategy</h3>
+        <h3>Testing Strategy (Already Implemented)</h3>
         <ul>
-            <li><strong>Unit Tests:</strong> Isolated service testing with xUnit</li>
-            <li><strong>Integration Tests:</strong> Full HTTP endpoint testing with WebApplicationFactory</li>
-            <li><strong>Theory Tests:</strong> Data-driven tests with InlineData</li>
-            <li><strong>Test Coverage:</strong> All critical paths covered</li>
+            <li>✅ <strong>Unit Tests:</strong> Isolated CalculatorService testing with xUnit</li>
+            <li>✅ <strong>Integration Tests:</strong> Full HTTP endpoint testing with WebApplicationFactory</li>
+            <li>✅ <strong>Theory Tests:</strong> Data-driven tests with [InlineData]</li>
+            <li>✅ <strong>Test Organization:</strong> Separate Unit/ and Integration/ folders</li>
+            <li>✅ <strong>Test Coverage:</strong> All critical paths covered</li>
         </ul>
 
-        <h3>DevOps Practices</h3>
+        <h3>DevOps Practices (Already Configured)</h3>
         <ul>
-            <li><strong>Artifact Management:</strong> Build artifacts with 1-hour expiration</li>
-            <li><strong>Environment Tracking:</strong> Staging environment with URL</li>
-            <li><strong>Version Control:</strong> Git-based workflow with feature branches</li>
-            <li><strong>Deployment Automation:</strong> PowerShell scripts for Windows compatibility</li>
-            <li><strong>Rollback Strategy:</strong> Backup and restore functionality</li>
+            <li>✅ <strong>.gitlab-ci.yml:</strong> Multi-stage CI/CD pipeline (build, unit-test, integration-test, deploy)</li>
+            <li>✅ <strong>Deployment Scripts:</strong> deploy.ps1/.sh and rollback.ps1/.sh</li>
+            <li>✅ <strong>Cross-Platform:</strong> PowerShell (Windows) and Bash (Linux) scripts</li>
+            <li>✅ <strong>Test Reporting:</strong> JunitXml.TestLogger configured for GitLab</li>
         </ul>
 
-        <h2>🎓 Capstone Checklist</h2>
+        <h2>🎓 Lab 8 Checklist</h2>
 
         <div class="verification">
             <h3>✅ Verify You Can:</h3>
             <ol>
-                <li>☐ Run the API locally and access Swagger UI</li>
-                <li>☐ Execute all 15 tests successfully</li>
-                <li>☐ Create GitLab repository and push code</li>
-                <li>☐ Trigger CI/CD pipeline and watch it complete</li>
-                <li>☐ View build artifacts in GitLab</li>
-                <li>☐ Deploy to staging using script</li>
-                <li>☐ Rollback to previous version</li>
-                <li>☐ Understand the migration from TFS legacy code</li>
+                <li>☐ Navigate the CapstoneApi project structure</li>
+                <li>☐ Understand Program.cs service registration and middleware</li>
+                <li>☐ Explain how CalculatorService implements business logic</li>
+                <li>☐ Explain how CalcController handles HTTP requests</li>
+                <li>☐ Run the API locally (dotnet run)</li>
+                <li>☐ Test endpoints via Swagger UI</li>
+                <li>☐ Test endpoints via curl</li>
+                <li>☐ Run unit tests successfully (--filter "FullyQualifiedName~Unit")</li>
+                <li>☐ Run integration tests successfully (--filter "FullyQualifiedName~Integration")</li>
+                <li>☐ Understand dependency injection benefits</li>
+                <li>☐ Understand test organization (Unit/ vs Integration/)</li>
+                <li>☐ Recognize WebApplicationFactory pattern for integration tests</li>
             </ol>
         </div>
 
         <div class="troubleshooting">
             <h3>🔧 Troubleshooting</h3>
             
-            <h4>Tests Failing Locally</h4>
+            <h4>API Won't Start</h4>
             <pre><code># Ensure .NET 8 SDK is installed
 dotnet --version
 
 # Clean and rebuild
+cd src/CapstoneApi
 dotnet clean
-dotnet build</code></pre>
+dotnet build
+dotnet run</code></pre>
             
-            <h4>Pipeline Fails on GitLab</h4>
+            <h4>Tests Failing Locally</h4>
+            <pre><code># Clean test artifacts
+cd tests/CapstoneApi.Tests
+dotnet clean
+dotnet build
+
+# Run tests with verbose output
+dotnet test --verbosity normal</code></pre>
+            
+            <h4>Swagger Not Loading</h4>
             <ul>
-                <li>Check GitLab Runner is available</li>
-                <li>Verify <code>.gitlab-ci.yml</code> syntax</li>
-                <li>Review pipeline logs for specific errors</li>
+                <li>Check API is running: Look for "Now listening on: http://localhost:5000"</li>
+                <li>Verify Swagger URL: http://localhost:5000/swagger (not /swagger/index.html)</li>
+                <li>Check Program.cs has app.UseSwagger() and app.UseSwaggerUI()</li>
             </ul>
             
-            <h4>Deployment Script Errors</h4>
+            <h4>Integration Tests Failing</h4>
             <ul>
-                <li>Ensure PowerShell 7+ is installed: <code>pwsh --version</code></li>
-                <li>Check file permissions in deployment directory</li>
-                <li>Verify publish folder exists</li>
+                <li>Ensure Program.cs has <code>public partial class Program { }</code> at the end</li>
+                <li>This is required for WebApplicationFactory to access Program class</li>
+                <li>Already fixed in starter code!</li>
             </ul>
         </div>
 
         <div class="success" style="margin-top: 30px; padding: 20px;">
-            <h2 style="color: #28a745; margin-top: 0;">🎉 Congratulations!</h2>
-            <p>You've completed the <strong>4-Day Git Enablement Program for .NET Developers</strong>!</p>
+            <h2 style="color: #28a745; margin-top: 0;">🎉 Lab 8 Complete!</h2>
+            <p>You've explored a complete ASP.NET Core Web API architecture!</p>
             
-            <h3>What You've Mastered:</h3>
+            <h3>What You've Learned:</h3>
             <ul>
-                <li>✅ <strong>Day 1:</strong> Git fundamentals and TFS migration</li>
-                <li>✅ <strong>Day 2:</strong> Branching, merge requests, and code review</li>
-                <li>✅ <strong>Day 3:</strong> CI/CD pipelines and deployment automation</li>
-                <li>✅ <strong>Day 4:</strong> Full SDLC with production-ready practices</li>
+                <li>✅ <strong>Project Structure:</strong> Controllers, Services, Tests organization</li>
+                <li>✅ <strong>Dependency Injection:</strong> How services are registered and injected</li>
+                <li>✅ <strong>Controller Pattern:</strong> HTTP handling with query parameters</li>
+                <li>✅ <strong>Service Pattern:</strong> Business logic separation</li>
+                <li>✅ <strong>Swagger:</strong> Auto-generated API documentation</li>
+                <li>✅ <strong>Testing:</strong> Unit tests vs Integration tests</li>
+                <li>✅ <strong>Error Handling:</strong> Try-catch with appropriate HTTP status codes</li>
             </ul>
             
-            <p><strong>You're now ready to:</strong></p>
-            <ul>
-                <li>🚀 Lead TFS to GitLab migrations in your organization</li>
-                <li>🚀 Build and maintain CI/CD pipelines</li>
-                <li>🚀 Implement modern DevOps practices</li>
-                <li>🚀 Mentor other developers on Git and GitLab</li>
-            </ul>
-            
-            <p style="font-size: 1.2em; font-weight: bold; color: #fc6d26;">Keep building amazing things! 🎯</p>
+            <p><strong>Next Step:</strong> Lab 9 will dive deeper into integration testing patterns and CI/CD deployment!</p>
         </div>
     </div>
 </body>
