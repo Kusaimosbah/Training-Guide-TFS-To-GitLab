@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 3 - Merge Requests & Code Review</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .objectives h3, .prerequisites h3, .verification h3, .troubleshooting h3 {
+            margin-top: 0;
+            color: #6e49cb;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔀 Lab 3: Merge Requests & Code Review</h1>
+        
+        <p><strong>Duration:</strong> 90 minutes | <strong>Time Slot:</strong> 11:00am - 12:30pm</p>
+        
+        <div class="prerequisites">
+            <h3>📋 Prerequisites</h3>
+            <ul>
+                <li>Completed <strong>Lab 2 (Feature Branching)</strong></li>
+                <li>Understanding of Git branches and merge concepts</li>
+                <li>GitLab account with project access</li>
+                <li>Calculator project from Lab 2 (or fresh clone)</li>
+                <li>Git and .NET 8 SDK installed</li>
+            </ul>
+        </div>
+
+        <div class="objectives">
+            <h3>🎯 Learning Objectives</h3>
+            <ol>
+                <li>Create and manage GitLab Issues to track work items</li>
+                <li>Create Merge Requests (MRs) from feature branches</li>
+                <li>Link Merge Requests to Issues using keywords</li>
+                <li>Perform code reviews by commenting on MRs</li>
+                <li>Request and respond to code review feedback</li>
+                <li>Use MR description templates and best practices</li>
+                <li>Merge changes and auto-close linked issues</li>
+                <li>Manage MR lifecycle from creation to merge</li>
+            </ol>
+        </div>
+
+        <div class="overview">
+            <h3>📖 Overview</h3>
+            <p><strong>Scenario:</strong> Your team follows a strict code review process. All changes must go through a Merge Request where at least one team member reviews the code before merging to main.</p>
+            
+            <p>In this lab, you will experience the complete Merge Request workflow:</p>
+            <ul>
+                <li>Create GitLab Issues to describe the work</li>
+                <li>Implement a Division feature for the Calculator</li>
+                <li>Create a Merge Request linking it to the issue</li>
+                <li>Add description, screenshots, and testing notes</li>
+                <li>Perform self-review and add review comments</li>
+                <li>Make changes based on review feedback</li>
+                <li>Merge the MR and see the issue auto-close</li>
+            </ul>
+        </div>
+
+        <h2>🔧 Step-by-Step Guide</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Navigate to Lab Folder</h3>
+            <p>Open terminal and navigate to this lab:</p>
+            <pre><code>cd "Day-2/Lab-3-Merge-Requests"
+ls  # Verify you have src/, tests/, .gitlab-ci.yml</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Initialize Repository and Push to GitLab</h3>
+            <pre><code># Initialize Git
+git init
+git add .
+git commit -m "Initial commit: Calculator with basic operations"
+
+# Create GitLab repository and push
+git remote add origin https://gitlab.alleen-ly.online/YOUR_USERNAME/calculator-merge-requests.git
+git branch -M main
+git push -u origin main</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Create a GitLab Issue</h3>
+            <p>Go to your GitLab project and create a new issue:</p>
+            <ol>
+                <li>Click <strong>Issues</strong> → <strong>New Issue</strong></li>
+                <li><strong>Title:</strong> Add Division Operation with Zero Validation</li>
+                <li><strong>Description:</strong></li>
+            </ol>
+            <pre><code>## Description
+Implement division operation for the Calculator service.
+
+## Requirements
+- Add `Divide(double a, double b)` method
+- Validate division by zero and throw ArgumentException
+- Include comprehensive unit tests
+
+## Acceptance Criteria
+- [ ] Divide method implemented
+- [ ] Zero validation with proper exception
+- [ ] Unit tests cover normal cases and edge cases
+- [ ] All tests passing locally and in CI/CD
+
+## Testing Notes
+- Test: 10 / 2 = 5
+- Test: 100 / 4 = 25
+- Test: 5 / 0 → ArgumentException</code></pre>
+            
+            <ol start="4">
+                <li>Set <strong>Labels:</strong> "feature", "enhancement"</li>
+                <li>Assign to yourself</li>
+                <li>Click <strong>Create Issue</strong></li>
+                <li><strong>Note the issue number</strong> (e.g., #1)</li>
+            </ol>
+            
+            <div class="note">
+                <strong>📌 Best Practice:</strong> Good issues include description, requirements, acceptance criteria, and testing notes. This helps reviewers understand the context.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Create Feature Branch</h3>
+            <pre><code>git checkout -b feature/division-operation
+git branch  # Verify you're on the new branch</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Implement Division Method</h3>
+            <p>Open <code>src/CalculatorApp/Services/CalculatorService.cs</code> in your editor.</p>
+            
+            <p><strong>📍 Where to add:</strong> Add this method INSIDE the <code>CalculatorService</code> class, after any existing methods (like Add, Subtract, Multiply, etc.). Make sure it's INSIDE the closing <code>}</code> of the class:</p>
+            
+            <pre><code>public class CalculatorService
+{
+    // ... existing methods like Add(), Subtract(), Multiply() ...
+    
+    // Add this NEW method here (before the closing brace):
+    public double Divide(double a, double b)
+    {
+        if (b == 0)
+        {
+            throw new ArgumentException("Cannot divide by zero", nameof(b));
+        }
+        return a / b;
+    }
+} // ← Make sure your method is BEFORE this closing brace!</code></pre>
+            
+            <div class="warning">
+                <strong>⚠️ Common Mistake:</strong> Don't add the method AFTER the class's closing <code>}</code>. It must be INSIDE the class!
+            </div>
+            
+            <p>Test locally:</p>
+            <pre><code>dotnet build
+dotnet test</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">6</span>Commit and Push</h3>
+            <pre><code>git add .
+git commit -m "feat: Add division operation with zero validation
+Related to #1"
+
+git push -u origin feature/division-operation</code></pre>
+            
+            <div class="note">
+                <strong>📌 Note:</strong> Use "Related to #1" in commits, and "Closes #1" in the MR description. This provides traceability without auto-closing prematurely.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">7</span>Create Merge Request</h3>
+            <p>Go to GitLab - you'll see a banner to create MR. Click it or:</p>
+            <ol>
+                <li>Go to <strong>Merge Requests</strong> → <strong>New merge request</strong></li>
+                <li>Select source: <code>feature/division-operation</code></li>
+                <li>Select target: <code>main</code></li>
+                <li>Click <strong>Compare branches and continue</strong></li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>Fill MR Description (Important!)</h3>
+            <p>Create a comprehensive MR description:</p>
+            <pre><code>## Overview
+Implements division operation for Calculator service with proper error handling.
+
+## Changes
+- ✅ Added `Divide(double a, double b)` method
+- ✅ Validation for division by zero
+- ✅ Throws ArgumentException with descriptive message
+- ✅ Unit tests included and passing
+
+## Testing Performed
+```bash
+dotnet test
+# Passed: 13, Failed: 0
+```
+
+Tested scenarios:
+- Normal division: 10 / 2 = 5 ✅
+- Large numbers: 100 / 4 = 25 ✅  
+- Division by zero: throws ArgumentException ✅
+
+## Screenshots
+*(In real project, add screenshots of test results or running application)*
+
+## Review Notes
+- Please verify exception message is user-friendly
+- Check test coverage for edge cases
+
+Closes #1</code></pre>
+            
+            <p>Additional settings:</p>
+            <ul>
+                <li>Check ✅ <strong>Delete source branch when merge request is accepted</strong></li>
+                <li>Assignee: Yourself (or assign a reviewer)</li>
+                <li>Milestone: Sprint 1 (if applicable)</li>
+                <li>Labels: "feature", "needs-review"</li>
+            </ul>
+            
+            <div class="success">
+                <strong>✅ Key Point:</strong> The phrase <code>Closes #1</code> at the end will automatically close issue #1 when this MR merges!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Perform Self-Review</h3>
+            <p>Click the <strong>Changes</strong> tab in your MR. Review your own code:</p>
+            
+            <ol>
+                <li>Hover over a line and click the <strong>comment icon</strong></li>
+                <li>Add a comment explaining a key decision:</li>
+            </ol>
+            
+            <pre><code>💡 Using ArgumentException here because the input parameter is invalid. 
+This is more appropriate than DivideByZeroException which is for runtime errors.</code></pre>
+            
+            <ol start="3">
+                <li>Click <strong>Start a review</strong> or <strong>Add comment now</strong></li>
+                <li>Add another comment on the validation:</li>
+            </ol>
+            
+            <pre><code>🔍 Reviewer note: Please verify this error message is clear to API consumers.</code></pre>
+            
+            <div class="note">
+                <strong>📌 Self-Review Benefits:</strong> Commenting on your own code helps reviewers understand your thinking and highlights areas needing attention.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Simulate Review Feedback</h3>
+            <p>In a real scenario, a teammate would review. Let's simulate feedback:</p>
+            
+            <p>Add another review comment (pretend you're the reviewer):</p>
+            <pre><code>❓ QUESTION: Should we also handle the case where `a` is zero? 
+Currently 0 / 5 = 0, which is correct, but worth documenting in a test.</code></pre>
+            
+            <p>And a suggestion:</p>
+            <pre><code>💡 SUGGESTION: Consider adding XML documentation comments:
+```csharp
+/// <summary>
+/// Divides two numbers.
+/// </summary>
+/// <param name="a">The dividend</param>
+/// <param name="b">The divisor</param>
+/// <returns>The quotient of a divided by b</returns>
+/// <exception cref="ArgumentException">Thrown when b is zero</exception>
+```</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>Address Review Feedback</h3>
+            <p>Make changes based on "reviewer" feedback:</p>
+            <ol>
+                <li>Add XML documentation to the Divide method</li>
+                <li>Add a test for zero dividend case</li>
+            </ol>
+            
+            <p>Commit the changes:</p>
+            <pre><code>git add .
+git commit -m "docs: Add XML documentation for Divide method
+
+- Added comprehensive XML doc comments
+- Included test for zero dividend case
+
+Addresses review feedback on MR !1"
+
+git push</code></pre>
+            
+            <p>Go back to the MR and reply to the review comments:</p>
+            <pre><code>✅ Good catch! Added XML documentation and test for 0 / n case.</code></pre>
+            
+            <div class="success">
+                <strong>✅ Collaboration:</strong> This iterative feedback process improves code quality and knowledge sharing!</div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">12</span>Check Pipeline Status</h3>
+            <p>Your MR automatically triggers CI/CD. Check the pipeline:</p>
+            <pre><code># In the MR page, click the pipeline status badge
+# Or go to: CI/CD → Pipelines</code></pre>
+            
+            <p>The pipeline should be green (✅ passed). If it fails, review the logs and fix issues.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Approve and Merge</h3>
+            <p>Once reviews are addressed and pipeline passes:</p>
+            <ol>
+                <li>Scroll to bottom of MR</li>
+                <li>Click <strong>Approve</strong> (if approvals are required)</li>
+                <li>Click <strong>Merge</strong></li>
+                <li>Select <strong>Merge commit</strong> (or Squash if preferred)</li>
+                <li>Confirm the merge</li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ Merged!</strong> The feature branch is deleted and issue #1 is automatically closed!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Verify Issue Closed</h3>
+            <p>Go to <strong>Issues</strong> and verify:</p>
+            <ul>
+                <li>Issue #1 shows as <strong>Closed</strong></li>
+                <li>It's linked to the merged MR</li>
+                <li>Closed timestamp matches the merge time</li>
+            </ul>
+            
+            <div class="note">
+                <strong>📌 Magic Keywords:</strong> <code>Closes #X</code>, <code>Fixes #X</code>, <code>Resolves #X</code> in MR description auto-close issues when merged to main.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Update Local Repository</h3>
+            <pre><code>git checkout main
+git pull origin main
+
+# Verify division feature is in main
+git log --oneline -5
+
+# Delete local feature branch
+git branch -d feature/division-operation</code></pre>
+        </div>
+
+        <div class="verification">
+            <h3>✔️ Verification Checklist</h3>
+            <p>You have successfully completed this lab if:</p>
+            <ul>
+                <li>✅ Created a well-documented GitLab issue</li>
+                <li>✅ Implemented division feature on a feature branch</li>
+                <li>✅ Created Merge Request with comprehensive description</li>
+                <li>✅ Added review comments on the MR</li>
+                <li>✅ Responded to review feedback with code changes</li>
+                <li>✅ Linked MR to issue using "Closes #X"</li>
+                <li>✅ Pipeline ran successfully on the MR</li>
+                <li>✅ Merged the MR to main</li>
+                <li>✅ Issue was automatically closed</li>
+                <li>✅ Feature branch was deleted</li>
+            </ul>
+            
+            <p><strong>GitLab Should Show:</strong></p>
+            <ul>
+                <li><strong>Issues → Closed:</strong> Issue #1 closed by MR</li>
+                <li><strong>Merge Requests → Merged:</strong> Your MR with all comments</li>
+                <li><strong>Repository → Commits:</strong> Merge commit in main</li>
+                <li><strong>CI/CD → Pipelines:</strong> Green pipeline for MR</li>
+            </ul>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>🔧 Troubleshooting</h3>
+            
+            <h4>Issue: Pipeline fails with "dotnet: command not found"</h4>
+            <p><strong>Solution:</strong> Check your <code>.gitlab-ci.yml</code> image. It should be <code>mcr.microsoft.com/dotnet/sdk:8.0</code></p>
+            
+            <h4>Issue: Tests fail in pipeline but pass locally</h4>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Check the pipeline logs for specific error messages</li>
+                <li>Ensure all project references are correct</li>
+                <li>Verify <code>dotnet restore</code> is run before <code>dotnet test</code></li>
+                <li>Check for environment-specific code that might behave differently</li>
+            </ul>
+            
+            <h4>Issue: "Permission denied" when pushing</h4>
+            <p><strong>Solution:</strong> Verify you have Developer or Maintainer role in the GitLab project.</p>
+            
+            <h4>Issue: MR shows "Merge blocked: pipeline must succeed"</h4>
+            <p><strong>Solution:</strong> This is intentional! Wait for the pipeline to finish. If it fails, fix the issues and push again.</p>
+            
+            <h4>Issue: Issue didn't auto-close after merge</h4>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Ensure you used keywords: <code>Fixes #X</code>, <code>Closes #X</code>, or <code>Resolves #X</code></li>
+                <li>Issue number must be correct</li>
+                <li>Must be merged to the default branch (main)</li>
+                <li>Try closing manually if keyword was missed</li>
+            </ul>
+            
+            <h4>Issue: Pipeline is not triggered</h4>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Check that <code>.gitlab-ci.yml</code> is in the root of the repository</li>
+                <li>Verify YAML syntax is correct (use a YAML validator)</li>
+                <li>Ensure GitLab Runners are available (check CI/CD Settings)</li>
+            </ul>
+        </div>
+
+        <h2>🎓 Key Takeaways</h2>
+        <ul>
+            <li><strong>Feature branches</strong> isolate work and enable parallel development</li>
+            <li><strong>Issues track work</strong> and provide context for changes</li>
+            <li><strong>Merge Requests</strong> enable code review before merging</li>
+            <li><strong>CI/CD pipelines</strong> automate testing and validation</li>
+            <li><strong>Unit tests</strong> catch bugs early and document expected behavior</li>
+            <li><strong>Auto-closing issues</strong> keeps your board clean and provides traceability</li>
+            <li><strong>Pipeline must pass</strong> before merging ensures code quality</li>
+        </ul>
+
+        <h2>📚 Additional Resources</h2>
+        <ul>
+            <li><a href="https://docs.gitlab.com/ee/user/project/issues/" target="_blank">GitLab Issues Documentation</a></li>
+            <li><a href="https://docs.gitlab.com/ee/user/project/merge_requests/" target="_blank">GitLab Merge Requests</a></li>
+            <li><a href="https://docs.gitlab.com/ee/ci/" target="_blank">GitLab CI/CD Documentation</a></li>
+            <li><a href="https://xunit.net/" target="_blank">xUnit Testing Framework</a></li>
+            <li><a href="https://docs.microsoft.com/en-us/dotnet/core/testing/" target="_blank">.NET Testing Guide</a></li>
+        </ul>
+
+        <hr style="margin: 40px 0;">
+        
+        <p style="text-align: center; color: #666;">
+            <strong>Next Lab:</strong> Day 3 - CI/CD Deployment to Staging & Rollback
+        </p>
+    </div>
+</body>
+</html>

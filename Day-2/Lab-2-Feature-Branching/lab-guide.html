@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Day 2 - Branching, Merge Requests & CI/CD</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .objectives h3, .prerequisites h3, .verification h3, .troubleshooting h3 {
+            margin-top: 0;
+            color: #6e49cb;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌿 Lab 2: Feature Branching Workflows</h1>
+        
+        <div class="prerequisites">
+            <h3>📋 Prerequisites</h3>
+            <ul>
+                <li>Completed <strong>Lab 0 & Lab 1</strong> (Day 1)</li>
+                <li>Git installed and configured</li>
+                <li>.NET 8 SDK installed</li>
+                <li>GitLab account on <a href="https://gitlab.alleen-ly.online" target="_blank">https://gitlab.alleen-ly.online</a></li>
+                <li>Text editor or IDE (VS Code, Visual Studio)</li>
+            </ul>
+            <p><strong>Duration:</strong> 90 minutes<br>
+            <strong>Time Slot:</strong> 9:00am - 10:30am</p>
+        </div>
+
+        <div class="objectives">
+            <h3>🎯 Learning Objectives</h3>
+            <ol>
+                <li>Understand Git branching strategies (feature branch workflow)</li>
+                <li>Create and manage feature branches effectively</li>
+                <li>Practice branch naming conventions</li>
+                <li>Work on multiple features in parallel using branches</li>
+                <li>Merge branches using fast-forward and 3-way merge</li>
+                <li>Resolve simple merge conflicts</li>
+                <li>Clean up and delete merged branches</li>
+                <li>Visualize branch history with Git logs</li>
+            </ol>
+        </div>
+
+        <div class="overview">
+            <h3>📖 Overview</h3>
+            <p>This lab focuses on <strong>Git branching workflows</strong> used in modern development teams. You'll practice the feature branch workflow where each new feature is developed in a dedicated branch, keeping the main branch stable.</p>
+            
+            <p><strong>What You'll Do:</strong></p>
+            <ul>
+                <li>✅ Create a Calculator application from scratch</li>
+                <li>✅ Develop 3 different features in separate branches</li>
+                <li>✅ Practice proper branch naming conventions</li>
+                <li>✅ Merge branches back to main</li>
+                <li>✅ Handle merge conflicts when they arise</li>
+                <li>✅ Visualize branch history and understand Git graphs</li>
+            </ul>
+            
+            <p><strong>Real-World Scenario:</strong> You're building a Calculator library for your team. Each mathematical operation will be developed in its own feature branch, simulating how teams work on multiple features simultaneously.</p>
+        </div>
+
+        <h2>🔧 Step-by-Step Guide</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Navigate to Lab Folder</h3>
+            <p>Open terminal and navigate to this lab:</p>
+            <pre><code>cd "Day-2/Lab-2-Feature-Branching"
+ls  # or dir on Windows</code></pre>
+            
+            <p>You should see the provided project structure:</p>
+            <ul>
+                <li><code>src/</code> - Calculator application source code</li>
+                <li><code>tests/</code> - Unit tests (xUnit)</li>
+                <li><code>.gitlab-ci.yml</code> - CI/CD configuration</li>
+                <li><code>.gitignore</code> - Git ignore rules</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Initialize Git Repository</h3>
+            <p>Create a new Git repository for this lab:</p>
+            <pre><code># Initialize Git
+git init
+
+# Add all files
+git add .
+
+# Create initial commit
+git commit -m "Initial commit: Calculator project setup"
+
+# View commit history
+git log --oneline</code></pre>
+            
+            <div class="success">
+                <strong>✅ Checkpoint:</strong> You should see 1 commit in your history. Your <code>main</code> branch is now created with the initial project structure.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Create GitLab Repository</h3>
+            <p>Push your repository to GitLab:</p>
+            <pre><code># Replace YOUR_USERNAME with your GitLab username
+git remote add origin https://gitlab.alleen-ly.online/YOUR_USERNAME/calculator-branching.git
+git branch -M main
+git push -u origin main</code></pre>
+            
+            <p>Go to GitLab and verify your repository is there with the initial commit.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Create Feature Branch: Addition Operation</h3>
+            <p>Let's add an addition operation to the calculator. Create your first feature branch:</p>
+            <pre><code># Create and switch to new branch
+git checkout -b feature/add-operation
+
+# Verify you're on the new branch
+git branch
+git status</code></pre>
+            
+            <div class="note">
+                <strong>📌 Branch Naming:</strong> Use descriptive names with prefixes: <code>feature/</code>, <code>bugfix/</code>, <code>hotfix/</code>. This helps organize work.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Implement Add Method</h3>
+            <p>Open <code>src/CalculatorApp/Services/CalculatorService.cs</code> in your editor.</p>
+            
+            <p><strong>📍 Where to add:</strong> Inside the <code>CalculatorService</code> class, between the opening <code>{</code> and closing <code>}</code> braces. Add this method after the TODO comment:</p>
+            
+            <pre><code>public class CalculatorService
+{
+    // Add this method here (replace the TODO comment):
+    public double Add(double a, double b)
+    {
+        return a + b;
+    }
+}</code></pre>
+            
+            <div class="note">
+                <strong>💡 Tip:</strong> Your file should look like this after adding the method. Make sure it's INSIDE the class braces!
+            </div>
+            
+            <p>Check what Git sees:</p>
+            <pre><code>git status
+git diff</code></pre>
+            
+            <p>Commit this change:</p>
+            <pre><code>git add .
+git commit -m "feat: Add addition operation to Calculator"</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">6</span>Create Feature Branch: Subtraction</h3>
+            <p>Switch back to main and create another feature branch:</p>
+            <pre><code># Switch to main
+git checkout main
+
+# Create new branch from main
+git checkout -b feature/subtract-operation
+
+# Verify branch
+git log --oneline --graph --all</code></pre>
+            
+            <p>Notice: <code>feature/add-operation</code> is ahead of main by 1 commit.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">7</span>Implement Subtract Method</h3>
+            <p>Open <code>src/CalculatorApp/Services/CalculatorService.cs</code> again.</p>
+            
+            <p><strong>📍 Where to add:</strong> Add this method INSIDE the class, after the TODO comment (the class is currently empty on this branch since we branched from main):</p>
+            
+            <pre><code>public class CalculatorService
+{
+    // Add this method here:
+    public double Subtract(double a, double b)
+    {
+        return a - b;
+    }
+}</code></pre>
+            
+            <p>Commit the change:</p>
+            <pre><code>git add .
+git commit -m "feat: Add subtraction operation to Calculator"
+
+# View the branching history
+git log --oneline --graph --all --decorate</code></pre>
+            
+            <div class="success">
+                <strong>✅ Parallel Development:</strong> You now have two feature branches developing independently from main!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>Merge Addition Feature to Main</h3>
+            <p>Let's merge the addition feature first:</p>
+            <pre><code># Switch to main branch
+git checkout main
+
+# Merge feature/add-operation
+git merge feature/add-operation
+
+# View the result
+git log --oneline --graph --all</code></pre>
+            
+            <p>This is a <strong>fast-forward merge</strong> because main hasn't changed since the branch was created.</p>
+            
+            <div class="note">
+                <strong>📌 Fast-Forward Merge:</strong> When the target branch hasn't diverged, Git simply moves the pointer forward. No merge commit is created.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Merge Subtraction Feature (No Conflict)</h3>
+            <p>Now merge the subtraction feature:</p>
+            <pre><code># Make sure you're on main
+git checkout main
+
+# Merge feature/subtract-operation
+git merge feature/subtract-operation
+
+# View the merge commit
+git log --oneline --graph --all</code></pre>
+            
+            <p>This creates a <strong>merge commit</strong> because main and the feature branch have diverged.</p>
+            
+            <div class="success">
+                <strong>✅ Three-Way Merge:</strong> Git created a merge commit combining both branches. Your history shows both features developed in parallel.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Create Conflicting Branches</h3>
+            <p>Now let's create a conflict scenario. Create two branches that modify the same line:</p>
+            <pre><code># Branch 1: Multiply
+git checkout -b feature/multiply-operation
+</code></pre>
+            
+            <p>Open <code>src/CalculatorApp/Services/CalculatorService.cs</code>.</p>
+            
+            <p><strong>📍 Where to add:</strong> Add the Multiply method INSIDE the class (after existing methods from main):</p>
+            
+            <pre><code>public class CalculatorService
+{
+    public double Add(double a, double b) { return a + b; }
+    public double Subtract(double a, double b) { return a - b; }
+    
+    // Add this NEW method here:
+    public double Multiply(double a, double b)
+    {
+        return a * b; // Using multiplication operator
+    }
+}</code></pre>
+            
+            <p>Commit it:</p>
+            <pre><code>git add .
+git commit -m "feat: Add multiplication operation"</code></pre>
+            
+            <p>Switch back and create another branch:</p>
+            <pre><code>git checkout main
+git checkout -b feature/divide-operation</code></pre>
+            
+            <p>Open <code>src/CalculatorApp/Services/CalculatorService.cs</code>.</p>
+            
+            <p><strong>📍 Where to add:</strong> Add the Divide method INSIDE the class (after existing methods from main). This will create a conflict because both branches add methods:</p>
+            
+            <pre><code>public class CalculatorService
+{
+    public double Add(double a, double b) { return a + b; }
+    public double Subtract(double a, double b) { return a - b; }
+    
+    // Add this NEW method here (same location as Multiply branch!):
+    public double Divide(double a, double b)
+    {
+        if (b == 0) throw new ArgumentException("Cannot divide by zero");
+        return a / b;
+}</code></pre>
+            
+            <p>Commit it:</p>
+            <pre><code>git add .
+git commit -m "feat: Add division operation with validation"</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>Merge First Branch Successfully</h3>
+            <p>Merge multiply first:</p>
+            <pre><code>git checkout main
+git merge feature/multiply-operation
+
+# Check the result
+git log --oneline --graph --all</code></pre>
+            
+            <p>This merges successfully.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">12</span>Experience a Merge Conflict</h3>
+            <p>Now try to merge the division branch:</p>
+            <pre><code>git merge feature/divide-operation</code></pre>
+            
+            <p>You'll see:</p>
+            <pre><code>Auto-merging src/CalculatorApp/Services/CalculatorService.cs
+CONFLICT (content): Merge conflict in src/CalculatorApp/Services/CalculatorService.cs
+Automatic merge failed; fix conflicts and then commit the result.</code></pre>
+            
+            <p>Check the status:</p>
+            <pre><code>git status</code></pre>
+            
+            <div class="note">
+                <strong>📌 Merge Conflict:</strong> Git cannot automatically decide which changes to keep when both branches modify the same lines.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Resolve the Merge Conflict</h3>
+            <p>Open <code>src/CalculatorApp/Services/CalculatorService.cs</code>. You'll see conflict markers:</p>
+            <pre><code><<<<<<< HEAD
+    public double Multiply(double a, double b)
+    {
+        return a * b;
+    }
+=======
+    public double Divide(double a, double b)
+    {
+        if (b == 0) throw new ArgumentException("Cannot divide by zero");
+        return a / b;
+    }
+>>>>>>> feature/divide-operation</code></pre>
+            
+            <p>Resolve by keeping BOTH methods (remove conflict markers):</p>
+            <pre><code>    public double Multiply(double a, double b)
+    {
+        return a * b;
+    }
+
+    public double Divide(double a, double b)
+    {
+        if (b == 0) throw new ArgumentException("Cannot divide by zero");
+        return a / b;
+    }</code></pre>
+            
+            <p>Complete the merge:</p>
+            <pre><code>git add .
+git status  # Shows "All conflicts fixed"
+git commit -m "merge: Resolve conflict between multiply and divide features"</code></pre>
+            
+            <div class="success">
+                <strong>✅ Conflict Resolved:</strong> You manually combined both changes and created a merge commit!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Visualize Branch History</h3>
+            <p>See the complete branch history with all merges:</p>
+            <pre><code># Detailed graph view
+git log --oneline --graph --all --decorate
+
+# Simplified view
+git log --graph --oneline --all</code></pre>
+            
+            <p>You should see a branching diagram showing:</p>
+            <ul>
+                <li>Initial commit</li>
+                <li>Addition branch merged</li>
+                <li>Subtraction branch merged</li>
+                <li>Multiply and divide branches diverging and merging with conflict resolution</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Clean Up Feature Branches</h3>
+            <p>Delete merged feature branches:</p>
+            <pre><code># Delete local branches
+git branch -d feature/add-operation
+git branch -d feature/subtract-operation
+git branch -d feature/multiply-operation
+git branch -d feature/divide-operation
+
+# List remaining branches
+git branch
+
+# Push to GitLab
+git push -u origin main</code></pre>
+            
+            <div class="note">
+                <strong>📌 Branch Cleanup:</strong> Always delete merged branches to keep your repository clean. Use <code>-d</code> (safe) or <code>-D</code> (force).
+            </div>
+        </div>
+
+        <div class="verification">
+            <h3>✔️ Verification Checklist</h3>
+            <p>You have successfully completed this lab if:</p>
+            <ul>
+                <li>✅ Created multiple feature branches from main</li>
+                <li>✅ Implemented Add, Subtract, Multiply, and Divide methods on separate branches</li>
+                <li>✅ Performed a fast-forward merge (addition)</li>
+                <li>✅ Performed a three-way merge (subtraction)</li>
+                <li>✅ Created a merge conflict scenario</li>
+                <li>✅ Resolved merge conflicts manually</li>
+                <li>✅ Visualized branch history with <code>git log --graph</code></li>
+                <li>✅ Cleaned up merged feature branches</li>
+                <li>✅ Calculator has all four operations working</li>
+                <li>✅ Pushed final result to GitLab</li>
+            </ul>
+            
+            <p><strong>Your Git History Should Show:</strong></p>
+            <ul>
+                <li>Multiple branch points from main</li>
+                <li>Parallel development paths</li>
+                <li>Merge commits combining branches</li>
+                <li>A merge conflict resolution commit</li>
+            </ul>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>🔧 Troubleshooting</h3>
+            
+            <h4>Issue: "Already on 'main'" when trying to checkout</h4>
+            <p><strong>Solution:</strong> You're already on that branch. Use <code>git branch</code> to see current branch.</p>
+            
+            <h4>Issue: Cannot switch branches - "uncommitted changes"</h4>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Commit your changes: <code>git add . && git commit -m "message"</code></li>
+                <li>Stash your changes: <code>git stash</code> (retrieve later with <code>git stash pop</code>)</li>
+                <li>Discard changes: <code>git checkout .</code> (careful - this loses work!)</li>
+            </ul>
+            
+            <h4>Issue: "fatal: refusing to merge unrelated histories"</h4>
+            <p><strong>Solution:</strong> This means branches don't share a common ancestor. Use <code>git merge --allow-unrelated-histories</code></p>
+            
+            <h4>Issue: Conflict markers still showing after resolution</h4>
+            <p><strong>Solution:</strong> Make sure you removed ALL conflict markers: <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code></p>
+            
+            <h4>Issue: "error: branch already exists"</h4>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Use a different branch name</li>
+                <li>Delete existing branch first: <code>git branch -d branch-name</code></li>
+                <li>Switch to existing branch: <code>git checkout branch-name</code></li>
+            </ul>
+            
+            <h4>Issue: Lost track of branches</h4>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>List all branches: <code>git branch -a</code></li>
+                <li>Visualize: <code>git log --graph --oneline --all</code></li>
+                <li>See current branch: <code>git branch</code> (shows * next to current)</li>
+            </ul>
+        </div>
+
+        <h2>🎓 Key Takeaways</h2>
+        <ul>
+            <li><strong>Feature branches</strong> enable parallel development without interfering with main</li>
+            <li><strong>Fast-forward merges</strong> occur when target branch hasn't changed</li>
+            <li><strong>Three-way merges</strong> combine diverged branches and create merge commits</li>
+            <li><strong>Merge conflicts</strong> happen when same lines are modified in both branches</li>
+            <li><strong>Conflict resolution</strong> requires manual decision-making - keep both, keep one, or create new solution</li>
+            <li><strong>Branch visualization</strong> with <code>git log --graph</code> helps understand project history</li>
+            <li><strong>Branch cleanup</strong> keeps repository organized and prevents confusion</li>
+            <li><strong>Branching strategy</strong> is foundation for GitLab workflow and collaboration</li>
+        </ul>
+
+        <h2>📚 Additional Resources</h2>
+        <ul>
+            <li><a href="https://docs.gitlab.com/ee/user/project/issues/" target="_blank">GitLab Issues Documentation</a></li>
+            <li><a href="https://docs.gitlab.com/ee/user/project/merge_requests/" target="_blank">GitLab Merge Requests</a></li>
+            <li><a href="https://docs.gitlab.com/ee/ci/" target="_blank">GitLab CI/CD Documentation</a></li>
+            <li><a href="https://xunit.net/" target="_blank">xUnit Testing Framework</a></li>
+            <li><a href="https://docs.microsoft.com/en-us/dotnet/core/testing/" target="_blank">.NET Testing Guide</a></li>
+        </ul>
+
+        <hr style="margin: 40px 0;">
+        
+        <p style="text-align: center; color: #666;">
+            <strong>Next Lab:</strong> Day 3 - CI/CD Deployment to Staging & Rollback
+        </p>
+    </div>
+</body>
+</html>

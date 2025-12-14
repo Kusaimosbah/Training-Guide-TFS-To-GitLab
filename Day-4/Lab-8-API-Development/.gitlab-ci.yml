@@ -1,0 +1,156 @@
+# ============================================
+# GitLab CI/CD Pipeline for Lab 8 - API Development
+# ============================================
+# Complete CI/CD pipeline for Capstone Web API
+# Pipeline stages: BUILD → TEST → DEPLOY_STAGING → QUALITY_GATE → ROLLBACK
+# Demonstrates professional API development workflow with quality checks
+# ============================================
+
+# Define pipeline stages
+stages:
+  - build              # First: Compile and publish API
+  - test              # Second: Run all tests
+  - deploy_staging    # Third: Deploy to staging
+  - quality_gate      # Fourth: Quality analysis
+  - rollback          # Fifth: Manual rollback if needed
+
+# Global variables
+variables:
+  DOTNET_VERSION: "8.0"                          # .NET SDK version
+  PROJECT_PATH: "src/CapstoneApi/CapstoneApi.csproj"  # API project path
+  TEST_PATH: "tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj"  # Test project path
+  ARTIFACTS_PATH: "publish"                      # Output directory
+
+# ============================================
+# BUILD JOB - Compile and publish Web API
+# ============================================
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0        # .NET 8 SDK
+  script:
+    - echo "🔨 Building Capstone API..."
+    - dotnet restore $PROJECT_PATH               # Restore NuGet packages
+    - dotnet build $PROJECT_PATH --configuration Release --no-restore
+    - dotnet publish $PROJECT_PATH --configuration Release --output $ARTIFACTS_PATH --no-build
+    - echo "✅ Build completed successfully"
+  artifacts:                                      # Save published API
+    paths:
+      - $ARTIFACTS_PATH/                         # Published application
+    expire_in: 1 hour                           # Short retention for staging
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# ============================================
+# TEST JOB - Run unit and integration tests
+# ============================================
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo \"🧪 Running unit and integration tests...\"
+    - dotnet restore $TEST_PATH                  # Restore test dependencies
+    - echo \"Installing JUnit logger for test reports...\"
+    - dotnet add $TEST_PATH package JunitXml.TestLogger
+    # Run tests with JUnit logger for GitLab test reporting
+    - dotnet test $TEST_PATH --configuration Release --no-restore --logger \"console;verbosity=normal\" --logger \"junit;LogFileName=test-results.xml\"
+    - echo \"✅ All tests passed\"
+  artifacts:                                      # Save test results
+    when: always                                 # Save even if tests fail
+    paths:
+      - tests/CapstoneApi.Tests/TestResults/test-results.xml
+    reports:                                     # GitLab test report integration
+      junit: tests/CapstoneApi.Tests/TestResults/test-results.xml
+    expire_in: 7 days
+  dependencies:
+    - build
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# ============================================
+# DEPLOY_STAGING JOB - Deploy to staging environment
+# ============================================
+# Simulates deployment to staging environment
+# In production, this would deploy to Azure App Service, AWS, or Kubernetes
+# ============================================
+deploy_staging:
+  stage: deploy_staging
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "🚀 Deploying to staging environment..."
+    - echo "Running deployment script..."
+    # Simulate deployment (in real scenario, use Azure, AWS, or Kubernetes)
+    - mkdir -p staging                           # Create staging directory
+    - cp -r $ARTIFACTS_PATH/* staging/          # Copy published files
+    # Create deployment info file with timestamp and pipeline ID
+    - echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") - Version 1.0.$CI_PIPELINE_ID deployed" > staging/deployment-info.txt
+    - echo "✅ Deployment to staging completed"
+    - echo "📊 Application accessible at: https://staging.example.com"
+  artifacts:                                      # Save staging deployment
+    paths:
+      - staging/                                 # Staging directory
+    expire_in: 7 days
+  environment:                                   # Environment tracking
+    name: staging
+    url: https://staging.example.com
+  dependencies:
+    - build
+    - test
+  only:
+    - main
+
+# ============================================
+# QUALITY_GATE JOB - Code quality analysis (Simulated)
+# ============================================
+# Placeholder for quality checks and code analysis
+# In production, integrate with SonarQube or similar tools
+# ============================================
+quality_gate:
+  stage: quality_gate
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "🔍 Running quality checks..."
+    - echo "📊 Code coverage analysis..."
+    - echo "⚠️  SonarQube integration would run here in production"
+    - echo "✅ Quality gate passed (simulated)"
+    # In production, integrate with SonarQube:
+    # - sonar-scanner -Dsonar.projectKey=capstone-api -Dsonar.sources=src
+  allow_failure: true                            # Don't block pipeline if quality gate fails
+  dependencies:
+    - test
+  only:
+    - main
+    - merge_requests
+
+# ============================================
+# ROLLBACK_STAGING JOB - Restore previous version (MANUAL)
+# ============================================
+# Manually triggered to rollback staging deployment
+# Restores backup if available
+# ============================================
+rollback_staging:
+  stage: rollback
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "⏪ Rolling back staging deployment..."
+    - echo "Restoring previous version from backup..."
+    # Check if backup exists, then restore
+    - |
+      if [ -d "backups/staging-backup" ]; then
+        rm -rf staging                           # Remove current deployment
+        cp -r backups/staging-backup staging     # Restore backup
+        echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") - Rollback completed" >> staging/rollback-info.txt
+        echo "✅ Rollback completed successfully"
+      else
+        echo "❌ No backup found - cannot rollback"
+        exit 1
+      fi
+  when: manual                                   # Must be triggered manually
+  environment:
+    name: staging
+    url: https://staging.example.com
+  only:
+    - main

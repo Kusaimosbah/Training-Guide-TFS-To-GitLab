@@ -1,0 +1,84 @@
+# ============================================
+# GitLab CI/CD Pipeline for Lab 2 - Feature Branching
+# ============================================
+# This pipeline automatically validates your code:
+# - BUILD: Compiles the .NET Calculator application
+# - TEST: Runs unit tests to ensure code quality
+#
+# Runs on every push and merge request
+# ============================================
+
+# Define pipeline execution stages (run in order)
+stages:
+  - build      # First: Compile the code
+  - test       # Second: Run tests
+
+# Global variables for all jobs
+variables:
+  # .NET version (must match your project's target framework)
+  DOTNET_VERSION: "8.0"
+  
+  # Performance: disable telemetry and welcome messages
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+  DOTNET_NOLOGO: "true"
+
+# ============================================
+# BUILD JOB - Compile the application
+# ============================================
+build:
+  stage: build                                    # Runs in "build" stage
+  image: mcr.microsoft.com/dotnet/sdk:8.0        # Docker container with .NET SDK
+  script:
+    - echo "Starting build process..."
+    - dotnet restore src/CalculatorApp/CalculatorApp.csproj    # Download dependencies
+    - dotnet build src/CalculatorApp/CalculatorApp.csproj --configuration Release --no-restore  # Compile
+    - echo "Build completed successfully!"
+  artifacts:                                      # Save build output
+    paths:
+      - src/CalculatorApp/bin/Release/          # Compiled files location
+    expire_in: 1 hour                           # Keep for 1 hour
+  only:                                          # When to run
+    - main                                       # On main branch
+    - merge_requests                             # On merge requests
+    - branches                                   # On all branches
+
+# ============================================
+# TEST JOB - Run unit tests
+# ============================================
+test:
+  stage: test                                     # Runs in "test" stage (after build)
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Restoring test project dependencies..."
+    - dotnet restore tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj
+    - echo "Installing JUnit logger for test reports..."
+    - dotnet add tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj package JunitXml.TestLogger
+    - echo "Running unit tests..."
+    - dotnet test tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj --configuration Release --no-restore --logger "console;verbosity=detailed" --logger "junit;LogFileName=test-results.xml"
+    - echo "All tests passed!"
+  artifacts:
+    when: always
+    paths:
+      - tests/CalculatorApp.Tests/TestResults/test-results.xml
+    reports:
+      junit: tests/CalculatorApp.Tests/TestResults/test-results.xml
+    expire_in: 7 days
+  dependencies:                                   # Wait for build job first
+    - build
+  only:
+    - main
+    - merge_requests
+    - branches
+  coverage: '/Total\s+\|\s+(\d+\.?\d*)%/'      # Extract coverage % (if available)
+
+# Optional: Code quality job (can be enabled later)
+# code_quality:
+#   stage: test
+#   image: mcr.microsoft.com/dotnet/sdk:8.0
+#   script:
+#     - dotnet tool install --global dotnet-reportgenerator-globaltool
+#     - dotnet test tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+#   only:
+#     - main
+#     - merge_requests

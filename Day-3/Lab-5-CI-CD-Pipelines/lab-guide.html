@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 5 - Advanced CI/CD Pipelines</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ Lab 5: Advanced CI/CD Pipelines</h1>
+        
+        <p><strong>Duration:</strong> 90 minutes | <strong>Time Slot:</strong> 9:00am - 10:30am (Day 3)</p>
+        
+        <div class="prerequisites">
+            <h3>📋 Prerequisites</h3>
+            <ul>
+                <li>Completed <strong>Lab 4 (CI/CD Testing)</strong></li>
+                <li>Understanding of basic .gitlab-ci.yml structure</li>
+                <li>Familiarity with YAML syntax</li>
+                <li>.NET 8 SDK and Git installed</li>
+                <li>GitLab account with CI/CD access</li>
+            </ul>
+        </div>
+
+        <div class="objectives">
+            <h3>🎯 Learning Objectives</h3>
+            <ol>
+                <li>Build multi-stage pipelines (build → test → package → deploy)</li>
+                <li>Use pipeline artifacts to pass data between jobs</li>
+                <li>Configure environment variables and secrets</li>
+                <li>Implement conditional job execution with rules</li>
+                <li>Add manual approval gates for controlled deployments</li>
+                <li>Use caching to speed up pipeline execution</li>
+                <li>Run parallel jobs for improved efficiency</li>
+                <li>Understand pipeline optimization techniques</li>
+            </ol>
+        </div>
+
+        <div class="overview">
+            <h3>📖 Overview</h3>
+            <p><strong>Scenario:</strong> Your basic pipeline works, but takes too long and lacks control. You need advanced features like artifacts, caching, manual gates, and parallel execution.</p>
+            
+            <p>In this lab, you will build a sophisticated pipeline:</p>
+            <ul>
+                <li>Create 4-stage pipeline: build, test, package, deploy</li>
+                <li>Pass compiled artifacts between stages</li>
+                <li>Cache NuGet packages to speed up builds</li>
+                <li>Run multiple test jobs in parallel</li>
+                <li>Add manual approval before deployment</li>
+                <li>Use variables for configuration</li>
+                <li>Implement conditional jobs (production vs feature branches)</li>
+            </ul>
+        </div>
+
+        <h2>🔧 Step-by-Step Guide</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Navigate to Lab Folder</h3>
+            <pre><code>cd "Day-3/Lab-5-CI-CD-Pipelines"
+ls  # Verify src/, tests/, .gitlab-ci.yml</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Start with Basic Pipeline</h3>
+            <p>Create a simple .gitlab-ci.yml with just build and test:</p>
+            <pre><code>stages:
+  - build
+  - test
+
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet restore
+    - dotnet build --configuration Release --no-restore
+  artifacts:
+    paths:
+      - src/*/bin/Release/
+    expire_in: 1 hour
+
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet test --configuration Release --no-build
+  dependencies:
+    - build</code></pre>
+            
+            <div class="note">
+                <strong>📌 Notice:</strong> Build job produces artifacts that test job consumes via dependencies.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Initialize and Push</h3>
+            <pre><code>git init
+git add .
+git commit -m "Initial: Basic 2-stage pipeline"
+git remote add origin https://gitlab.alleen-ly.online/YOUR_USERNAME/advanced-pipeline.git
+git branch -M main
+git push -u origin main</code></pre>
+            
+            <p>Watch the pipeline run. Note the execution time.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Add Caching to Speed Up Pipeline</h3>
+            <p>Update .gitlab-ci.yml to cache NuGet packages:</p>
+            <pre><code>variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  NUGET_PACKAGES: '.nuget'
+
+cache:
+  paths:
+    - .nuget/
+
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet restore --packages $NUGET_PACKAGES
+    - dotnet build --configuration Release --no-restore
+  artifacts:
+    paths:
+      - src/*/bin/Release/
+    expire_in: 1 hour</code></pre>
+            
+            <div class="success">
+                <strong>✅ Performance:</strong> Subsequent runs will be faster because packages are cached!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Add Package Stage with Artifacts</h3>
+            <p>Add a new stage to create deployment package:</p>
+            <pre><code>stages:
+  - build
+  - test
+  - package
+
+package:
+  stage: package
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet publish src/StatusApp/StatusApp.csproj -c Release -o ./publish
+    - echo "Version $(date +%Y%m%d_%H%M%S)" > ./publish/version.txt
+  artifacts:
+    name: "status-app-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - publish/
+    expire_in: 1 week
+  dependencies:
+    - build
+  only:
+    - main</code></pre>
+            
+            <div class="note">
+                <strong>📌 only: - main</strong> means this job runs ONLY on main branch, not on feature branches.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">6</span>Add Parallel Test Jobs</h3>
+            <p>Split tests to run in parallel for faster execution:</p>
+            <pre><code>test:unit:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet test tests/StatusApp.UnitTests/ --configuration Release --no-build
+  dependencies:
+    - build
+
+test:integration:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet test tests/StatusApp.IntegrationTests/ --configuration Release --no-build
+  dependencies:
+    - build</code></pre>
+            
+            <div class="success">
+                <strong>✅ Parallelization:</strong> Unit and integration tests now run simultaneously!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">7</span>Add Manual Deployment Stage</h3>
+            <p>Add deploy stage with manual trigger:</p>
+            <pre><code>stages:
+  - build
+  - test
+  - package
+  - deploy
+
+deploy:staging:
+  stage: deploy
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Deploying to staging environment..."
+    - ls -la publish/
+    - cat publish/version.txt
+    - echo "Deployment complete!"
+  environment:
+    name: staging
+    url: https://staging.example.com
+  dependencies:
+    - package
+  when: manual
+  only:
+    - main</code></pre>
+            
+            <div class="note">
+                <strong>📌 when: manual</strong> requires clicking "Play" button in GitLab UI to run this job.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>Add Environment Variables</h3>
+            <p>Use variables for configuration:</p>
+            <pre><code>variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  NUGET_PACKAGES: '.nuget'
+  APP_VERSION: '1.0.0'
+  STAGING_URL: 'https://staging.example.com'
+  
+deploy:staging:
+  stage: deploy
+  script:
+    - echo "Deploying version $APP_VERSION to $STAGING_URL"
+    - echo "Version=$APP_VERSION" > ./publish/deployment.info
+    - echo "Environment=Staging" >> ./publish/deployment.info
+    - cat ./publish/deployment.info</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Add Conditional Rules</h3>
+            <p>Use rules for more sophisticated conditions:</p>
+            <pre><code>deploy:staging:
+  stage: deploy
+  script:
+    - echo "Deploying to staging..."
+  environment:
+    name: staging
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+    - if: '$CI_COMMIT_TAG'
+      when: on_success
+  dependencies:
+    - package
+
+deploy:production:
+  stage: deploy
+  script:
+    - echo "Deploying to production..."
+  environment:
+    name: production
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+      when: manual
+  dependencies:
+    - package</code></pre>
+            
+            <div class="note">
+                <strong>📌 Rules:</strong>
+                <ul>
+                    <li>Staging deploys manually from main branch</li>
+                    <li>Production deploys manually only from version tags (v1.0.0)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Commit and Test Advanced Pipeline</h3>
+            <pre><code>git add .
+git commit -m "feat: Advanced pipeline with caching, parallel jobs, manual gates"
+git push</code></pre>
+            
+            <p>Watch the pipeline in GitLab:</p>
+            <ol>
+                <li>Build stage runs and caches NuGet packages</li>
+                <li>Test jobs run in parallel</li>
+                <li>Package job creates artifacts (main branch only)</li>
+                <li>Deploy job waits for manual trigger</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>Trigger Manual Deployment</h3>
+            <ol>
+                <li>Go to <strong>CI/CD → Pipelines</strong></li>
+                <li>Click on your pipeline</li>
+                <li>Find <strong>deploy:staging</strong> job</li>
+                <li>Click the <strong>Play</strong> button ▶️</li>
+                <li>Watch deployment execute</li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ Manual Gate:</strong> Provides control over when deployments happen!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">12</span>View GitLab Environments</h3>
+            <p>Check deployment tracking:</p>
+            <ol>
+                <li>Go to <strong>Deployments → Environments</strong></li>
+                <li>See <strong>staging</strong> environment</li>
+                <li>View deployment history with commits</li>
+                <li>Each deployment is traceable</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Test Feature Branch Behavior</h3>
+            <pre><code>git checkout -b feature/test-pipeline
+echo "// Test change" >> src/StatusApp/Program.cs
+git add .
+git commit -m "test: Pipeline behavior on feature branch"
+git push -u origin feature/test-pipeline</code></pre>
+            
+            <p>Notice: Package and deploy jobs DON'T run on feature branches!</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Download and Inspect Artifacts</h3>
+            <ol>
+                <li>Go to pipeline on main branch</li>
+                <li>Click <strong>package</strong> job</li>
+                <li>Click <strong>Browse</strong> or <strong>Download</strong> artifacts</li>
+                <li>Inspect publish/ folder contents</li>
+                <li>Check version.txt and deployment.info files</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Measure Pipeline Performance</h3>
+            <p>Compare pipeline execution times:</p>
+            <ul>
+                <li>First run (no cache): ~3-5 minutes</li>
+                <li>Subsequent runs (with cache): ~1-2 minutes</li>
+                <li>Parallel tests save additional time</li>
+            </ul>
+            
+            <p>Check individual job durations in pipeline graph.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Simulate a Bad Deployment</h3>
+            <p>Let's introduce a breaking change to demonstrate rollback:</p>
+            
+            <p>Edit <code>src/WebApi/Controllers/StatusController.cs</code>:</p>
+            <p>Change line 30 from:</p>
+            <pre><code>status = "ok",</code></pre>
+            <p>To:</p>
+            <pre><code>status = "error",  // BREAKING CHANGE!</code></pre>
+            
+            <p>Update version to 2.0.0 on line 31:</p>
+            <pre><code>version = "2.0.0",</code></pre>
+            
+            <p>Save the file.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Commit and Push the Breaking Change</h3>
+            <pre><code>git add .
+git commit -m "Version 2.0.0 - Breaking change for rollback demo"
+git push origin main</code></pre>
+            
+            <p>Watch the pipeline run again. This time, the tests should FAIL because the status is now "error" instead of "ok".</p>
+            
+            <div class="warning">
+                <strong>⚠️ Pipeline Failed!</strong> The test stage will fail because tests expect status: "ok"
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>Observe Test Failure</h3>
+            <ol>
+                <li>Go to the failed pipeline</li>
+                <li>Click on the <strong>test</strong> job</li>
+                <li>See the test failure message</li>
+                <li>Note that deploy_staging did NOT run (blocked by failed tests)</li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ Good!</strong> The pipeline prevented a bad deployment from reaching staging!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">12</span>Fix the Breaking Change</h3>
+            <p>Revert the breaking change:</p>
+            <pre><code>git revert HEAD --no-edit
+git push origin main</code></pre>
+            
+            <p>Or manually edit and fix:</p>
+            <pre><code>status = "ok",  // Fixed!
+version = "1.0.1",</code></pre>
+            
+            <p>The pipeline should now pass and deploy version 1.0.1 to staging.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Simulate Need for Rollback</h3>
+            <p>Let's say version 1.0.1 has an issue discovered after deployment. We need to rollback!</p>
+            
+            <ol>
+                <li>Go to <strong>CI/CD → Pipelines</strong></li>
+                <li>Find the LAST SUCCESSFUL pipeline (with deploy_staging completed)</li>
+                <li>Click on it</li>
+                <li>In the deploy_staging stage, you'll see the <strong>rollback</strong> job</li>
+                <li>Click the ▶️ <strong>Play</strong> button next to rollback</li>
+            </ol>
+            
+            <div class="note">
+                <strong>📌 Manual Jobs:</strong> Rollback is manual because rolling back is a critical decision that requires human judgment.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Watch Rollback Execute</h3>
+            <p>Click on the rollback job to see the logs:</p>
+            
+            <pre><code>========================================
+Starting Rollback Process...
+========================================
+Previous deployment info:
+Version: 1.0.0
+[...]
+Rollback Steps:
+1. Stopping current application...
+2. Restoring previous version from backup...
+3. Updating version file...
+4. Restarting application...
+========================================
+Rollback Complete!
+========================================</code></pre>
+            
+            <div class="success">
+                <strong>✅ Rollback Successful!</strong> The staging environment is back to the previous stable version.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Test Local Deployment Scripts (Optional)</h3>
+            <p>You can test the PowerShell scripts locally:</p>
+            
+            <p><strong>Build and Publish:</strong></p>
+            <pre><code>dotnet publish src/WebApi/WebApi.csproj -c Release -o ./publish</code></pre>
+            
+            <p><strong>Run Deployment Script:</strong></p>
+            <pre><code>pwsh ./deploy.ps1 -Version "1.0.0"</code></pre>
+            
+            <p><strong>Check Staging Folder:</strong></p>
+            <pre><code>cat staging/staging-version.txt</code></pre>
+            
+            <p><strong>Simulate Rollback:</strong></p>
+            <pre><code>pwsh ./rollback.ps1</code></pre>
+        </div>
+
+        <div class="verification">
+            <h3>✔️ Verification Checklist</h3>
+            <p>You have successfully completed this lab if:</p>
+            <ul>
+                <li>✅ ASP.NET Core Web API builds and runs locally</li>
+                <li>✅ All integration tests pass locally and in CI/CD</li>
+                <li>✅ GitLab CI/CD pipeline has 4 stages</li>
+                <li>✅ Build stage creates artifacts</li>
+                <li>✅ Test stage runs integration tests</li>
+                <li>✅ Deploy_staging deploys to staging environment</li>
+                <li>✅ Staging deployment creates version file</li>
+                <li>✅ GitLab Environments tracks staging deployments</li>
+                <li>✅ Failed tests block deployment (demonstrated)</li>
+                <li>✅ Rollback job can be triggered manually</li>
+                <li>✅ Rollback restores previous version</li>
+            </ul>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>🔧 Troubleshooting</h3>
+            
+            <h4>Issue: Build fails with "SDK not found"</h4>
+            <p><strong>Solution:</strong> Ensure image is <code>mcr.microsoft.com/dotnet/sdk:8.0</code></p>
+            
+            <h4>Issue: Tests fail locally but work in CI</h4>
+            <p><strong>Solution:</strong> Check for file path differences, environment variables</p>
+            
+            <h4>Issue: Deploy_staging doesn't run</h4>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Check it only runs on <code>main</code> branch</li>
+                <li>Ensure previous stages (build, test) passed</li>
+                <li>Verify runner has capacity</li>
+            </ul>
+            
+            <h4>Issue: Rollback job not visible</h4>
+            <p><strong>Solution:</strong> Rollback only appears after deploy_staging completes. It's in the same pipeline.</p>
+            
+            <h4>Issue: Artifacts not found in rollback</h4>
+            <p><strong>Solution:</strong> Check artifact expiration time. May need to re-run deploy_staging.</p>
+        </div>
+
+        <h2>🎓 Key Takeaways</h2>
+        <ul>
+            <li><strong>Multi-stage pipelines</strong> enable complex workflows</li>
+            <li><strong>Artifacts</strong> pass build outputs between stages</li>
+            <li><strong>Environment</strong> tracking provides deployment visibility</li>
+            <li><strong>Manual jobs</strong> require human approval for critical operations</li>
+            <li><strong>Version tracking</strong> is essential for debugging and rollbacks</li>
+            <li><strong>Failed tests block deployment</strong> - safety net for quality</li>
+            <li><strong>Rollback procedures</strong> are critical for production systems</li>
+        </ul>
+
+        <h2>📚 Additional Resources</h2>
+        <ul>
+            <li><a href="https://docs.gitlab.com/ee/ci/environments/" target="_blank">GitLab Environments</a></li>
+            <li><a href="https://docs.gitlab.com/ee/ci/jobs/job_control.html#when" target="_blank">Manual Jobs in GitLab</a></li>
+            <li><a href="https://docs.microsoft.com/en-us/aspnet/core/web-api/" target="_blank">ASP.NET Core Web API</a></li>
+            <li><a href="https://docs.gitlab.com/ee/ci/pipelines/job_artifacts.html" target="_blank">GitLab Artifacts</a></li>
+        </ul>
+
+        <hr style="margin: 40px 0;">
+        
+        <p style="text-align: center; color: #666;">
+            <strong>Next Lab:</strong> Day 4 - Capstone: Full End-to-End Project
+        </p>
+    </div>
+</body>
+</html>

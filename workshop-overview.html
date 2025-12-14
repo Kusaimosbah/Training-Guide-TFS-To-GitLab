@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Enablement Program - Workshop Overview</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #fc6d26;
+        }
+        h1 {
+            color: #292961;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 1.3em;
+            margin-top: 10px;
+        }
+        .info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            font-size: 1.2em;
+        }
+        .day-section {
+            margin-bottom: 40px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 20px;
+        }
+        .day-header {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            margin-left: -20px;
+        }
+        .day-header h2 {
+            margin: 0;
+            color: #292961;
+        }
+        .day-header .time {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .lab-card {
+            background-color: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        .lab-card:hover {
+            border-color: #fc6d26;
+            box-shadow: 0 4px 12px rgba(252, 109, 38, 0.2);
+            transform: translateX(5px);
+        }
+        .lab-title {
+            color: #fc6d26;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .lab-number {
+            background-color: #fc6d26;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .lab-duration {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .lab-description {
+            color: #333;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+        .lab-focus {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .tech-stack {
+            background-color: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .tech-stack h3 {
+            color: #292961;
+            margin-top: 0;
+        }
+        .tech-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .tech-item {
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border-left: 3px solid #28a745;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Git Enablement Program</h1>
+            <div class="subtitle">For .NET Developers Transitioning from TFS to GitLab</div>
+        </div>
+
+        <div class="info-box">
+            <h3>📅 Workshop Details</h3>
+            <p><strong>Duration:</strong> 4 Days | <strong>Schedule:</strong> 9:00am - 5:00pm Daily</p>
+            <p><strong>Total Labs:</strong> 10 Progressive Hands-On Labs</p>
+            <p><strong>Format:</strong> Self-paced with instructor guidance</p>
+            <p><strong>Target Audience:</strong> .NET developers familiar with TFS/TFVC migrating to Git/GitLab</p>
+        </div>
+
+        <!-- DAY 1 -->
+        <div class="day-section">
+            <div class="day-header">
+                <h2>📘 Day 1: Git Fundamentals & Migration</h2>
+                <div class="time">9:00am - 12:00pm</div>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <span class="lab-number">Lab 0</span>
+                    Git Fundamentals - Essential Commands
+                </div>
+                <div class="lab-duration">⏱️ Duration: 60 minutes | 9:00am - 10:00am</div>
+                <div class="lab-description">
+                    Master essential Git commands and concepts for developers transitioning from TFS. Learn distributed version control fundamentals, understand Git workflow, and get comfortable with basic operations like init, add, commit, branch, and merge.
+                </div>
+                <div class="lab-focus">
+                    <strong>Focus:</strong> Git basics, TFS vs Git comparison, repository initialization, commit workflow
+                </div>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <span class="lab-number">Lab 1</span>
+                    TFS Migration with git-tfs
+                </div>
+                <div class="lab-duration">⏱️ Duration: 90-120 minutes | 10:15am - 12:00pm</div>
+                <div class="lab-description">
+                    Learn to migrate legacy TFS repositories to GitLab using git-tfs tool. Practice cloning TFS repositories with full history preservation, handle branch mapping, clean up migrated code, and push to GitLab. Includes Docker-based TFS server setup.
+                </div>
+                <div class="lab-focus">
+                    <strong>Focus:</strong> git-tfs installation, TFS cloning, history preservation, branch migration, GitLab push
+                </div>
+            </div>
+        </div>
+
+        <!-- DAY 2 -->
+        <div class="day-section">
+            <div class="day-header">
+                <h2>📗 Day 2: Branching, Merge Requests & Automated Testing</h2>
+                <div class="time">9:00am - 5:00pm</div>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <span class="lab-number">Lab 2</span>
+                    Feature Branching Workflows
+                </div>
+                <div class="lab-duration">⏱️ Duration: 90 minutes | 9:00am - 10:30am</div>
+                <div class="lab-description">
+                    Master Git branching strategies by developing a Calculator application with multiple feature branches. Practice creating feature branches, merging with fast-forward and three-way merges, resolving merge conflicts, and visualizing branch history with git log.
+                </div>
+                <div class="lab-focus">
+                    <strong>Focus:</strong> Pure branching mechanics - NO Issues, NO MRs, NO CI/CD. Just branching mastery.
+                </div>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <span class="lab-number">Lab 3</span>
+                    Merge Requests & Code Review
+                </div>
+                <div class="lab-duration">⏱️ Duration: 90 minutes | 10:45am - 12:15pm</div>
+                <div class="lab-description">
+                    Experience complete GitLab Merge Request workflow including issue tracking. Create Issues to track work, implement Division operation for Calculator, create detailed MR with descriptions and testing notes, perform code review, and see automatic issue closure when merging.
+                </div>
+                <div class="lab-focus">
+                    <strong>Focus:</strong> GitLab MR workflow, Issue linking ("Closes #X"), code review process, MR descriptions
+                </div>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <span class="lab-number">Lab 4</span>
+                    CI/CD Automated Testing with xUnit
+                </div>
+                <div class="lab-duration">⏱️ Duration: 90 minutes | 1:15pm - 2:45pm</div>
+                <div class="lab-description">
+                    Build comprehensive test suite using xUnit framework with [Fact] and [Theory] attributes. Learn AAA pattern (Arrange/Act/Assert), create parameterized tests, configure automated testing in GitLab CI/CD pipelines, experience red-to-green workflow with intentional bugs, and implement code coverage reporting.
+                </div>
+                <div class="lab-focus">
+                    <strong>Focus:</strong> xUnit testing, [Theory]/[InlineData], CI/CD test automation, coverage reporting
+                </div>
+            </div>
+        </div>
+
+        <!-- DAY 3 -->
+        <div class="day-section">
+            <div class="day-header">
+                <h2>📙 Day 3: CI/CD Pipelines, Deployment & Rollback</h2>
+                <div class="time">9:00am - 5:00pm</div>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <span class="lab-number">Lab 5</span>
+                    Advanced CI/CD Pipelines
+                </div>
+                <div class="lab-duration">⏱️ Duration: 90 minutes | 9:00am - 10:30am</div>
+                <div class="lab-description">
+                    Build sophisticated multi-stage pipelines with advanced features. Implement build artifacts between stages, configure NuGet package caching for performance, set up parallel test execution, add manual deployment gates, use environment variables, and create conditional rules for different branches.
+                </div>
+                <div class="lab-focus">
+                    <strong>Focus:</strong> Artifacts, caching, parallel jobs, manual gates, variables, conditional rules (only/except)
+                </div>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <span class="lab-number">Lab 6</span>
+                    Automated Deployment to Staging
+                </div>
+                <div class="lab-duration">⏱️ Duration: 90 minutes | 10:45am - 12:15pm</div>
+                <div class="lab-description">
+                    Automate deployments using PowerShell scripts and GitLab Environments. Create deploy.ps1 script for automated staging deployment, implement version tracking with deployment metadata, add health check verification, configure GitLab Environments for tracking, and set up manual production deployment gates.
+                </div>
+                <div class="lab-focus">
+                    <strong>Focus:</strong> deploy.ps1 automation, GitLab Environments, version tracking, health checks, manual gates
+                </div>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <span class="lab-number">Lab 7</span>
+                    Rollback & Disaster Recovery
+                </div>
+                <div class="lab-duration">⏱️ Duration: 60 minutes | 1:15pm - 2:15pm</div>
+                <div class="lab-description">
+                    Implement comprehensive rollback procedures for production incidents. Create rollback.ps1 script with backup verification and safety mechanisms, deploy working v1.0 then buggy v2.0, detect failures through monitoring, execute emergency rollback to restore previous version, and review complete audit trail.
+                </div>
+                <div class="lab-focus">
+                    <strong>Focus:</strong> rollback.ps1 script, backup/restore automation, incident simulation, audit logging
+                </div>
+            </div>
+        </div>
+
+        <!-- DAY 4 -->
+        <div class="day-section">
+            <div class="day-header">
+                <h2>📕 Day 4: API Development, Testing & Production Capstone</h2>
+                <div class="time">9:00am - 5:00pm</div>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <span class="lab-number">Lab 8</span>
+                    Building Enterprise ASP.NET Core Web APIs
+                </div>
+                <div class="lab-duration">⏱️ Duration: 90 minutes | 9:00am - 10:30am</div>
+                <div class="lab-description">
+                    Explore professional API architecture patterns with Product Catalog API. Understand Controllers/Services/Models separation of concerns, learn dependency injection patterns, explore Program.cs middleware pipeline, test endpoints with Swagger UI, and add new DELETE endpoint to understand data flow.
+                </div>
+                <div class="lab-focus">
+                    <strong>Focus:</strong> API architecture, Controllers/Services/Models, dependency injection, Swagger, REST patterns
+                </div>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <span class="lab-number">Lab 9</span>
+                    Integration Testing with WebApplicationFactory
+                </div>
+                <div class="lab-duration">⏱️ Duration: 90 minutes | 10:45am - 12:15pm</div>
+                <div class="lab-description">
+                    Master end-to-end API testing using WebApplicationFactory. Create integration test project, understand in-memory test servers, write HTTP tests for GET/POST/DELETE endpoints with HttpClient, validate status codes and JSON responses, and learn testing strategy (70% unit, 30% integration tests).
+                </div>
+                <div class="lab-focus">
+                    <strong>Focus:</strong> WebApplicationFactory, HttpClient testing, end-to-end validation, testing strategy
+                </div>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <span class="lab-number">Lab 10</span>
+                    Production Capstone - Complete SDLC
+                </div>
+                <div class="lab-duration">⏱️ Duration: 120+ minutes | 1:15pm - 3:30pm+</div>
+                <div class="lab-description">
+                    <strong>Final Integration Challenge:</strong> Execute complete Software Development Lifecycle from legacy TFS code to production deployment. Migrate E-Commerce Order API from TFS, create feature branch for search functionality, write comprehensive unit and integration tests, create detailed MR, watch full CI/CD pipeline execute, deploy to staging then production with manual gates, simulate production incident, execute emergency rollback, and generate final completion report documenting entire journey.
+                </div>
+                <div class="lab-focus">
+                    <strong>Focus:</strong> Complete SDLC integration - combines ALL 9 previous lab concepts into one production workflow
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="tech-stack">
+            <h3>🛠️ Technologies & Tools Covered</h3>
+            <div class="tech-list">
+                <div class="tech-item">✅ Git & GitLab</div>
+                <div class="tech-item">✅ .NET 8 SDK</div>
+                <div class="tech-item">✅ ASP.NET Core Web API</div>
+                <div class="tech-item">✅ C# Programming</div>
+                <div class="tech-item">✅ xUnit Testing Framework</div>
+                <div class="tech-item">✅ WebApplicationFactory</div>
+                <div class="tech-item">✅ FluentAssertions</div>
+                <div class="tech-item">✅ GitLab CI/CD Pipelines</div>
+                <div class="tech-item">✅ Docker (TFS Server)</div>
+                <div class="tech-item">✅ PowerShell Automation</div>
+                <div class="tech-item">✅ YAML Configuration</div>
+                <div class="tech-item">✅ Swagger/OpenAPI</div>
+                <div class="tech-item">✅ Dependency Injection</div>
+                <div class="tech-item">✅ git-tfs Migration Tool</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Workshop Status:</strong> ✅ Complete and Ready for Delivery</p>
+            <p>All labs include detailed HTML guides, starter code, CI/CD configurations, and deployment scripts</p>
+            <p><em>Version 1.0 | December 2025</em></p>
+        </div>
+    </div>
+</body>
+</html>

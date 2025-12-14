@@ -1,0 +1,79 @@
+# .NET Build Artifacts
+**/bin/
+**/obj/
+**/TestResults/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# User-specific files
+*.rsuser
+*.userprefs
+
+# Build Results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Test Results
+TestResult.xml
+test-results.xml
+unit-test-results.xml
+integration-test-results.xml
+*.trx
+*.coverage
+*.coveragexml
+
+# Git repositories (nested .git folders from individual lab work)
+**/.git/
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Rider
+.idea/
+*.sln.iml
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+*.swp
+*~
+
+# Node modules (if any JavaScript tooling is used)
+node_modules/
+
+# Environment files
+.env
+.env.local

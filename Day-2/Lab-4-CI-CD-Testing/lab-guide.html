@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 4 - CI/CD Automated Testing with xUnit</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .objectives h3, .prerequisites h3, .verification h3, .troubleshooting h3 {
+            margin-top: 0;
+            color: #6e49cb;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Lab 4: CI/CD Automated Testing with xUnit</h1>
+        
+        <p><strong>Duration:</strong> 90 minutes | <strong>Time Slot:</strong> 2:00pm - 3:30pm</p>
+        
+        <div class="prerequisites">
+            <h3>📋 Prerequisites</h3>
+            <ul>
+                <li>Completed <strong>Lab 2</strong> and <strong>Lab 3</strong></li>
+                <li>Understanding of Git branches and GitLab MRs</li>
+                <li>Basic knowledge of unit testing concepts</li>
+                <li>.NET 8 SDK and Git installed</li>
+                <li>GitLab account with project access</li>
+            </ul>
+        </div>
+
+        <div class="objectives">
+            <h3>🎯 Learning Objectives</h3>
+            <ol>
+                <li>Write comprehensive unit tests using xUnit framework</li>
+                <li>Understand test anatomy: Arrange, Act, Assert (AAA pattern)</li>
+                <li>Use [Theory] tests with [InlineData] for parameterized testing</li>
+                <li>Configure .gitlab-ci.yml for automated test execution</li>
+                <li>Interpret test results and code coverage reports</li>
+                <li>Experience test-driven development (TDD) workflow</li>
+                <li>Debug failing tests in CI/CD pipeline</li>
+                <li>Implement tests that prevent regressions</li>
+            </ol>
+        </div>
+
+        <div class="overview">
+            <h3>📖 Overview</h3>
+            <p><strong>Scenario:</strong> Your team has implemented Calculator operations, but bugs keep getting reintroduced. You need comprehensive automated tests that run on every push and catch regressions before they reach production.</p>
+            
+            <p>In this lab, you will:</p>
+            <ul>
+                <li>Write unit tests using xUnit [Fact] and [Theory] attributes</li>
+                <li>Use parameterized tests to cover multiple scenarios efficiently</li>
+                <li>Configure GitLab CI/CD to run tests automatically</li>
+                <li>Intentionally break tests to see pipeline failures</li>
+                <li>Fix failures and achieve green pipeline status</li>
+                <li>Add test coverage reporting to track which code is tested</li>
+                <li>Experience how automated testing prevents bugs from merging</li>
+            </ul>
+        </div>
+
+        <h2>🔧 Step-by-Step Guide</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Navigate to Lab Folder</h3>
+            <pre><code>cd "Day-2/Lab-4-CI-CD-Testing"
+ls  # Verify src/, tests/, .gitlab-ci.yml</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Initialize and Push to GitLab</h3>
+            <pre><code>git init
+git add .
+git commit -m "Initial commit: Calculator with test structure"
+git remote add origin https://gitlab.alleen-ly.online/YOUR_USERNAME/calculator-testing.git
+git branch -M main
+git push -u origin main</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Explore Test Project Structure</h3>
+            <pre><code>cd tests/CalculatorApp.Tests
+ls  # CalculatorServiceTests.cs, CalculatorApp.Tests.csproj
+
+cat CalculatorApp.Tests.csproj</code></pre>
+            
+            <div class="note">
+                <strong>📌 Key Dependencies:</strong> xUnit (test framework), xUnit.runner (test execution), Microsoft.NET.Test.Sdk (test platform).
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Write Your First Unit Test</h3>
+            <p>Open <code>tests/CalculatorApp.Tests/CalculatorServiceTests.cs</code> in your editor.</p>
+            
+            <p><strong>📍 Where to add:</strong> If the file exists, add tests INSIDE the <code>CalculatorServiceTests</code> class. If creating new, use this structure:</p>
+            
+            <pre><code>using Xunit;
+using CalculatorApp.Services;
+
+namespace CalculatorApp.Tests
+{
+    public class CalculatorServiceTests  // ← Test class
+    {
+        [Fact]
+        public void Add_TwoPositiveNumbers_ReturnsSum()
+        {
+            // Arrange
+            var calculator = new CalculatorService();
+            double a = 5;
+            double b = 3;
+            
+            // Act
+            double result = calculator.Add(a, b);
+            
+            // Assert
+            Assert.Equal(8, result);
+        }
+    }
+}</code></pre>
+            
+            <div class="success">
+                <strong>✅ AAA Pattern:</strong> Arrange (setup), Act (execute), Assert (verify). This makes tests clear and maintainable.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Run Tests Locally</h3>
+            <pre><code>cd ../..  # Back to project root
+dotnet test
+
+# Expected:
+# Passed!  - Failed: 0, Passed: 1, Skipped: 0</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">6</span>Add Parameterized Tests with Theory</h3>
+            <p>📍 <strong>Where to add:</strong> Open <code>tests/CalculatorApp.Tests/CalculatorServiceTests.cs</code> and add these test methods <strong>INSIDE the CalculatorServiceTests class</strong>, after the existing Multiply_BuggyVersion test:</p>
+            
+            <div class="note">
+                <strong>Visual structure:</strong>
+                <pre>public class CalculatorServiceTests
+{
+    [Fact]
+    public void Multiply_BuggyVersion_ReturnsIncorrectResult()
+    {
+        // ... existing test ...
+    }
+    
+    <strong>// ADD THESE NEW [Theory] TEST METHODS HERE (inside the class):</strong>
+    [Theory]
+    [InlineData(10, 5, 15)]
+    public void Add_VariousInputs_ReturnsCorrectSum(...)
+    {
+        // ...
+    }
+    
+    // ... more [Theory] tests ...
+}  // ← Closing brace of class</pre>
+            </div>
+            
+            <p>Add these comprehensive parameterized tests using [Theory] and [InlineData]:</p>
+            
+            <pre><code>[Theory]
+[InlineData(10, 5, 15)]
+[InlineData(0, 0, 0)]
+[InlineData(-5, -3, -8)]
+[InlineData(100, 200, 300)]
+public void Add_VariousInputs_ReturnsCorrectSum(int a, int b, int expected)
+{
+    var calculator = new CalculatorService();
+    int result = calculator.Add(a, b);
+    Assert.Equal(expected, result);
+}
+
+[Theory]
+[InlineData(10, 5, 5)]
+[InlineData(0, 5, -5)]
+[InlineData(-10, -5, -5)]
+public void Subtract_VariousInputs_ReturnsCorrectDifference(int a, int b, int expected)
+{
+    var calculator = new CalculatorService();
+    int result = calculator.Subtract(a, b);
+    Assert.Equal(expected, result);
+}
+
+[Theory]
+[InlineData(10, 2, 5.0)]
+[InlineData(100, 4, 25.0)]
+[InlineData(9, 3, 3.0)]
+public void Divide_ValidInputs_ReturnsQuotient(int a, int b, double expected)
+{
+    var calculator = new CalculatorService();
+    double result = calculator.Divide(a, b);
+    Assert.Equal(expected, result, precision: 10);
+}
+
+[Fact]
+public void Divide_ByZero_ThrowsDivideByZeroException()
+{
+    var calculator = new CalculatorService();
+    Assert.Throws<DivideByZeroException>(() => calculator.Divide(10, 0));
+}</code></pre>
+            
+            <div class="note">
+                <strong>📌 Theory Tests:</strong> Run same test with different inputs. Perfect for testing edge cases and boundary conditions!
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Common Mistake:</strong> Make sure to add these methods INSIDE the CalculatorServiceTests class, not after the closing brace!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">7</span>Run Tests with Verbose Output</h3>
+            <pre><code>dotnet test --logger "console;verbosity=detailed"</code></pre>
+            
+            <p>You'll see each Theory test case executed individually.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>Review CI/CD Configuration</h3>
+            <pre><code>cat .gitlab-ci.yml</code></pre>
+            
+            <p>The pipeline has <strong>3 stages</strong> with detailed comments explaining each step:</p>
+            
+            <div class="note">
+                <strong>📌 Pipeline Stages:</strong>
+                <ul>
+                    <li><strong>BUILD:</strong> Compiles the .NET application and saves binaries</li>
+                    <li><strong>TEST:</strong> Runs unit tests with detailed output</li>
+                    <li><strong>COVERAGE:</strong> Generates code coverage reports using Coverlet</li>
+                </ul>
+            </div>
+            
+            <p>Key sections in the file:</p>
+            <pre><code>stages:
+  - build      # First: Compile the application
+  - test       # Second: Run unit tests
+  - coverage   # Third: Generate coverage reports
+
+variables:
+  DOTNET_VERSION: "8.0"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet restore src/CalculatorApp/CalculatorApp.csproj
+    - dotnet build src/CalculatorApp/CalculatorApp.csproj --configuration Release --no-restore
+  artifacts:
+    paths:
+      - src/CalculatorApp/bin/Release/
+    expire_in: 1 hour
+
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet restore tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj
+    - dotnet test tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj --configuration Release --no-restore --logger "console;verbosity=detailed"
+  dependencies:
+    - build
+
+coverage:
+  stage: coverage
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet add tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj package coverlet.msbuild
+    - dotnet test tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
+  coverage: '/Total\s+\|\s+(\d+\.?\d*)%/'
+  dependencies:
+    - build</code></pre>
+            
+            <div class="success">
+                <strong>✅ What This Does:</strong> Every push triggers automatic build → test → coverage analysis!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Commit and Push Tests</h3>
+            <pre><code>git add .
+git commit -m "test: Add comprehensive unit tests with Theory
+
+- Added Add, Subtract, Divide tests
+- Used Theory with InlineData for parameterized testing
+- Included edge case (divide by zero)
+- All tests passing locally"
+
+git push</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Watch CI/CD Pipeline</h3>
+            <ol>
+                <li>Go to GitLab → <strong>CI/CD → Pipelines</strong></li>
+                <li>Click on the running pipeline</li>
+                <li>Watch <strong>build</strong> and <strong>test</strong> jobs</li>
+                <li>Click <strong>test</strong> job to see test output</li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ Automated Testing:</strong> Tests now run automatically on every push!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>Intentionally Break a Test</h3>
+            <p>Create a feature branch with a bug:</p>
+            <pre><code>git checkout -b feature/multiply-with-bug</code></pre>
+            
+            <p>Open <code>src/CalculatorApp/Services/CalculatorService.cs</code>.</p>
+            
+            <p><strong>📍 Where to add:</strong> Add this method INSIDE the <code>CalculatorService</code> class, after existing methods:</p>
+            
+            <pre><code>public class CalculatorService
+{
+    // ... existing methods (Add, Subtract, etc.) ...
+    
+    // Add this BUGGY method here:
+    public double Multiply(double a, double b)
+    {
+        return a + b;  // BUG: Should be a * b
+    }
+}</code></pre>
+            
+            <p>Open <code>tests/CalculatorApp.Tests/CalculatorServiceTests.cs</code>.</p>
+            
+            <p><strong>📍 Where to add:</strong> Add this test method INSIDE the <code>CalculatorServiceTests</code> class:</p>
+            
+            <pre><code>public class CalculatorServiceTests
+{
+    // ... existing tests ...
+    
+    // Add this NEW test here:
+    [Theory]
+    [InlineData(5, 3, 15)]
+    [InlineData(10, 10, 100)]
+    public void Multiply_ValidInputs_ReturnsProduct(double a, double b, double expected)
+{
+    var calculator = new CalculatorService();
+    double result = calculator.Multiply(a, b);
+    Assert.Equal(expected, result);
+}</code></pre>
+            
+            <p>Run locally:</p>
+            <pre><code>dotnet test  # FAILS: 5 + 3 != 15</code></pre>
+            
+            <div class="warning">
+                <strong>❌ Test Failure:</strong> The test catches the bug before it reaches production!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">12</span>Push Failing Tests and Create MR</h3>
+            <pre><code>git add .
+git commit -m "feat: Add multiply operation (contains bug)"
+git push -u origin feature/multiply-with-bug</code></pre>
+            
+            <p>Create MR. Watch the pipeline turn RED ❌!</p>
+            
+            <div class="warning">
+                <strong>❌ Red Pipeline:</strong> CI/CD prevents buggy code from merging! This is a quality gate.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Fix the Bug</h3>
+            <p>Correct the Multiply method:</p>
+            <pre><code>public double Multiply(double a, double b)
+{
+    return a * b;  // FIXED!
+}</code></pre>
+            
+            <p>Test locally:</p>
+            <pre><code>dotnet test  # All pass now!</code></pre>
+            
+            <p>Commit and push:</p>
+            <pre><code>git add .
+git commit -m "fix: Correct multiply operation logic"
+git push</code></pre>
+            
+            <p>Watch MR pipeline turn green ✅!</p>
+            
+            <div class="success">
+                <strong>✅ Quality Gate:</strong> Tests prevented the bug from reaching main!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Add Test Coverage Reporting</h3>
+            <p>Update .gitlab-ci.yml test job:</p>
+            <pre><code>test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet test --configuration Release --collect:"XPlat Code Coverage" --logger "console;verbosity=normal"
+  coverage: '/Total\s+\|\s+(\d+(?:\.\d+)?)%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: '**/coverage.cobertura.xml'
+  dependencies:
+    - build</code></pre>
+            
+            <p>Commit and push to see coverage percentage in pipeline.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Merge and Verify</h3>
+            <pre><code># Merge the MR in GitLab
+# Then update local main
+git checkout main
+git pull origin main
+
+# Run all tests
+dotnet test</code></pre>
+        </div>
+
+        <div class="verification">
+            <h3>✔️ Verification Checklist</h3>
+            <ul>
+                <li>✅ Written unit tests using xUnit [Fact] attribute</li>
+                <li>✅ Created parameterized tests with [Theory] and [InlineData]</li>
+                <li>✅ Tested edge cases (divide by zero)</li>
+                <li>✅ Configured .gitlab-ci.yml with build and test stages</li>
+                <li>✅ Pushed code and watched pipeline execute tests</li>
+                <li>✅ Intentionally broke tests and saw red pipeline</li>
+                <li>✅ Fixed bug and saw green pipeline</li>
+                <li>✅ Added code coverage reporting</li>
+                <li>✅ All tests passing in CI/CD</li>
+            </ul>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>🔧 Troubleshooting</h3>
+            
+            <h4>Tests pass locally but fail in CI/CD</h4>
+            <ul>
+                <li>Check pipeline logs for exact error</li>
+                <li>Verify .NET SDK version matches (8.0)</li>
+                <li>Ensure all dependencies restored</li>
+                <li>Check for environment-specific code</li>
+            </ul>
+            
+            <h4>Coverage report not showing</h4>
+            <ul>
+                <li>Install coverlet.collector package in test project</li>
+                <li>Verify regex in coverage field matches output</li>
+                <li>Check artifacts path is correct</li>
+            </ul>
+            
+            <h4>xUnit tests not discovered</h4>
+            <ul>
+                <li>Ensure test class is public</li>
+                <li>Test methods must be public</li>
+                <li>Check [Fact] or [Theory] attributes present</li>
+            </ul>
+        </div>
+
+        <h2>🎓 Key Takeaways</h2>
+        <ul>
+            <li><strong>Unit tests</strong> verify individual components work correctly</li>
+            <li><strong>AAA pattern</strong> (Arrange, Act, Assert) structures tests clearly</li>
+            <li><strong>Theory tests</strong> enable testing multiple scenarios efficiently</li>
+            <li><strong>CI/CD pipelines</strong> automate test execution on every push</li>
+            <li><strong>Red pipelines</strong> prevent buggy code from merging</li>
+            <li><strong>Test coverage</strong> shows which code is tested</li>
+            <li><strong>Automated testing</strong> catches regressions early and saves time</li>
+        </ul>
+            <li><strong>Feature branches</strong> isolate work and enable parallel development</li>
+            <li><strong>Issues track work</strong> and provide context for changes</li>
+            <li><strong>Merge Requests</strong> enable code review before merging</li>
+            <li><strong>CI/CD pipelines</strong> automate testing and validation</li>
+            <li><strong>Unit tests</strong> catch bugs early and document expected behavior</li>
+            <li><strong>Auto-closing issues</strong> keeps your board clean and provides traceability</li>
+            <li><strong>Pipeline must pass</strong> before merging ensures code quality</li>
+        </ul>
+
+        <h2>📚 Additional Resources</h2>
+        <ul>
+            <li><a href="https://docs.gitlab.com/ee/user/project/issues/" target="_blank">GitLab Issues Documentation</a></li>
+            <li><a href="https://docs.gitlab.com/ee/user/project/merge_requests/" target="_blank">GitLab Merge Requests</a></li>
+            <li><a href="https://docs.gitlab.com/ee/ci/" target="_blank">GitLab CI/CD Documentation</a></li>
+            <li><a href="https://xunit.net/" target="_blank">xUnit Testing Framework</a></li>
+            <li><a href="https://docs.microsoft.com/en-us/dotnet/core/testing/" target="_blank">.NET Testing Guide</a></li>
+        </ul>
+
+        <hr style="margin: 40px 0;">
+        
+        <p style="text-align: center; color: #666;">
+            <strong>Next Lab:</strong> Day 3 - CI/CD Deployment to Staging & Rollback
+        </p>
+    </div>
+</body>
+</html>

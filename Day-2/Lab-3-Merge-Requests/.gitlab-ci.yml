@@ -1,0 +1,70 @@
+# ============================================
+# GitLab CI/CD Pipeline for Lab 3 - Merge Requests
+# ============================================
+# This pipeline runs automatically on merge requests to:
+# - BUILD: Verify the code compiles
+# - TEST: Ensure all tests pass before merging
+#
+# This protects the main branch from broken code!
+# ============================================
+
+# Define pipeline stages (sequential execution)
+stages:
+  - build      # First: Compile
+  - test       # Second: Test
+
+# Global variables
+variables:
+  DOTNET_VERSION: "8.0"                          # .NET SDK version
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"           # Disable telemetry
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"     # Skip welcome messages
+  DOTNET_NOLOGO: "true"                         # Hide .NET logo
+
+# ============================================
+# BUILD JOB
+# ============================================
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0        # .NET 8 SDK container
+  script:
+    - echo "Starting build process..."
+    - dotnet restore src/CalculatorApp/CalculatorApp.csproj      # Restore NuGet packages
+    - dotnet build src/CalculatorApp/CalculatorApp.csproj --configuration Release --no-restore
+    - echo "Build completed successfully!"
+  artifacts:                                      # Save compiled output
+    paths:
+      - src/CalculatorApp/bin/Release/
+    expire_in: 1 hour
+  only:                                          # Run on all branches and MRs
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# TEST JOB
+# ============================================
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Restoring test project dependencies..."
+    - dotnet restore tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj
+    - echo "Installing JUnit logger for test reports..."
+    - dotnet add tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj package JunitXml.TestLogger
+    - echo "Running unit tests..."
+    - dotnet test tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj --configuration Release --no-restore --logger "console;verbosity=detailed" --logger "junit;LogFileName=test-results.xml"
+    - echo "All tests passed!"
+  artifacts:
+    when: always
+    paths:
+      - tests/CalculatorApp.Tests/TestResults/test-results.xml
+    reports:
+      junit: tests/CalculatorApp.Tests/TestResults/test-results.xml
+    expire_in: 7 days
+  dependencies:                                   # Wait for build
+    - build
+  only:
+    - main
+    - merge_requests
+    - branches
+  coverage: '/Total\s+\|\s+(\d+\.?\d*)%/'      # Extract coverage percentage

@@ -1,0 +1,133 @@
+# ============================================
+# GitLab CI/CD Pipeline for Lab 9 - Integration Testing
+# ============================================
+# Demonstrates multi-stage testing strategy
+# Pipeline stages: BUILD → UNIT-TEST → INTEGRATION-TEST → DEPLOY
+# Separates unit tests (fast) from integration tests (slower)
+# ============================================
+
+# Define pipeline stages
+stages:
+  - build              # First: Compile and publish
+  - unit-test         # Second: Fast unit tests
+  - integration-test  # Third: Full API integration tests
+  - deploy            # Fourth: Deploy to staging
+
+# Global variables
+variables:
+  DOTNET_VERSION: "8.0"                          # .NET SDK version
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"           # Disable telemetry
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"     # Skip welcome
+  DOTNET_NOLOGO: "true"                         # Hide logo
+  APP_VERSION: "1.0.0"                          # Application version
+
+# ============================================
+# BUILD JOB - Compile and publish API
+# ============================================
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0        # .NET 8 SDK
+  script:
+    - echo "Building Product Catalog API..."
+    - dotnet restore src/CapstoneApi/CapstoneApi.csproj    # Restore packages
+    - dotnet build src/CapstoneApi/CapstoneApi.csproj --configuration Release --no-restore
+    - dotnet publish src/CapstoneApi/CapstoneApi.csproj -c Release -o ./publish --no-restore
+    - echo "Build completed!"
+  artifacts:                                      # Save build outputs
+    paths:
+      - publish/                                 # Published application
+      - src/CapstoneApi/bin/Release/            # Build binaries (for tests)
+    expire_in: 1 week
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# UNIT-TEST JOB - Fast service layer tests
+# ============================================
+# Tests individual services and business logic
+# Runs quickly without dependencies or infrastructure
+# ============================================
+unit-test:
+  stage: unit-test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Running unit tests..."
+    - dotnet restore tests/CapstoneApi.UnitTests/CapstoneApi.UnitTests.csproj
+    - echo "Installing JUnit logger for test reports..."
+    - dotnet add tests/CapstoneApi.UnitTests/CapstoneApi.UnitTests.csproj package JunitXml.TestLogger
+    # Run tests with detailed output
+    - dotnet test tests/CapstoneApi.UnitTests/CapstoneApi.UnitTests.csproj --configuration Release --logger "console;verbosity=detailed" --logger "junit;LogFileName=unit-test-results.xml" --no-restore
+    - echo "Unit tests passed!"
+  artifacts:
+    when: always
+    paths:
+      - tests/CapstoneApi.UnitTests/TestResults/unit-test-results.xml
+    reports:
+      junit: tests/CapstoneApi.UnitTests/TestResults/unit-test-results.xml
+    expire_in: 7 days
+  dependencies:
+    - build
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# INTEGRATION-TEST JOB - Full API end-to-end tests
+# ============================================
+# Tests complete API with WebApplicationFactory
+# Spins up in-memory test server for HTTP requests
+# Tests controllers, routing, middleware, and full request/response cycle
+# ============================================
+integration-test:
+  stage: integration-test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Running integration tests..."
+    - dotnet restore tests/CapstoneApi.IntegrationTests/CapstoneApi.IntegrationTests.csproj
+    - echo "Installing JUnit logger for test reports..."
+    - dotnet add tests/CapstoneApi.IntegrationTests/CapstoneApi.IntegrationTests.csproj package JunitXml.TestLogger
+    # Run integration tests with detailed logging
+    - dotnet test tests/CapstoneApi.IntegrationTests/CapstoneApi.IntegrationTests.csproj --configuration Release --logger "console;verbosity=detailed" --logger "junit;LogFileName=integration-test-results.xml" --no-restore
+    - echo "Integration tests passed!"
+  artifacts:
+    when: always
+    paths:
+      - tests/CapstoneApi.IntegrationTests/TestResults/integration-test-results.xml
+    reports:
+      junit: tests/CapstoneApi.IntegrationTests/TestResults/integration-test-results.xml
+    expire_in: 7 days
+  dependencies:
+    - build
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# DEPLOY JOB - Deploy to staging
+# ============================================
+# Only deploys after ALL tests pass
+# Uses PowerShell deployment script
+# ============================================
+deploy:staging:
+  stage: deploy
+  image: mcr.microsoft.com/powershell:latest     # PowerShell container
+  script:
+    - echo "Deploying to staging..."
+    # Deploy with PowerShell script
+    - pwsh deploy.ps1 -Version $APP_VERSION -SourcePath "./publish" -StagingPath "./deployments/staging"
+    - echo "Deployment completed!"
+  artifacts:                                      # Save deployment
+    paths:
+      - deployments/staging/                     # Staging directory
+    expire_in: 1 month
+  environment:
+    name: staging
+    url: https://staging-api.example.com
+  dependencies:
+    - build
+  only:
+    - main

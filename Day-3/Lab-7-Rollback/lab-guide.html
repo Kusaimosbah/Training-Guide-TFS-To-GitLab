@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Day 3 - CI/CD Deployment & Rollback</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Lab 7: Rollback & Disaster Recovery</h1>
+        <p><strong>Duration:</strong> 60 minutes | <strong>Time Slot:</strong> 1:15pm - 2:15pm (Day 3)</p>
+        
+        <div class="prerequisites">
+            <h3>📋 Prerequisites</h3>
+            <ul>
+                <li>Completed Lab 6 (Deployment Automation)</li>
+                <li>.NET 8 SDK installed</li>
+                <li>Git installed and configured</li>
+                <li><strong>Scripting Environment:</strong> PowerShell Core (pwsh) or Bash - See <a href="../../SCRIPTING-SETUP-GUIDE.md">Scripting Setup Guide</a></li>
+            </ul>
+            <div class="info">
+                <strong>📝 Note:</strong> Both <strong>.ps1 (PowerShell) and .sh (Bash)</strong> scripts are provided. Choose your preference.
+            </div>
+        </div>
+
+        <div class="objectives">
+            <h3>🎯 Learning Objectives</h3>
+            <ol>
+                <li>Create PowerShell rollback scripts (rollback.ps1)</li>
+                <li>Deploy a working version 1.0</li>
+                <li>Intentionally deploy a buggy version 2.0</li>
+                <li>Detect and diagnose deployment failures</li>
+                <li>Execute rollback to previous working version</li>
+                <li>Verify recovery with health checks</li>
+                <li>Understand disaster recovery best practices</li>
+            </ol>
+        </div>
+
+        <div class="overview">
+            <h3>📖 Overview</h3>
+            <p><strong>Scenario:</strong> Your team successfully deployed v1.0 to staging (Lab 6). Now a developer pushed v2.0 with a critical bug that passed tests but fails in deployment. You need to quickly rollback to v1.0.</p>
+            
+            <p>In this lab, you'll handle a deployment disaster by:</p>
+            <ul>
+                <li>Creating a rollback script that restores previous versions</li>
+                <li>Adding a rollback job to the pipeline</li>
+                <li>Simulating a bad deployment scenario</li>
+                <li>Executing emergency rollback procedures</li>
+                <li>Verifying system recovery</li>
+            </ul>
+            
+            <div class="warning">
+                <strong>⚠️ Critical Skill:</strong> Rollback procedures are essential for production systems. Every deployment must have a rollback plan!
+            </div>
+        </div>
+
+        <h2>🔧 Step-by-Step Guide</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Navigate to Lab Folder</h3>
+            <pre><code>cd "Day-3/Lab-7-Rollback"
+ls  # Verify deploy.ps1 exists from Lab 6</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Create Rollback Script</h3>
+            <p>Create <code>rollback.ps1</code> with rollback logic:</p>
+            <pre><code># rollback.ps1
+param(
+    [string]$Environment = "staging",
+    [string]$BackupPath = "deployments/staging-backup"
+)
+
+Write-Host "=== ROLLBACK SCRIPT ===" -ForegroundColor Red
+Write-Host "Environment: $Environment" -ForegroundColor Yellow
+Write-Host "Timestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Yellow
+
+$currentPath = "deployments/$Environment"
+$rollbackLogPath = "rollback-logs"
+
+# Check if backup exists
+if (-not (Test-Path $BackupPath)) {
+    Write-Host "❌ ERROR: No backup found at $BackupPath" -ForegroundColor Red
+    Write-Host "Cannot perform rollback without backup!" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "`n📦 Backup found!" -ForegroundColor Green
+
+# Create rollback log directory
+New-Item -ItemType Directory -Force -Path $rollbackLogPath | Out-Null
+
+# Read previous version info
+$backupInfo = Get-Content "$BackupPath/deployment-info.txt" -Raw
+Write-Host "`n📋 Restoring to previous version:" -ForegroundColor Cyan
+Write-Host $backupInfo -ForegroundColor Gray
+
+# Backup current deployment before rollback (safety)
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$safetyBackup = "$rollbackLogPath/pre-rollback-$timestamp"
+Write-Host "`n💾 Creating safety backup at $safetyBackup..." -ForegroundColor Yellow
+Copy-Item -Path $currentPath -Destination $safetyBackup -Recurse -Force
+
+# Perform rollback
+Write-Host "`n🔄 Performing rollback..." -ForegroundColor Yellow
+Remove-Item -Path $currentPath -Recurse -Force
+Copy-Item -Path $BackupPath -Destination $currentPath -Recurse -Force
+
+# Log rollback action
+$rollbackLog = @"
+=== ROLLBACK EXECUTED ===
+Timestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')
+Environment: $Environment
+Restored From: $BackupPath
+Safety Backup: $safetyBackup
+Executed By: $env:USERNAME
+CI Pipeline: $env:CI_PIPELINE_URL
+"@
+
+$rollbackLog | Out-File -FilePath "$rollbackLogPath/rollback-$timestamp.log" -Encoding UTF8
+
+Write-Host "`n✅ ROLLBACK COMPLETE!" -ForegroundColor Green
+Write-Host "Previous version restored successfully" -ForegroundColor Green
+Write-Host "Safety backup saved at: $safetyBackup" -ForegroundColor Cyan</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Create Initial Deployment Pipeline</h3>
+            <p>Create <code>.gitlab-ci.yml</code> with deploy and rollback stages:</p>
+            <pre><code>stages:
+  - build
+  - deploy
+  - rollback
+
+variables:
+  APP_VERSION: '1.0.0'
+
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet restore src/WebApi/
+    - dotnet publish src/WebApi/ -c Release -o publish
+    - echo "version=$APP_VERSION" > publish/version.txt
+  artifacts:
+    paths:
+      - publish/
+    expire_in: 1 month
+
+deploy:staging:
+  stage: deploy
+  image: mcr.microsoft.com/powershell:latest
+  script:
+    # Backup current deployment before new deployment
+    - |
+      if (Test-Path "deployments/staging") {
+        Write-Host "Backing up current deployment..."
+        Copy-Item -Path "deployments/staging" -Destination "deployments/staging-backup" -Recurse -Force
+      }
+    - pwsh deploy.ps1 -Version $APP_VERSION -Environment staging
+  artifacts:
+    paths:
+      - deployments/
+    expire_in: 1 month
+  environment:
+    name: staging
+  dependencies:
+    - build
+  only:
+    - main
+
+rollback:staging:
+  stage: rollback
+  image: mcr.microsoft.com/powershell:latest
+  script:
+    - pwsh rollback.ps1 -Environment staging -BackupPath "deployments/staging-backup"
+  artifacts:
+    paths:
+      - deployments/
+      - rollback-logs/
+    expire_in: 1 year
+  environment:
+    name: staging
+    action: rollback
+  when: manual
+  only:
+    - main</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Deploy Version 1.0.0</h3>
+            <pre><code>git init
+git add .
+git commit -m "v1.0.0: Initial stable version"
+git remote add origin https://gitlab.alleen-ly.online/YOUR_USERNAME/rollback-demo.git
+git branch -M main
+git push -u origin main</code></pre>
+            
+            <p>Watch the pipeline deploy v1.0.0 to staging.</p>
+            
+            <div class="success">
+                <strong>✅ v1.0.0 deployed!</strong> This is your stable, working version.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Verify Staging Deployment</h3>
+            <ol>
+                <li>Go to pipeline, click <strong>deploy:staging</strong> job</li>
+                <li>Browse artifacts → <code>deployments/staging/</code></li>
+                <li>View <code>deployment-info.txt</code></li>
+                <li>Confirm Version: 1.0.0</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">6</span>Deploy Buggy Version 2.0.0</h3>
+            <p>Update version to simulate a problematic deployment:</p>
+            
+            <p>Edit <code>.gitlab-ci.yml</code>:</p>
+            <pre><code>variables:
+  APP_VERSION: '2.0.0'  # Bump to 2.0.0</code></pre>
+            
+            <p>Edit <code>src/WebApi/Program.cs</code> to introduce a bug:</p>
+            <pre><code>// Add intentional bug
+throw new Exception("Critical bug in v2.0.0!");</code></pre>
+            
+            <pre><code>git add .
+git commit -m "v2.0.0: BUGGY VERSION (intentional for rollback demo)"
+git push</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">7</span>Watch Buggy Deployment Succeed</h3>
+            <p>The pipeline will:</p>
+            <ul>
+                <li>✅ Build succeeds (compiles fine)</li>
+                <li>✅ Deploy:staging succeeds (deployment script works)</li>
+                <li>⚠️ But v2.0.0 contains a runtime bug!</li>
+            </ul>
+            
+            <div class="warning">
+                <strong>⚠️ Scenario:</strong> Tests didn't catch the bug, and it's now in staging!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>Detect the Problem</h3>
+            <ol>
+                <li>Go to <strong>Deployments → Environments → staging</strong></li>
+                <li>See v2.0.0 is now deployed</li>
+                <li>Imagine users report errors</li>
+                <li>Monitoring alerts fire</li>
+                <li><strong>Decision: ROLLBACK!</strong></li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Execute Emergency Rollback</h3>
+            <ol>
+                <li>Go to <strong>CI/CD → Pipelines</strong></li>
+                <li>Click on the v2.0.0 pipeline</li>
+                <li>Find <strong>rollback:staging</strong> job (manual)</li>
+                <li>Click <strong>Play ▶️</strong> button</li>
+                <li>Watch rollback execute</li>
+            </ol>
+            
+            <p>The rollback script will:</p>
+            <ul>
+                <li>Verify backup exists</li>
+                <li>Create safety backup of current (buggy) deployment</li>
+                <li>Restore v1.0.0 from backup</li>
+                <li>Log the rollback action</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Verify Rollback Success</h3>
+            <ol>
+                <li>Click on completed <strong>rollback:staging</strong> job</li>
+                <li>Read the job output - should see "✅ ROLLBACK COMPLETE!"</li>
+                <li>Browse artifacts → <code>deployments/staging/</code></li>
+                <li>View <code>deployment-info.txt</code></li>
+                <li>Confirm Version: 1.0.0 (restored!)</li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ Rollback successful!</strong> v1.0.0 is back in staging!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>Review Rollback Logs</h3>
+            <p>Download artifacts from rollback:staging job:</p>
+            <ol>
+                <li>Browse artifacts → <code>rollback-logs/</code></li>
+                <li>Open <code>rollback-YYYYMMDD_HHMMSS.log</code></li>
+                <li>See complete rollback audit trail</li>
+            </ol>
+            
+            <p>Log contains:</p>
+            <pre><code>=== ROLLBACK EXECUTED ===
+Timestamp: 2025-12-07 15:45:32 UTC
+Environment: staging
+Restored From: deployments/staging-backup
+Safety Backup: rollback-logs/pre-rollback-20251207_154530
+Executed By: gitlab-runner
+CI Pipeline: https://gitlab.alleen-ly.online/.../pipelines/456</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">12</span>Check Environment History</h3>
+            <ol>
+                <li>Go to <strong>Deployments → Environments → staging</strong></li>
+                <li>See deployment timeline:</li>
+                <ul>
+                    <li>Latest: v1.0.0 (rolled back) ✅</li>
+                    <li>Previous: v2.0.0 (buggy) ⚠️</li>
+                    <li>Original: v1.0.0 (initial) ✅</li>
+                </ul>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Test Rollback Script Locally</h3>
+            <p>Simulate rollback on your local machine:</p>
+            <pre><code># Create mock deployment
+mkdir -p deployments/staging
+echo "version=2.0.0-buggy" > deployments/staging/version.txt
+
+# Create mock backup
+mkdir -p deployments/staging-backup
+echo "version=1.0.0-stable" > deployments/staging-backup/version.txt
+
+# Run rollback
+pwsh rollback.ps1 -Environment staging -BackupPath deployments/staging-backup
+
+# Verify
+cat deployments/staging/version.txt  # Should show 1.0.0-stable</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Understand Rollback Best Practices</h3>
+            <div class="note">
+                <strong>📚 Key Takeaways:</strong>
+                <ul>
+                    <li><strong>Always backup before deployment</strong> - deploy.ps1 creates backup</li>
+                    <li><strong>Make rollback manual</strong> - Requires human decision (when: manual)</li>
+                    <li><strong>Safety backup</strong> - Rollback creates safety backup before restoring</li>
+                    <li><strong>Audit logs</strong> - Every rollback is logged with timestamp, user, reason</li>
+                    <li><strong>Artifact retention</strong> - Keep rollback artifacts longer (1 year)</li>
+                    <li><strong>Test rollback procedures</strong> - Practice in non-prod environments</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Clean Up and Understand Recovery</h3>
+            <p>Now that v1.0.0 is restored, the team can:</p>
+            <ol>
+                <li>Investigate what went wrong in v2.0.0</li>
+                <li>Fix the bug in a new branch</li>
+                <li>Add tests to catch the issue</li>
+                <li>Deploy v2.1.0 with the fix</li>
+            </ol>
+            
+            <div class="success">
+                <strong>🎉 Lab Complete!</strong> You've successfully:<br>
+                ✅ Created rollback automation<br>
+                ✅ Simulated production incident<br>
+                ✅ Executed emergency recovery<br>
+                ✅ Verified system restoration<br>
+                ✅ Understood disaster recovery best practices
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Simulate a Bad Deployment</h3>
+            <p>Let's introduce a breaking change to demonstrate rollback:</p>
+            
+            <p>Edit <code>src/WebApi/Controllers/StatusController.cs</code>:</p>
+            <p>Change line 30 from:</p>
+            <pre><code>status = "ok",</code></pre>
+            <p>To:</p>
+            <pre><code>status = "error",  // BREAKING CHANGE!</code></pre>
+            
+            <p>Update version to 2.0.0 on line 31:</p>
+            <pre><code>version = "2.0.0",</code></pre>
+            
+            <p>Save the file.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Commit and Push the Breaking Change</h3>
+            <pre><code>git add .
+git commit -m "Version 2.0.0 - Breaking change for rollback demo"
+git push origin main</code></pre>
+            
+            <p>Watch the pipeline run again. This time, the tests should FAIL because the status is now "error" instead of "ok".</p>
+            
+            <div class="warning">
+                <strong>⚠️ Pipeline Failed!</strong> The test stage will fail because tests expect status: "ok"
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>Observe Test Failure</h3>
+            <ol>
+                <li>Go to the failed pipeline</li>
+                <li>Click on the <strong>test</strong> job</li>
+                <li>See the test failure message</li>
+                <li>Note that deploy_staging did NOT run (blocked by failed tests)</li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ Good!</strong> The pipeline prevented a bad deployment from reaching staging!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">12</span>Fix the Breaking Change</h3>
+            <p>Revert the breaking change:</p>
+            <pre><code>git revert HEAD --no-edit
+git push origin main</code></pre>
+            
+            <p>Or manually edit and fix:</p>
+            <pre><code>status = "ok",  // Fixed!
+version = "1.0.1",</code></pre>
+            
+            <p>The pipeline should now pass and deploy version 1.0.1 to staging.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Simulate Need for Rollback</h3>
+            <p>Let's say version 1.0.1 has an issue discovered after deployment. We need to rollback!</p>
+            
+            <ol>
+                <li>Go to <strong>CI/CD → Pipelines</strong></li>
+                <li>Find the LAST SUCCESSFUL pipeline (with deploy_staging completed)</li>
+                <li>Click on it</li>
+                <li>In the deploy_staging stage, you'll see the <strong>rollback</strong> job</li>
+                <li>Click the ▶️ <strong>Play</strong> button next to rollback</li>
+            </ol>
+            
+            <div class="note">
+                <strong>📌 Manual Jobs:</strong> Rollback is manual because rolling back is a critical decision that requires human judgment.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Watch Rollback Execute</h3>
+            <p>Click on the rollback job to see the logs:</p>
+            
+            <pre><code>========================================
+Starting Rollback Process...
+========================================
+Previous deployment info:
+Version: 1.0.0
+[...]
+Rollback Steps:
+1. Stopping current application...
+2. Restoring previous version from backup...
+3. Updating version file...
+4. Restarting application...
+========================================
+Rollback Complete!
+========================================</code></pre>
+            
+            <div class="success">
+                <strong>✅ Rollback Successful!</strong> The staging environment is back to the previous stable version.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Test Local Deployment Scripts (Optional)</h3>
+            <p>You can test the PowerShell scripts locally:</p>
+            
+            <p><strong>Build and Publish:</strong></p>
+            <pre><code>dotnet publish src/WebApi/WebApi.csproj -c Release -o ./publish</code></pre>
+            
+            <p><strong>Run Deployment Script:</strong></p>
+            <pre><code>pwsh ./deploy.ps1 -Version "1.0.0"</code></pre>
+            
+            <p><strong>Check Staging Folder:</strong></p>
+            <pre><code>cat staging/staging-version.txt</code></pre>
+            
+            <p><strong>Simulate Rollback:</strong></p>
+            <pre><code>pwsh ./rollback.ps1</code></pre>
+        </div>
+
+        <div class="verification">
+            <h3>✔️ Verification Checklist</h3>
+            <p>You have successfully completed this lab if:</p>
+            <ul>
+                <li>✅ ASP.NET Core Web API builds and runs locally</li>
+                <li>✅ All integration tests pass locally and in CI/CD</li>
+                <li>✅ GitLab CI/CD pipeline has 4 stages</li>
+                <li>✅ Build stage creates artifacts</li>
+                <li>✅ Test stage runs integration tests</li>
+                <li>✅ Deploy_staging deploys to staging environment</li>
+                <li>✅ Staging deployment creates version file</li>
+                <li>✅ GitLab Environments tracks staging deployments</li>
+                <li>✅ Failed tests block deployment (demonstrated)</li>
+                <li>✅ Rollback job can be triggered manually</li>
+                <li>✅ Rollback restores previous version</li>
+            </ul>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>🔧 Troubleshooting</h3>
+            
+            <h4>Issue: Build fails with "SDK not found"</h4>
+            <p><strong>Solution:</strong> Ensure image is <code>mcr.microsoft.com/dotnet/sdk:8.0</code></p>
+            
+            <h4>Issue: Tests fail locally but work in CI</h4>
+            <p><strong>Solution:</strong> Check for file path differences, environment variables</p>
+            
+            <h4>Issue: Deploy_staging doesn't run</h4>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Check it only runs on <code>main</code> branch</li>
+                <li>Ensure previous stages (build, test) passed</li>
+                <li>Verify runner has capacity</li>
+            </ul>
+            
+            <h4>Issue: Rollback job not visible</h4>
+            <p><strong>Solution:</strong> Rollback only appears after deploy_staging completes. It's in the same pipeline.</p>
+            
+            <h4>Issue: Artifacts not found in rollback</h4>
+            <p><strong>Solution:</strong> Check artifact expiration time. May need to re-run deploy_staging.</p>
+        </div>
+
+        <h2>🎓 Key Takeaways</h2>
+        <ul>
+            <li><strong>Multi-stage pipelines</strong> enable complex workflows</li>
+            <li><strong>Artifacts</strong> pass build outputs between stages</li>
+            <li><strong>Environment</strong> tracking provides deployment visibility</li>
+            <li><strong>Manual jobs</strong> require human approval for critical operations</li>
+            <li><strong>Version tracking</strong> is essential for debugging and rollbacks</li>
+            <li><strong>Failed tests block deployment</strong> - safety net for quality</li>
+            <li><strong>Rollback procedures</strong> are critical for production systems</li>
+        </ul>
+
+        <h2>📚 Additional Resources</h2>
+        <ul>
+            <li><a href="https://docs.gitlab.com/ee/ci/environments/" target="_blank">GitLab Environments</a></li>
+            <li><a href="https://docs.gitlab.com/ee/ci/jobs/job_control.html#when" target="_blank">Manual Jobs in GitLab</a></li>
+            <li><a href="https://docs.microsoft.com/en-us/aspnet/core/web-api/" target="_blank">ASP.NET Core Web API</a></li>
+            <li><a href="https://docs.gitlab.com/ee/ci/pipelines/job_artifacts.html" target="_blank">GitLab Artifacts</a></li>
+        </ul>
+
+        <hr style="margin: 40px 0;">
+        
+        <p style="text-align: center; color: #666;">
+            <strong>Next Lab:</strong> Day 4 - Capstone: Full End-to-End Project
+        </p>
+    </div>
+</body>
+</html>

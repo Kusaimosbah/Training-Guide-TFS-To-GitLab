@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Day 4 - Capstone Project: Full SDLC with GitLab</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .objectives h3, .prerequisites h3, .verification h3, .troubleshooting h3 {
+            margin-top: 0;
+            color: #6e49cb;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #fc6d26;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .endpoint {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛍️ Lab 8: Building Enterprise ASP.NET Core Web APIs</h1>
+        <p><strong>Duration:</strong> 90 minutes | <strong>Time Slot:</strong> 9:00am - 10:30am (Day 4)</p>
+        
+        <div class="prerequisites">
+            <h3>📋 Prerequisites</h3>
+            <ul>
+                <li>Completed Day 3 labs (Labs 5-7)</li>
+                <li>.NET 8 SDK installed</li>
+                <li>Git installed and configured</li>
+                <li>Text editor or IDE (VS Code, Visual Studio)</li>
+                <li>Basic understanding of REST APIs</li>
+            </ul>
+        </div>
+
+        <div class="objectives">
+            <h3>🎯 Learning Objectives</h3>
+            <ol>
+                <li>Understand ASP.NET Core Web API project structure</li>
+                <li>Explore Controllers, Services, and Models architecture</li>
+                <li>Work with dependency injection in .NET</li>
+                <li>Test APIs using Swagger UI</li>
+                <li>Add new endpoints following REST conventions</li>
+                <li>Implement business logic in service layers</li>
+                <li>Use minimal APIs vs Controller-based approach</li>
+            </ol>
+        </div>
+
+        <div class="overview">
+            <h3>📖 Overview</h3>
+            <p><strong>Scenario:</strong> Your team is building a modern Product Catalog API. The initial scaffolding is in place, but you need to understand the architecture and extend it with new features.</p>
+            
+            <p>In this lab, you'll:</p>
+            <ul>
+                <li>Explore a complete ASP.NET Core Web API project</li>
+                <li>Understand Controllers (presentation layer)</li>
+                <li>Understand Services (business logic layer)</li>
+                <li>Understand Models (data structures)</li>
+                <li>Learn dependency injection patterns</li>
+                <li>Work with Swagger for API documentation</li>
+                <li>Add new endpoints and test them</li>
+            </ul>
+            
+            <div class="note">
+                <strong>📌 Focus:</strong> This lab is about understanding API architecture, not CI/CD. You'll run everything locally and explore the codebase.
+            </div>
+        </div>
+
+        <h2>🏗️ Project Structure</h2>
+        <pre><code>Lab-8-API-Development/
+├── src/
+│   └── ProductCatalogApi/
+│       ├── Controllers/
+│       │   ├── ProductsController.cs    # Product CRUD operations
+│       │   └── CategoriesController.cs  # Category management
+│       ├── Services/
+│       │   ├── IProductService.cs       # Interface
+│       │   └── ProductService.cs        # Business logic
+│       ├── Models/
+│       │   ├── Product.cs
+│       │   └── Category.cs
+│       ├── Data/
+│       │   └── InMemoryDataStore.cs     # Mock database
+│       └── Program.cs                   # Startup configuration
+└── ProductCatalogApi.csproj</code></pre>
+
+        <h2>🔗 API Endpoints Overview</h2>
+        
+        <h3>Products Controller</h3>
+        <div class="endpoint">GET /api/products</div>
+        <p>Get all products</p>
+        
+        <div class="endpoint">GET /api/products/{id}</div>
+        <p>Get specific product by ID</p>
+        
+        <div class="endpoint">POST /api/products</div>
+        <p>Create new product</p>
+        
+        <h3>Categories Controller</h3>
+        <div class="endpoint">GET /api/categories</div>
+        <p>Get all categories</p>
+
+        <h2>🚀 Step-by-Step Guide</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Navigate to Lab Folder</h3>
+            <pre><code>cd "Day-4/Lab-8-API-Development"
+ls src/ProductCatalogApi/</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Explore Program.cs - API Startup</h3>
+            <pre><code>cat src/ProductCatalogApi/Program.cs</code></pre>
+            
+            <p>Key sections to understand:</p>
+            <h4>Service Registration (Dependency Injection):</h4>
+            <pre><code>builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Register custom services
+builder.Services.AddSingleton&lt;IProductService, ProductService&gt;();</code></pre>
+            
+            <h4>Middleware Pipeline:</h4>
+            <pre><code>app.UseSwagger();        // API documentation
+app.UseSwaggerUI();      // UI for testing
+app.UseAuthorization();  // Security
+app.MapControllers();    // Route mapping</code></pre>
+            
+            <div class="note">
+                <strong>📌 Dependency Injection:</strong> Services are registered once and injected into controllers automatically!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Explore Models - Data Structures</h3>
+            <pre><code>cat src/ProductCatalogApi/Models/Product.cs</code></pre>
+            
+            <p>Example Product model:</p>
+            <pre><code>public class Product
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public int CategoryId { get; set; }
+    public DateTime CreatedAt { get; set; }
+}</code></pre>
+            
+            <p>Models represent data structure - pure C# classes (POCOs).</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Explore Services - Business Logic Layer</h3>
+            <pre><code>cat src/ProductCatalogApi/Services/IProductService.cs
+cat src/ProductCatalogApi/Services/ProductService.cs</code></pre>
+            
+            <h4>Interface defines contract:</h4>
+            <pre><code>public interface IProductService
+{
+    Task&lt;List&lt;Product&gt;&gt; GetAllProductsAsync();
+    Task&lt;Product?&gt; GetProductByIdAsync(int id);
+    Task&lt;Product&gt; CreateProductAsync(Product product);
+}</code></pre>
+            
+            <h4>Service implements business logic:</h4>
+            <pre><code>public class ProductService : IProductService
+{
+    private readonly InMemoryDataStore _dataStore;
+    
+    public ProductService(InMemoryDataStore dataStore)
+    {
+        _dataStore = dataStore;
+    }
+    
+    public async Task&lt;List&lt;Product&gt;&gt; GetAllProductsAsync()
+    {
+        // Business logic here
+        return await Task.FromResult(_dataStore.Products.ToList());
+    }
+}</code></pre>
+            
+            <div class="success">
+                <strong>✅ Separation of Concerns:</strong> Business logic is isolated from HTTP concerns!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Explore Controllers - Presentation Layer</h3>
+            <pre><code>cat src/ProductCatalogApi/Controllers/ProductsController.cs</code></pre>
+            
+            <p>Example controller structure:</p>
+            <pre><code>[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    private readonly IProductService _productService;
+    
+    public ProductsController(IProductService productService)
+    {
+        _productService = productService;  // Injected!
+    }
+    
+    [HttpGet]
+    public async Task&lt;ActionResult&lt;List&lt;Product&gt;&gt;&gt; GetAll()
+    {
+        var products = await _productService.GetAllProductsAsync();
+        return Ok(products);
+    }
+    
+    [HttpGet("{id}")]
+    public async Task&lt;ActionResult&lt;Product&gt;&gt; GetById(int id)
+    {
+        var product = await _productService.GetProductByIdAsync(id);
+        if (product == null)
+            return NotFound();
+        return Ok(product);
+    }
+}</code></pre>
+            
+            <h4>Key Concepts:</h4>
+            <ul>
+                <li><strong>[ApiController]</strong> - Enables automatic model validation, binding</li>
+                <li><strong>[Route]</strong> - Defines URL pattern</li>
+                <li><strong>[HttpGet]</strong> - Maps to HTTP GET method</li>
+                <li><strong>ActionResult</strong> - Flexible return type (Ok, NotFound, BadRequest, etc.)</li>
+                <li><strong>Constructor injection</strong> - Service is injected automatically</li>
+            </ul>
+        </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">6</span>Run the API Locally</h3>
+            <pre><code>cd src/ProductCatalogApi
+dotnet restore
+dotnet build
+dotnet run</code></pre>
+            
+            <div class="success">
+                <strong>✅ Expected:</strong> API starts on http://localhost:5000 or https://localhost:5001
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">7</span>Explore Swagger UI</h3>
+            <ol>
+                <li>Open browser to <code>http://localhost:5000/swagger</code></li>
+                <li>See all endpoints documented automatically</li>
+                <li>Click <strong>GET /api/products</strong></li>
+                <li>Click <strong>Try it out</strong></li>
+                <li>Click <strong>Execute</strong></li>
+                <li>See JSON response with sample products</li>
+            </ol>
+            
+            <div class="note">
+                <strong>📌 Swagger:</strong> Auto-generated API documentation and testing UI!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>Test All Endpoints via Swagger</h3>
+            <p>Test each endpoint:</p>
+            <ul>
+                <li><strong>GET /api/products</strong> - Returns all products</li>
+                <li><strong>GET /api/products/1</strong> - Returns product with ID 1</li>
+                <li><strong>GET /api/categories</strong> - Returns all categories</li>
+            </ul>
+            
+            <p>Try the POST endpoint:</p>
+            <ol>
+                <li>Click <strong>POST /api/products</strong></li>
+                <li>Click <strong>Try it out</strong></li>
+                <li>Edit request body JSON:</li>
+            </ol>
+            <pre><code>{
+  "name": "New Widget",
+  "description": "Test product",
+  "price": 29.99,
+  "categoryId": 1
+}</code></pre>
+            <li>Click <strong>Execute</strong></li>
+            <li>See 201 Created response with new product</li>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Test with curl (Alternative)</h3>
+            <p>Open new terminal (keep API running):</p>
+            <pre><code># Get all products
+curl http://localhost:5000/api/products
+
+# Get specific product
+curl http://localhost:5000/api/products/1
+
+# Create new product
+curl -X POST http://localhost:5000/api/products \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test","description":"Test product","price":19.99,"categoryId":1}'</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Add a New Endpoint - Delete Product</h3>
+            <p>📍 <strong>Where to add:</strong> Open <code>Controllers/ProductsController.cs</code> and add this method <strong>INSIDE the ProductsController class</strong>, after the existing methods (like Create/Update):</p>
+            
+            <div class="note">
+                <strong>Visual structure:</strong>
+                <pre>public class ProductsController : ControllerBase
+{
+    // ... existing methods (Get, GetById, Create, Update) ...
+    
+    <strong>// ADD THIS NEW Delete METHOD HERE (inside the class):</strong>
+    [HttpDelete("{id}")]
+    public async Task&lt;ActionResult&gt; Delete(int id)
+    {
+        // ... method code ...
+    }
+}  // ← Closing brace of class</pre>
+            </div>
+            
+            <pre><code>[HttpDelete("{id}")]
+public async Task&lt;ActionResult&gt; Delete(int id)
+{
+    var product = await _productService.GetProductByIdAsync(id);
+    if (product == null)
+        return NotFound(new { message = $"Product {id} not found" });
+    
+    await _productService.DeleteProductAsync(id);
+    return NoContent();  // 204 No Content
+}</code></pre>
+            
+            <div class="warning">
+                <strong>⚠️ Common Mistake:</strong> Don't add this method outside the class braces or in a different file!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>Add Delete Method to Service</h3>
+            <p>📍 <strong>First:</strong> Open <code>Services/IProductService.cs</code> and add this method signature <strong>INSIDE the interface</strong>, after the existing method signatures:</p>
+            
+            <div class="note">
+                <strong>Visual structure (interface):</strong>
+                <pre>public interface IProductService
+{
+    Task&lt;List&lt;Product&gt;&gt; GetAllProductsAsync();
+    Task&lt;Product?&gt; GetProductByIdAsync(int id);
+    Task&lt;Product&gt; CreateProductAsync(Product product);
+    
+    <strong>// ADD THIS NEW method signature HERE:</strong>
+    Task DeleteProductAsync(int id);
+}</pre>
+            </div>
+            
+            <pre><code>Task DeleteProductAsync(int id);</code></pre>
+            
+            <p>📍 <strong>Second:</strong> Open <code>Services/ProductService.cs</code> and add the implementation <strong>INSIDE the ProductService class</strong>, after the existing methods:</p>
+            
+            <div class="note">
+                <strong>Visual structure (implementation):</strong>
+                <pre>public class ProductService : IProductService
+{
+    // ... existing methods (GetAllProductsAsync, GetProductByIdAsync, etc.) ...
+    
+    <strong>// ADD THIS NEW implementation HERE:</strong>
+    public async Task DeleteProductAsync(int id)
+    {
+        // ... method code ...
+    }
+}  // ← Closing brace of class</pre>
+            </div>
+            
+            <pre><code>public async Task DeleteProductAsync(int id)
+{
+    var product = _dataStore.Products.FirstOrDefault(p => p.Id == id);
+    if (product != null)
+    {
+        _dataStore.Products.Remove(product);
+    }
+    await Task.CompletedTask;
+}</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">12</span>Test New Delete Endpoint</h3>
+            <p>Stop and restart the API:</p>
+            <pre><code># Stop with Ctrl+C
+dotnet run</code></pre>
+            
+            <p>Refresh Swagger UI - you should now see:</p>
+            <div class="endpoint">DELETE /api/products/{id}</div>
+            
+            <p>Test it:</p>
+            <ol>
+                <li>Try it out</li>
+                <li>Enter id: 1</li>
+                <li>Execute</li>
+                <li>See 204 No Content response</li>
+                <li>Try GET /api/products - product 1 is gone!</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Understand Data Flow</h3>
+            <div class="note">
+                <strong>📊 Request Flow:</strong>
+                <ol>
+                    <li><strong>HTTP Request</strong> → Arrives at controller endpoint</li>
+                    <li><strong>Controller</strong> → Validates input, calls service method</li>
+                    <li><strong>Service</strong> → Executes business logic</li>
+                    <li><strong>Data Store</strong> → Performs CRUD operation</li>
+                    <li><strong>Service</strong> → Returns data to controller</li>
+                    <li><strong>Controller</strong> → Formats HTTP response (Ok, NotFound, etc.)</li>
+                    <li><strong>HTTP Response</strong> → Returned to client</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Understand Dependency Injection Benefits</h3>
+            <div class="success">
+                <strong>✅ Why DI is Powerful:</strong>
+                <ul>
+                    <li><strong>Testability:</strong> Easy to mock services for unit tests</li>
+                    <li><strong>Flexibility:</strong> Swap implementations without changing controllers</li>
+                    <li><strong>Maintainability:</strong> Single responsibility - controllers handle HTTP, services handle logic</li>
+                    <li><strong>Decoupling:</strong> Controllers don't create service instances</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Compare to Minimal APIs (Bonus)</h3>
+            <p>ASP.NET Core also supports minimal API style (no controllers):</p>
+            <pre><code>// In Program.cs
+app.MapGet("/api/products", async (IProductService service) => 
+{
+    return await service.GetAllProductsAsync();
+});
+
+app.MapGet("/api/products/{id}", async (int id, IProductService service) =>
+{
+    var product = await service.GetProductByIdAsync(id);
+    return product is not null ? Results.Ok(product) : Results.NotFound();
+});</code></pre>
+            
+            <div class="note">
+                <strong>📌 Two Approaches:</strong><br>
+                <strong>Controllers:</strong> Better for large APIs, organization, testability<br>
+                <strong>Minimal APIs:</strong> Better for small APIs, microservices, simplicity
+            </div>
+        </div>
+                </tr>
+                <tr>
+                    <td><strong>quality_gate</strong></td>
+                    <td>Code quality checks (simulated)</td>
+                    <td>~1 min</td>
+                </tr>
+                <tr>
+                    <td><strong>rollback</strong></td>
+                    <td>Manual rollback to previous version</td>
+                    <td>~1 min</td>
+                </tr>
+            </table>
+            
+            <p>Key pipeline features:</p>
+            <ul>
+                <li>✅ <strong>Artifact Management:</strong> Build artifacts stored for 1 hour</li>
+                <li>✅ <strong>Automated Testing:</strong> Tests run on every commit</li>
+                <li>✅ <strong>Staging Deployment:</strong> Automatic deployment to staging</li>
+                <li>✅ <strong>Manual Gates:</strong> Rollback requires manual trigger</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>Trigger Pipeline</h3>
+            <p>Make a small change and push to trigger the pipeline:</p>
+            <pre><code># Make a small change
+echo "# Capstone API Project" >> README.md
+git add README.md
+git commit -m "Add project README"
+git push origin main</code></pre>
+            
+            <p>Go to GitLab → <strong>CI/CD</strong> → <strong>Pipelines</strong> and watch your pipeline execute through all stages.</p>
+            
+            <div class="success">
+                <strong>✅ Pipeline Success Indicators:</strong>
+                <ul>
+                    <li>✅ Build stage completes with artifacts</li>
+                    <li>✅ Test stage passes all 15 tests</li>
+                    <li>✅ Deploy stage shows staging URL</li>
+                    <li>✅ Quality gate passes checks</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Local Deployment Test</h3>
+            <p>Test the deployment script locally:</p>
+            <pre><code># Build and publish
+dotnet publish src/CapstoneApi/CapstoneApi.csproj -c Release -o publish
+
+# Run deployment script
+pwsh deploy.ps1</code></pre>
+            
+            <div class="success">
+                <strong>✅ Deployment Actions:</strong>
+                <ul>
+                    <li>Creates backup of previous deployment</li>
+                    <li>Copies new artifacts to deployment folder</li>
+                    <li>Updates version tracking file</li>
+                    <li>Shows deployment summary</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Test Rollback Capability</h3>
+            <p>Practice rolling back to a previous version:</p>
+            <pre><code># Trigger rollback
+pwsh rollback.ps1</code></pre>
+            
+            <div class="success">
+                <strong>✅ Rollback Actions:</strong>
+                <ul>
+                    <li>Identifies previous backup</li>
+                    <li>Restores previous version</li>
+                    <li>Updates version tracking</li>
+                    <li>Confirms rollback success</li>
+                </ul>
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Note:</strong> In production, rollback would be triggered via GitLab CI/CD manual action, not local script.
+            </div>
+        </div>
+
+        <h2>📊 Key Features Review</h2>
+
+        <h3>Service Architecture</h3>
+        <ul>
+            <li><strong>CalculatorService:</strong> Business logic with 6 mathematical operations</li>
+            <li><strong>Dependency Injection:</strong> Services registered and injected via DI</li>
+            <li><strong>Logging:</strong> Comprehensive logging with ILogger</li>
+            <li><strong>Error Handling:</strong> Try-catch blocks with appropriate HTTP status codes</li>
+        </ul>
+
+        <h3>Testing Strategy</h3>
+        <ul>
+            <li><strong>Unit Tests:</strong> Isolated service testing with xUnit</li>
+            <li><strong>Integration Tests:</strong> Full HTTP endpoint testing with WebApplicationFactory</li>
+            <li><strong>Theory Tests:</strong> Data-driven tests with InlineData</li>
+            <li><strong>Test Coverage:</strong> All critical paths covered</li>
+        </ul>
+
+        <h3>DevOps Practices</h3>
+        <ul>
+            <li><strong>Artifact Management:</strong> Build artifacts with 1-hour expiration</li>
+            <li><strong>Environment Tracking:</strong> Staging environment with URL</li>
+            <li><strong>Version Control:</strong> Git-based workflow with feature branches</li>
+            <li><strong>Deployment Automation:</strong> PowerShell scripts for Windows compatibility</li>
+            <li><strong>Rollback Strategy:</strong> Backup and restore functionality</li>
+        </ul>
+
+        <h2>🎓 Capstone Checklist</h2>
+
+        <div class="verification">
+            <h3>✅ Verify You Can:</h3>
+            <ol>
+                <li>☐ Run the API locally and access Swagger UI</li>
+                <li>☐ Execute all 15 tests successfully</li>
+                <li>☐ Create GitLab repository and push code</li>
+                <li>☐ Trigger CI/CD pipeline and watch it complete</li>
+                <li>☐ View build artifacts in GitLab</li>
+                <li>☐ Deploy to staging using script</li>
+                <li>☐ Rollback to previous version</li>
+                <li>☐ Understand the migration from TFS legacy code</li>
+            </ol>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>🔧 Troubleshooting</h3>
+            
+            <h4>Tests Failing Locally</h4>
+            <pre><code># Ensure .NET 8 SDK is installed
+dotnet --version
+
+# Clean and rebuild
+dotnet clean
+dotnet build</code></pre>
+            
+            <h4>Pipeline Fails on GitLab</h4>
+            <ul>
+                <li>Check GitLab Runner is available</li>
+                <li>Verify <code>.gitlab-ci.yml</code> syntax</li>
+                <li>Review pipeline logs for specific errors</li>
+            </ul>
+            
+            <h4>Deployment Script Errors</h4>
+            <ul>
+                <li>Ensure PowerShell 7+ is installed: <code>pwsh --version</code></li>
+                <li>Check file permissions in deployment directory</li>
+                <li>Verify publish folder exists</li>
+            </ul>
+        </div>
+
+        <div class="success" style="margin-top: 30px; padding: 20px;">
+            <h2 style="color: #28a745; margin-top: 0;">🎉 Congratulations!</h2>
+            <p>You've completed the <strong>4-Day Git Enablement Program for .NET Developers</strong>!</p>
+            
+            <h3>What You've Mastered:</h3>
+            <ul>
+                <li>✅ <strong>Day 1:</strong> Git fundamentals and TFS migration</li>
+                <li>✅ <strong>Day 2:</strong> Branching, merge requests, and code review</li>
+                <li>✅ <strong>Day 3:</strong> CI/CD pipelines and deployment automation</li>
+                <li>✅ <strong>Day 4:</strong> Full SDLC with production-ready practices</li>
+            </ul>
+            
+            <p><strong>You're now ready to:</strong></p>
+            <ul>
+                <li>🚀 Lead TFS to GitLab migrations in your organization</li>
+                <li>🚀 Build and maintain CI/CD pipelines</li>
+                <li>🚀 Implement modern DevOps practices</li>
+                <li>🚀 Mentor other developers on Git and GitLab</li>
+            </ul>
+            
+            <p style="font-size: 1.2em; font-weight: bold; color: #fc6d26;">Keep building amazing things! 🎯</p>
+        </div>
+    </div>
+</body>
+</html>

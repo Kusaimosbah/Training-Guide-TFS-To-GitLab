@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Day 3 - CI/CD Deployment & Rollback</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Lab 6: Automated Deployment to Staging</h1>
+        <p><strong>Duration:</strong> 90 minutes | <strong>Time Slot:</strong> 10:45am - 12:15pm (Day 3)</p>
+        
+        <div class="prerequisites">
+            <h3>📋 Prerequisites</h3>
+            <ul>
+                <li>Completed Lab 5 (Advanced CI/CD Pipelines)</li>
+                <li>.NET 8 SDK installed</li>
+                <li>Git installed and configured</li>
+                <li>GitLab account on <a href="https://gitlab.alleen-ly.online">https://gitlab.alleen-ly.online</a></li>
+                <li><strong>Scripting Environment:</strong> PowerShell Core (pwsh) or Bash - See <a href="../../SCRIPTING-SETUP-GUIDE.md">Scripting Setup Guide</a></li>
+            </ul>
+            <div class="info">
+                <strong>📌 Note:</strong> This lab provides <strong>both .ps1 (PowerShell) and .sh (Bash)</strong> scripts. Choose based on your preference - both are functionally identical.
+            </div>
+        </div>
+
+        <div class="objectives">
+            <h3>🎯 Learning Objectives</h3>
+            <ol>
+                <li>Create deployment automation scripts (deploy.ps1 / deploy.sh)</li>
+                <li>Configure automated deployment jobs in pipelines</li>
+                <li>Use GitLab Environments to track deployments</li>
+                <li>Generate version files with deployment metadata</li>
+                <li>Implement health check verification after deployment</li>
+                <li>Download and inspect deployment artifacts</li>
+                <li>View deployment history and status in GitLab</li>
+            </ol>
+        </div>
+
+        <div class="overview">
+            <h3>📖 Overview</h3>
+            <p><strong>Scenario:</strong> Your pipeline works great (Lab 5), but deployments are still manual. The team wants automatic deployment to staging after successful builds, with proper tracking and verification.</p>
+            
+            <p>In this lab, you'll automate deployment by:</p>
+            <ul>
+                <li>Creating a deployment script that "deploys" artifacts</li>
+                <li>Adding a deploy stage to the pipeline</li>
+                <li>Using GitLab Environments for tracking</li>
+                <li>Generating deployment metadata (version, timestamp, commit)</li>
+                <li>Implementing post-deployment health checks</li>
+            </ul>
+            
+            <div class="note">
+                <strong>📌 Note:</strong> This lab simulates deployment by copying files and generating metadata. In real scenarios, you'd deploy to actual servers, containers, or cloud services.
+            </div>
+        </div>
+
+        <h2>🔧 Step-by-Step Guide</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Navigate to Lab Folder</h3>
+            <pre><code>cd "Day-3/Lab-6-Deployment"
+ls  # Verify src/, deploy.ps1, .gitlab-ci.yml</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Review the Deployment Scripts</h3>
+            
+            <div class="info">
+                <strong>📝 Script Options:</strong> This lab provides <strong>both deploy.ps1 (PowerShell) and deploy.sh (Bash)</strong> scripts already created in the lab folder.<br><br>
+                <strong>Choose your preferred scripting environment:</strong>
+                <ul>
+                    <li><strong>PowerShell Core (pwsh)</strong> - Recommended for .NET developers, works on Windows/Linux/macOS</li>
+                    <li><strong>Bash (sh)</strong> - Native on Linux/macOS, available via WSL/Git Bash on Windows</li>
+                </ul>
+                Instructions below show <strong>PowerShell examples</strong>. For Bash equivalents, replace <code>pwsh deploy.ps1</code> with <code>./deploy.sh</code>. See <a href="../../SCRIPTING-SETUP-GUIDE.md">Scripting Setup Guide</a> for installation help.
+            </div>
+            
+            <p>Review the provided <code>deploy.ps1</code> script content:</p>
+            <pre><code># deploy.ps1
+param(
+    [string]$Version = "1.0.0",
+    [string]$Environment = "staging"
+)
+
+Write-Host "=== Deployment Script ===" -ForegroundColor Cyan
+Write-Host "Version: $Version" -ForegroundColor Green
+Write-Host "Environment: $Environment" -ForegroundColor Green
+Write-Host "Timestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Green
+
+# Create deployment directory
+$deployPath = "deployments/$Environment"
+New-Item -ItemType Directory -Force -Path $deployPath | Out-Null
+
+# Copy artifacts
+Write-Host "Copying artifacts..." -ForegroundColor Yellow
+Copy-Item -Path "publish/*" -Destination $deployPath -Recurse -Force
+
+# Generate deployment metadata
+$metadata = @"
+Version: $Version
+Environment: $Environment
+Deployed: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')
+Commit: $env:CI_COMMIT_SHORT_SHA
+Branch: $env:CI_COMMIT_BRANCH
+Pipeline: $env:CI_PIPELINE_URL
+"@
+
+$metadata | Out-File -FilePath "$deployPath/deployment-info.txt" -Encoding UTF8
+
+Write-Host "✅ Deployment complete!" -ForegroundColor Green
+Write-Host "Location: $deployPath" -ForegroundColor Cyan</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Test Deployment Script Locally</h3>
+            <p>First, create a mock publish folder:</p>
+            <pre><code>mkdir -p publish
+echo "Mock app.dll" > publish/app.dll
+echo "Mock config.json" > publish/config.json</code></pre>
+            
+            <p><strong>Run the deployment script (choose your preferred option):</strong></p>
+            
+            <p><strong>Option A - PowerShell:</strong></p>
+            <pre><code>pwsh deploy.ps1 -Version "1.0.0" -Environment "staging"</code></pre>
+            
+            <p><strong>Option B - Bash:</strong></p>
+            <pre><code>./deploy.sh "1.0.0" "./publish" "./deployments/staging"</code></pre>
+            
+            <div class="success">
+                <strong>✅ Expected Output:</strong>
+                <pre><code>=== Deployment Script ===
+Version: 1.0.0
+Environment: staging
+Timestamp: 2025-12-07 14:30:00
+Copying artifacts...
+✅ Deployment complete!
+Location: deployments/staging</code></pre>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Verify Deployment Output</h3>
+            <pre><code>ls deployments/staging/
+cat deployments/staging/deployment-info.txt</code></pre>
+            
+            <p>You should see the copied artifacts and metadata file.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Create Simple Pipeline with Deploy Stage</h3>
+            <p>Create <code>.gitlab-ci.yml</code>:</p>
+            <pre><code>stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  APP_VERSION: '1.0.0'
+
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet restore src/WebApi/
+    - dotnet publish src/WebApi/ -c Release -o publish
+  artifacts:
+    paths:
+      - publish/
+    expire_in: 1 week
+
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet test tests/StatusApi.Tests/ --configuration Release
+  dependencies:
+    - build
+
+deploy:staging:
+  stage: deploy
+  image: mcr.microsoft.com/powershell:latest  # Or use: ubuntu:latest for bash
+  script:
+    - pwsh deploy.ps1 -Version $APP_VERSION -Environment staging
+    # Bash alternative: chmod +x deploy.sh && ./deploy.sh "$APP_VERSION" "./publish" "./deployments/staging"
+  artifacts:
+    paths:
+      - deployments/staging/
+    expire_in: 1 month
+  environment:
+    name: staging
+    url: https://staging.example.com
+  dependencies:
+    - build
+  only:
+    - main</code></pre>
+            
+            <div class="info">
+                <strong>💡 Script Options for CI/CD:</strong>
+                <ul>
+                    <li><strong>PowerShell (shown above):</strong> Use <code>image: mcr.microsoft.com/powershell:latest</code> and run <code>pwsh deploy.ps1</code></li>
+                    <li><strong>Bash alternative:</strong> Use <code>image: ubuntu:latest</code> and run <code>chmod +x deploy.sh && ./deploy.sh "$APP_VERSION" "./publish" "./deployments/staging"</code></li>
+                </ul>
+                Both work perfectly with .NET artifacts since they just copy published files!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">6</span>Initialize and Push to GitLab</h3>
+            <pre><code>git init
+git add .
+git commit -m "feat: Add automated deployment to staging"
+git remote add origin https://gitlab.alleen-ly.online/YOUR_USERNAME/deploy-automation.git
+git branch -M main
+git push -u origin main</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">7</span>Watch Pipeline with Deployment</h3>
+            <ol>
+                <li>Go to <strong>CI/CD → Pipelines</strong></li>
+                <li>Watch the 3-stage pipeline execute</li>
+                <li>See build → test → deploy:staging</li>
+                <li>Click on deploy:staging job to watch deployment</li>
+            </ol>
+            
+            <div class="note">
+                <strong>📌 Notice:</strong> The deployment runs automatically after tests pass!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>Download Deployment Artifacts</h3>
+            <ol>
+                <li>Click on the completed deploy:staging job</li>
+                <li>On the right, click <strong>Browse</strong> under Job artifacts</li>
+                <li>Navigate to <code>deployments/staging/</code></li>
+                <li>Open <code>deployment-info.txt</code></li>
+            </ol>
+            
+            <p>You'll see complete deployment metadata:</p>
+            <pre><code>Version: 1.0.0
+Environment: staging
+Deployed: 2025-12-07 14:35:12 UTC
+Commit: a7f3c21
+Branch: main
+Pipeline: https://gitlab.alleen-ly.online/.../pipelines/123</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Check GitLab Environments</h3>
+            <ol>
+                <li>Go to <strong>Deployments → Environments</strong></li>
+                <li>See <strong>staging</strong> environment listed</li>
+                <li>Click on it to view deployment history</li>
+                <li>Each deployment is tracked with status</li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ Tracking:</strong> GitLab now tracks all deployments to staging!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Add Health Check to Deployment</h3>
+            <p>Enhance deploy.ps1 with post-deployment verification:</p>
+            <pre><code># Add at end of deploy.ps1
+
+# Health check simulation
+Write-Host "`nPerforming health check..." -ForegroundColor Yellow
+Start-Sleep -Seconds 2
+
+if (Test-Path "$deployPath/app.dll") {
+    Write-Host "✅ Health check passed!" -ForegroundColor Green
+    Write-Host "   - Application files present" -ForegroundColor Gray
+    Write-Host "   - Configuration verified" -ForegroundColor Gray
+    exit 0
+} else {
+    Write-Host "❌ Health check failed!" -ForegroundColor Red
+    exit 1
+}</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>Deploy Version 2.0.0</h3>
+            <p>Update version in .gitlab-ci.yml:</p>
+            <pre><code>variables:
+  APP_VERSION: '2.0.0'</code></pre>
+            
+            <pre><code>git add .
+git commit -m "chore: Bump version to 2.0.0"
+git push</code></pre>
+            
+            <p>Watch the new deployment execute with updated version.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">12</span>View Deployment History</h3>
+            <ol>
+                <li>Go back to <strong>Deployments → Environments → staging</strong></li>
+                <li>See both deployments listed:</li>
+                <ul>
+                    <li>v2.0.0 (latest)</li>
+                    <li>v1.0.0 (previous)</li>
+                </ul>
+                <li>Click on each to see commit details</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Test Feature Branch Behavior</h3>
+            <pre><code>git checkout -b feature/no-deploy-test
+echo "// Change" >> src/WebApi/Program.cs
+git add .
+git commit -m "test: Feature branch"
+git push -u origin feature/no-deploy-test</code></pre>
+            
+            <p>Notice: Build and test run, but deploy:staging is SKIPPED (only: - main).</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Add Production Deployment (Manual)</h3>
+            <p>Add production deploy to .gitlab-ci.yml:</p>
+            <pre><code>deploy:production:
+  stage: deploy
+  image: mcr.microsoft.com/powershell:latest
+  script:
+    - pwsh deploy.ps1 -Version $APP_VERSION -Environment production
+  artifacts:
+    paths:
+      - deployments/production/
+    expire_in: 1 year
+  environment:
+    name: production
+    url: https://production.example.com
+  dependencies:
+    - build
+  when: manual
+  only:
+    - main</code></pre>
+            
+            <div class="note">
+                <strong>📌 when: manual</strong> requires clicking Play button for production!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Trigger Manual Production Deployment</h3>
+            <pre><code>git checkout main
+git add .
+git commit -m "feat: Add manual production deployment"
+git push</code></pre>
+            
+            <ol>
+                <li>Go to the pipeline</li>
+                <li>See deploy:staging runs automatically</li>
+                <li>See deploy:production waiting (manual icon)</li>
+                <li>Click <strong>Play ▶️</strong> on deploy:production</li>
+                <li>Watch production deployment execute</li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ Complete!</strong> You now have automated staging and manual production deployments!
+            </div>
+        </div>
+            <pre><code>status = "ok",  // Fixed!
+version = "1.0.1",</code></pre>
+            
+            <p>The pipeline should now pass and deploy version 1.0.1 to staging.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Simulate Need for Rollback</h3>
+            <p>Let's say version 1.0.1 has an issue discovered after deployment. We need to rollback!</p>
+            
+            <ol>
+                <li>Go to <strong>CI/CD → Pipelines</strong></li>
+                <li>Find the LAST SUCCESSFUL pipeline (with deploy_staging completed)</li>
+                <li>Click on it</li>
+                <li>In the deploy_staging stage, you'll see the <strong>rollback</strong> job</li>
+                <li>Click the ▶️ <strong>Play</strong> button next to rollback</li>
+            </ol>
+            
+            <div class="note">
+                <strong>📌 Manual Jobs:</strong> Rollback is manual because rolling back is a critical decision that requires human judgment.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Watch Rollback Execute</h3>
+            <p>Click on the rollback job to see the logs:</p>
+            
+            <pre><code>========================================
+Starting Rollback Process...
+========================================
+Previous deployment info:
+Version: 1.0.0
+[...]
+Rollback Steps:
+1. Stopping current application...
+2. Restoring previous version from backup...
+3. Updating version file...
+4. Restarting application...
+========================================
+Rollback Complete!
+========================================</code></pre>
+            
+            <div class="success">
+                <strong>✅ Rollback Successful!</strong> The staging environment is back to the previous stable version.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Test Local Deployment Scripts (Optional)</h3>
+            <p>You can test the PowerShell scripts locally:</p>
+            
+            <p><strong>Build and Publish:</strong></p>
+            <pre><code>dotnet publish src/WebApi/WebApi.csproj -c Release -o ./publish</code></pre>
+            
+            <p><strong>Run Deployment Script:</strong></p>
+            <pre><code>pwsh ./deploy.ps1 -Version "1.0.0"</code></pre>
+            
+            <p><strong>Check Staging Folder:</strong></p>
+            <pre><code>cat staging/staging-version.txt</code></pre>
+            
+            <p><strong>Simulate Rollback:</strong></p>
+            <pre><code>pwsh ./rollback.ps1</code></pre>
+        </div>
+
+        <div class="verification">
+            <h3>✔️ Verification Checklist</h3>
+            <p>You have successfully completed this lab if:</p>
+            <ul>
+                <li>✅ ASP.NET Core Web API builds and runs locally</li>
+                <li>✅ All integration tests pass locally and in CI/CD</li>
+                <li>✅ GitLab CI/CD pipeline has 4 stages</li>
+                <li>✅ Build stage creates artifacts</li>
+                <li>✅ Test stage runs integration tests</li>
+                <li>✅ Deploy_staging deploys to staging environment</li>
+                <li>✅ Staging deployment creates version file</li>
+                <li>✅ GitLab Environments tracks staging deployments</li>
+                <li>✅ Failed tests block deployment (demonstrated)</li>
+                <li>✅ Rollback job can be triggered manually</li>
+                <li>✅ Rollback restores previous version</li>
+            </ul>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>🔧 Troubleshooting</h3>
+            
+            <h4>Issue: Build fails with "SDK not found"</h4>
+            <p><strong>Solution:</strong> Ensure image is <code>mcr.microsoft.com/dotnet/sdk:8.0</code></p>
+            
+            <h4>Issue: Tests fail locally but work in CI</h4>
+            <p><strong>Solution:</strong> Check for file path differences, environment variables</p>
+            
+            <h4>Issue: Deploy_staging doesn't run</h4>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Check it only runs on <code>main</code> branch</li>
+                <li>Ensure previous stages (build, test) passed</li>
+                <li>Verify runner has capacity</li>
+            </ul>
+            
+            <h4>Issue: Rollback job not visible</h4>
+            <p><strong>Solution:</strong> Rollback only appears after deploy_staging completes. It's in the same pipeline.</p>
+            
+            <h4>Issue: Artifacts not found in rollback</h4>
+            <p><strong>Solution:</strong> Check artifact expiration time. May need to re-run deploy_staging.</p>
+        </div>
+
+        <h2>🎓 Key Takeaways</h2>
+        <ul>
+            <li><strong>Multi-stage pipelines</strong> enable complex workflows</li>
+            <li><strong>Artifacts</strong> pass build outputs between stages</li>
+            <li><strong>Environment</strong> tracking provides deployment visibility</li>
+            <li><strong>Manual jobs</strong> require human approval for critical operations</li>
+            <li><strong>Version tracking</strong> is essential for debugging and rollbacks</li>
+            <li><strong>Failed tests block deployment</strong> - safety net for quality</li>
+            <li><strong>Rollback procedures</strong> are critical for production systems</li>
+        </ul>
+
+        <h2>📚 Additional Resources</h2>
+        <ul>
+            <li><a href="https://docs.gitlab.com/ee/ci/environments/" target="_blank">GitLab Environments</a></li>
+            <li><a href="https://docs.gitlab.com/ee/ci/jobs/job_control.html#when" target="_blank">Manual Jobs in GitLab</a></li>
+            <li><a href="https://docs.microsoft.com/en-us/aspnet/core/web-api/" target="_blank">ASP.NET Core Web API</a></li>
+            <li><a href="https://docs.gitlab.com/ee/ci/pipelines/job_artifacts.html" target="_blank">GitLab Artifacts</a></li>
+        </ul>
+
+        <hr style="margin: 40px 0;">
+        
+        <p style="text-align: center; color: #666;">
+            <strong>Next Lab:</strong> Day 4 - Capstone: Full End-to-End Project
+        </p>
+    </div>
+</body>
+</html>

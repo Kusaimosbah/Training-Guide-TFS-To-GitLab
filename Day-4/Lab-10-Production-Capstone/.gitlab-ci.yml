@@ -1,0 +1,204 @@
+# ============================================
+# GitLab CI/CD Pipeline for Lab 10 - Production Capstone
+# ============================================
+# Complete enterprise SDLC pipeline demonstrating production-ready practices
+# Pipeline stages: BUILD → UNIT-TEST → INTEGRATION-TEST → DEPLOY-STAGING → DEPLOY-PRODUCTION → ROLLBACK
+# Features: Automated testing, staging gate, manual production approval, emergency rollback
+# ============================================
+
+# Define pipeline stages
+stages:
+  - build              # First: Compile and publish
+  - unit-test         # Second: Fast unit tests
+  - integration-test  # Third: Full API tests
+  - deploy-staging    # Fourth: Deploy to staging (automatic)
+  - deploy-production # Fifth: Deploy to production (manual approval)
+  - rollback          # Sixth: Emergency rollback (manual)
+
+# Global variables
+variables:
+  DOTNET_VERSION: "8.0"                          # .NET SDK version
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"           # Disable telemetry
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"     # Skip welcome
+  DOTNET_NOLOGO: "true"                         # Hide logo
+  APP_VERSION: "2.0.0"                          # Application version
+
+# ============================================
+# BUILD JOB - Compile and publish Order API
+# ============================================
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0        # .NET 8 SDK
+  script:
+    - echo "Building Order API version $APP_VERSION..."
+    - dotnet restore src/CapstoneApi/CapstoneApi.csproj    # Restore packages
+    - dotnet build src/CapstoneApi/CapstoneApi.csproj --configuration Release --no-restore
+    - echo "Publishing application..."
+    - dotnet publish src/CapstoneApi/CapstoneApi.csproj -c Release -o ./publish --no-restore
+    - echo "Build completed successfully!"
+  artifacts:                                      # Save build outputs
+    paths:
+      - publish/                                 # Published application
+      - src/CapstoneApi/bin/Release/            # Build binaries
+    expire_in: 1 week
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# UNIT-TEST JOB - Service layer unit tests
+# ============================================
+# Tests business logic and services in isolation
+# Fast execution without external dependencies
+# ============================================
+unit-test:
+  stage: unit-test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Running unit tests..."
+    - dotnet restore tests/CapstoneApi.UnitTests/CapstoneApi.UnitTests.csproj
+    - echo "Installing JUnit logger for test reports..."
+    - dotnet add tests/CapstoneApi.UnitTests/CapstoneApi.UnitTests.csproj package JunitXml.TestLogger
+    - dotnet test tests/CapstoneApi.UnitTests/CapstoneApi.UnitTests.csproj --configuration Release --logger "console;verbosity=detailed" --logger "junit;LogFileName=unit-test-results.xml" --no-restore
+    - echo "✅ All unit tests passed!"
+  artifacts:
+    when: always
+    paths:
+      - tests/CapstoneApi.UnitTests/TestResults/unit-test-results.xml
+    reports:
+      junit: tests/CapstoneApi.UnitTests/TestResults/unit-test-results.xml
+    expire_in: 7 days
+  dependencies:
+    - build
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# INTEGRATION-TEST JOB - End-to-end API tests
+# ============================================
+# Tests complete API workflows with WebApplicationFactory
+# Validates controllers, routing, middleware, and data flow
+# ============================================
+integration-test:
+  stage: integration-test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Running integration tests..."
+    - dotnet restore tests/CapstoneApi.IntegrationTests/CapstoneApi.IntegrationTests.csproj
+    - echo "Installing JUnit logger for test reports..."
+    - dotnet add tests/CapstoneApi.IntegrationTests/CapstoneApi.IntegrationTests.csproj package JunitXml.TestLogger
+    - dotnet test tests/CapstoneApi.IntegrationTests/CapstoneApi.IntegrationTests.csproj --configuration Release --logger "console;verbosity=detailed" --logger "junit;LogFileName=integration-test-results.xml" --no-restore
+    - echo "✅ All integration tests passed!"
+  artifacts:
+    when: always
+    paths:
+      - tests/CapstoneApi.IntegrationTests/TestResults/integration-test-results.xml
+    reports:
+      junit: tests/CapstoneApi.IntegrationTests/TestResults/integration-test-results.xml
+    expire_in: 7 days
+  dependencies:
+    - build
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# DEPLOY:STAGING JOB - Automated staging deployment
+# ============================================
+# Deploys automatically to staging after all tests pass
+# Creates backup for potential rollback
+# Tracks version for audit trail
+# ============================================
+deploy:staging:
+  stage: deploy-staging
+  image: mcr.microsoft.com/powershell:latest     # PowerShell container
+  script:
+    - echo "Deploying version $APP_VERSION to STAGING..."
+    # Deploy script creates backup automatically
+    - pwsh deploy.ps1 -Version $APP_VERSION -SourcePath "./publish" -StagingPath "./deployments/staging"
+    - echo "✅ Deployment to STAGING completed!"
+    - echo "Version deployed:"
+    # Display deployed version
+    - cat deployments/staging/staging-version.txt
+  artifacts:                                      # Save deployment artifacts
+    paths:
+      - deployments/staging/                     # Current staging deployment
+      - deployments/staging-backup/              # Backup for rollback
+    expire_in: 1 month
+  environment:                                   # Environment tracking
+    name: staging
+    url: https://staging-order-api.example.com
+  dependencies:
+    - build
+  only:
+    - main
+
+# ============================================
+# DEPLOY:PRODUCTION JOB - Manual production deployment
+# ============================================
+# Requires MANUAL approval before deploying to production
+# Only runs after successful staging deployment
+# Creates production backup for emergency rollback
+# ============================================
+deploy:production:
+  stage: deploy-production
+  image: mcr.microsoft.com/powershell:latest
+  script:
+    - echo "🚀 Deploying version $APP_VERSION to PRODUCTION..."
+    # Deploy to production directory
+    - pwsh deploy.ps1 -Version $APP_VERSION -SourcePath "./publish" -StagingPath "./deployments/production"
+    - echo "✅ Deployment to PRODUCTION completed!"
+    - echo "Production version:"
+    # Display production version
+    - cat deployments/production/staging-version.txt
+  artifacts:                                      # Save production artifacts
+    paths:
+      - deployments/production/                  # Current production
+      - deployments/production-backup/           # Backup for emergency rollback
+    expire_in: 3 months                         # Longer retention for production
+  environment:                                   # Production environment
+    name: production
+    url: https://order-api.example.com
+  dependencies:
+    - build
+  when: manual                                   # REQUIRES MANUAL APPROVAL
+  only:
+    - main
+  needs:                                         # Must wait for staging
+    - deploy:staging
+
+# ============================================
+# ROLLBACK:PRODUCTION JOB - Emergency rollback (MANUAL)
+# ============================================
+# EMERGENCY use only - restores previous production version
+# Triggered manually when critical issues are detected
+# Restores backup created during last deployment
+# ============================================
+rollback:production:
+  stage: rollback
+  image: mcr.microsoft.com/powershell:latest
+  script:
+    - echo "⚠️⚠️⚠️ EMERGENCY ROLLBACK INITIATED ⚠️⚠️⚠️"
+    - echo "Rolling back production to previous version..."
+    # Restore production backup
+    - pwsh rollback.ps1 -StagingPath "./deployments/production" -BackupPath "./deployments/production-backup"
+    - echo "✅ Rollback completed!"
+    - echo "Current production version after rollback:"
+    # Display restored version
+    - cat deployments/production/staging-version.txt
+  artifacts:                                      # Save rollback state
+    paths:
+      - deployments/production/
+    expire_in: 3 months
+  environment:
+    name: production
+    url: https://order-api.example.com
+  when: manual                                   # MANUAL trigger only
+  only:
+    - main
+  needs:                                         # Can only rollback after deployment
+    - deploy:production

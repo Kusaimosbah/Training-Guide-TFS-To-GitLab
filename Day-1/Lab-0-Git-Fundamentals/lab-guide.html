@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 0: Git Fundamentals - Essential Commands</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        h1 { margin: 0; font-size: 2.5em; }
+        .subtitle { font-size: 1.2em; opacity: 0.9; margin-top: 10px; }
+        .section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        h3 { color: #764ba2; margin-top: 20px; }
+        .command-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            white-space: pre;
+        }
+        .bash { border-left-color: #28a745; }
+        .powershell { border-left-color: #0078d4; }
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #667eea;
+            color: white;
+        }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .tfs-box, .git-box {
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .tfs-box {
+            background: #ffe6e6;
+            border: 2px solid #dc3545;
+        }
+        .git-box {
+            background: #e6f7ff;
+            border: 2px solid #28a745;
+        }
+        .env-selector {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎓 Lab 0: Git Fundamentals</h1>
+        <div class="subtitle">Essential Git Commands for TFS Developers</div>
+        <div style="margin-top: 15px;">
+            <strong>Duration:</strong> 90-120 minutes | 
+            <strong>Difficulty:</strong> Beginner | 
+            <strong>Prerequisites:</strong> None
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📋 Overview</h2>
+        <p>
+            This lab introduces Git fundamentals for developers transitioning from TFS/TFVC. You'll learn 
+            essential Git commands through hands-on practice, understand the distributed version control model, 
+            and compare Git workflows with TFS operations you already know.
+        </p>
+        
+        <div class="info">
+            <strong>🎯 What You'll Learn:</strong>
+            <ul>
+                <li>Core Git concepts (repository, commit, branch, remote)</li>
+                <li>Essential Git commands for daily workflow</li>
+                <li>Differences between TFS/TFVC and Git</li>
+                <li>Git configuration and setup</li>
+                <li>Working directory, staging area, and repository</li>
+                <li>Branch management and merging</li>
+                <li>Conflict resolution</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>💻 Environment Setup</h2>
+        
+        <div class="env-selector">
+            <h3>Choose Your Development Environment</h3>
+            <p>This workshop supports two environments. Choose the one that matches your setup:</p>
+            <ul>
+                <li><strong>Option 1: WSL + Ubuntu + VS Code</strong> (Recommended for this workshop)</li>
+                <li><strong>Option 2: Windows + PowerShell + VS Code</strong></li>
+            </ul>
+        </div>
+
+        <h3>Option 1: WSL + Ubuntu Setup (Recommended)</h3>
+        <div class="command-block bash">
+<span style="color: #6c757d;"># Install Git (if not already installed)</span>
+sudo apt update
+sudo apt install git -y
+
+<span style="color: #6c757d;"># Verify installation</span>
+git --version
+
+<span style="color: #6c757d;"># Install .NET SDK 8.0</span>
+wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+sudo apt update
+sudo apt install -y dotnet-sdk-8.0
+
+<span style="color: #6c757d;"># Verify .NET installation</span>
+dotnet --version</div>
+
+        <h3>Option 2: Windows PowerShell Setup</h3>
+        <div class="command-block powershell">
+<span style="color: #6c757d;"># Check if Git is installed</span>
+git --version
+
+<span style="color: #6c757d;"># If not installed, download from: https://git-scm.com/download/win</span>
+
+<span style="color: #6c757d;"># Check .NET SDK</span>
+dotnet --version
+
+<span style="color: #6c757d;"># If not installed, download from: https://dotnet.microsoft.com/download</span></div>
+
+        <div class="note">
+            <strong>📝 Throughout this lab:</strong><br>
+            Commands will be shown for both environments where they differ.<br>
+            • <span style="color: #28a745;">■</span> Green border = WSL/Bash commands<br>
+            • <span style="color: #0078d4;">■</span> Blue border = PowerShell commands
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🆚 TFS vs Git: Key Differences</h2>
+        
+        <div class="comparison">
+            <div class="tfs-box">
+                <h3>❌ TFS/TFVC (Centralized)</h3>
+                <ul>
+                    <li><strong>Check-out/Check-in</strong> - Files locked</li>
+                    <li><strong>Server-dependent</strong> - Need connection</li>
+                    <li><strong>Single history</strong> - One source of truth</li>
+                    <li><strong>Workspace-based</strong> - Local mapping</li>
+                    <li><strong>Heavyweight branches</strong> - Slow operations</li>
+                    <li><strong>Shelvesets</strong> - Temporary storage</li>
+                </ul>
+            </div>
+            
+            <div class="git-box">
+                <h3>✅ Git (Distributed)</h3>
+                <ul>
+                    <li><strong>No locks</strong> - Parallel editing</li>
+                    <li><strong>Offline work</strong> - Full local repository</li>
+                    <li><strong>Distributed</strong> - Every clone is complete</li>
+                    <li><strong>Repository-based</strong> - Git directory</li>
+                    <li><strong>Lightweight branches</strong> - Fast switching</li>
+                    <li><strong>Stash</strong> - Local temporary storage</li>
+                </ul>
+            </div>
+        </div>
+
+        <table>
+            <tr>
+                <th>TFS/TFVC Operation</th>
+                <th>Git Equivalent</th>
+                <th>Notes</th>
+            </tr>
+            <tr>
+                <td><code>tf get</code></td>
+                <td><code>git pull</code></td>
+                <td>Get latest changes</td>
+            </tr>
+            <tr>
+                <td><code>tf checkout</code></td>
+                <td><em>Not needed</em></td>
+                <td>Git doesn't lock files</td>
+            </tr>
+            <tr>
+                <td><code>tf checkin</code></td>
+                <td><code>git commit + git push</code></td>
+                <td>Two-step process in Git</td>
+            </tr>
+            <tr>
+                <td><code>tf shelve</code></td>
+                <td><code>git stash</code></td>
+                <td>Temporary save</td>
+            </tr>
+            <tr>
+                <td><code>tf branch</code></td>
+                <td><code>git branch / git checkout -b</code></td>
+                <td>Lightweight in Git</td>
+            </tr>
+            <tr>
+                <td><code>tf merge</code></td>
+                <td><code>git merge</code></td>
+                <td>Similar concept</td>
+            </tr>
+            <tr>
+                <td><code>tf history</code></td>
+                <td><code>git log</code></td>
+                <td>View commit history</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>⚙️ Git Configuration</h2>
+        
+        <div class="step">
+            <h3>Step 1: Configure Your Identity</h3>
+            <p>Set your name and email (this will appear in commits):</p>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Set global configuration (WSL/Bash)</span>
+git config --global user.name "Your Name"
+git config --global user.email "your.email@company.com"
+
+<span style="color: #6c757d;"># Set default branch name to 'main'</span>
+git config --global init.defaultBranch main
+
+<span style="color: #6c757d;"># Set default editor (VS Code)</span>
+git config --global core.editor "code --wait"
+
+<span style="color: #6c757d;"># Enable color output</span>
+git config --global color.ui auto</div>
+
+            <div class="command-block powershell">
+<span style="color: #6c757d;"># Set global configuration (PowerShell)</span>
+git config --global user.name "Your Name"
+git config --global user.email "your.email@company.com"
+git config --global init.defaultBranch main
+git config --global core.editor "code --wait"
+git config --global color.ui auto</div>
+
+            <div class="note">
+                <strong>💡 Configuration Levels:</strong><br>
+                • <code>--global</code> - User-level (all repositories)<br>
+                • <code>--system</code> - System-level (all users)<br>
+                • <code>--local</code> - Repository-level (current repo only)
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Verify Configuration</h3>
+            <div class="command-block bash">
+<span style="color: #6c757d;"># View all configuration</span>
+git config --list
+
+<span style="color: #6c757d;"># View specific settings</span>
+git config user.name
+git config user.email
+
+<span style="color: #6c757d;"># View configuration with file locations</span>
+git config --list --show-origin</div>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Configure Line Endings</h3>
+            <p>Important for cross-platform development:</p>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># WSL/Linux - Use LF</span>
+git config --global core.autocrlf input</div>
+
+            <div class="command-block powershell">
+<span style="color: #6c757d;"># Windows - Convert to CRLF on checkout, LF on commit</span>
+git config --global core.autocrlf true</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📚 Git Basics: The Three Trees</h2>
+        
+        <div class="info">
+            <h3>Understanding Git's Three-Tree Architecture</h3>
+            <p>Git uses three "trees" to manage your code:</p>
+            <ol>
+                <li><strong>Working Directory</strong> - Your actual files on disk</li>
+                <li><strong>Staging Area (Index)</strong> - Prepared changes for next commit</li>
+                <li><strong>Repository (.git directory)</strong> - Committed history</li>
+            </ol>
+        </div>
+
+        <pre style="background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;">
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│    Working      │      │    Staging      │      │   Repository    │
+│   Directory     │─────▶│     Area        │─────▶│   (.git dir)    │
+│   (Edit files)  │ add  │  (Index/Cache)  │commit│   (History)     │
+└─────────────────┘      └─────────────────┘      └─────────────────┘
+        ▲                                                    │
+        └────────────────────── checkout ───────────────────┘
+        </pre>
+    </div>
+
+    <div class="section">
+        <h2>🎯 Hands-On Practice: Git Commands</h2>
+
+        <div class="step">
+            <h3>Exercise 1: Create Your First Repository</h3>
+            
+            <p><strong>WSL/Bash:</strong></p>
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Create project directory</span>
+cd ~
+mkdir git-fundamentals-lab
+cd git-fundamentals-lab
+
+<span style="color: #6c757d;"># Initialize Git repository</span>
+git init
+
+<span style="color: #6c757d;"># Check repository status</span>
+git status
+
+<span style="color: #6c757d;"># View the .git directory</span>
+ls -la .git/</div>
+
+            <p><strong>PowerShell:</strong></p>
+            <div class="command-block powershell">
+<span style="color: #6c757d;"># Create project directory</span>
+cd ~
+mkdir git-fundamentals-lab
+cd git-fundamentals-lab
+
+<span style="color: #6c757d;"># Initialize Git repository</span>
+git init
+
+<span style="color: #6c757d;"># Check repository status</span>
+git status
+
+<span style="color: #6c757d;"># View the .git directory</span>
+Get-ChildItem -Force .git\</div>
+
+            <div class="success">
+                <strong>✅ Expected Output:</strong><br>
+                You should see "Initialized empty Git repository in..." and a <code>.git</code> directory.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Exercise 2: Your First Commit</h3>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Create a README file</span>
+echo "# Git Fundamentals Lab" > README.md
+
+<span style="color: #6c757d;"># Check status (file is untracked)</span>
+git status
+
+<span style="color: #6c757d;"># Add file to staging area</span>
+git add README.md
+
+<span style="color: #6c757d;"># Check status again (file is staged)</span>
+git status
+
+<span style="color: #6c757d;"># Commit the staged changes</span>
+git commit -m "Initial commit: Add README"
+
+<span style="color: #6c757d;"># View commit history</span>
+git log
+
+<span style="color: #6c757d;"># View compact log</span>
+git log --oneline</div>
+
+            <div class="note">
+                <strong>📝 Commit Message Best Practices:</strong>
+                <ul>
+                    <li>Use imperative mood: "Add feature" not "Added feature"</li>
+                    <li>First line: 50 chars or less (summary)</li>
+                    <li>Blank line, then detailed description if needed</li>
+                    <li>Reference issue/work item numbers</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Exercise 3: Stage Multiple Files</h3>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Create multiple files</span>
+echo "print('Hello Git')" > app.py
+echo "*.pyc" > .gitignore
+mkdir docs
+echo "# Documentation" > docs/guide.md
+
+<span style="color: #6c757d;"># Check status</span>
+git status
+
+<span style="color: #6c757d;"># Add specific files</span>
+git add app.py .gitignore
+
+<span style="color: #6c757d;"># Add entire directory</span>
+git add docs/
+
+<span style="color: #6c757d;"># Check what's staged</span>
+git status
+
+<span style="color: #6c757d;"># Commit all staged files</span>
+git commit -m "Add Python app, gitignore, and documentation"</div>
+
+            <div class="info">
+                <strong>🔍 Common Git Add Patterns:</strong><br>
+                • <code>git add filename.txt</code> - Add specific file<br>
+                • <code>git add .</code> - Add all changes in current directory<br>
+                • <code>git add -A</code> - Add all changes in entire repository<br>
+                • <code>git add *.cs</code> - Add all C# files<br>
+                • <code>git add -p</code> - Interactive staging (patch mode)
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Exercise 4: Viewing Changes</h3>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Modify README</span>
+echo -e "\n## Getting Started\nThis lab teaches Git basics." >> README.md
+
+<span style="color: #6c757d;"># View unstaged changes</span>
+git diff
+
+<span style="color: #6c757d;"># Stage the change</span>
+git add README.md
+
+<span style="color: #6c757d;"># View staged changes</span>
+git diff --staged
+
+<span style="color: #6c757d;"># View changes in last commit</span>
+git show
+
+<span style="color: #6c757d;"># View specific commit</span>
+git show HEAD~1</div>
+
+            <div class="note">
+                <strong>💡 Understanding HEAD:</strong><br>
+                • <code>HEAD</code> - Current commit<br>
+                • <code>HEAD~1</code> or <code>HEAD^</code> - Previous commit<br>
+                • <code>HEAD~2</code> - Two commits ago<br>
+                • <code>HEAD^2</code> - Second parent (for merge commits)
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Exercise 5: Undoing Changes</h3>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Scenario 1: Unstage a file (keep changes)</span>
+echo "temporary content" > temp.txt
+git add temp.txt
+git status
+git reset temp.txt
+git status
+
+<span style="color: #6c757d;"># Scenario 2: Discard unstaged changes</span>
+echo "unwanted change" >> README.md
+git checkout -- README.md
+
+<span style="color: #6c757d;"># Scenario 3: Amend last commit</span>
+echo "# License: MIT" > LICENSE
+git add LICENSE
+git commit --amend -m "Add Python app, docs, and license"
+
+<span style="color: #6c757d;"># Scenario 4: Undo last commit (keep changes)</span>
+git reset --soft HEAD~1
+git status
+
+<span style="color: #6c757d;"># Scenario 5: Undo last commit (discard changes) - DANGEROUS!</span>
+git reset --hard HEAD~1</div>
+
+            <div class="warning">
+                <strong>⚠️ Warning:</strong><br>
+                <code>git reset --hard</code> permanently deletes uncommitted changes. Use with caution!<br>
+                Always commit or stash important work before using <code>--hard</code>.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Exercise 6: Branching Basics</h3>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># View current branches</span>
+git branch
+
+<span style="color: #6c757d;"># Create new branch</span>
+git branch feature/add-calculator
+
+<span style="color: #6c757d;"># Switch to new branch</span>
+git checkout feature/add-calculator
+
+<span style="color: #6c757d;"># Or create and switch in one command</span>
+git checkout -b feature/add-tests
+
+<span style="color: #6c757d;"># View all branches with commit info</span>
+git branch -v
+
+<span style="color: #6c757d;"># See which branch you're on</span>
+git status
+git branch --show-current</div>
+
+            <div class="success">
+                <strong>✅ Understanding Branches:</strong><br>
+                In Git, branches are lightweight pointers to commits. Creating a branch is instant!<br>
+                This is very different from TFS where branching is a heavyweight operation.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Exercise 7: Making Changes on a Branch</h3>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Make sure you're on feature branch</span>
+git checkout feature/add-calculator
+
+<span style="color: #6c757d;"># Create a simple calculator file</span>
+cat > calculator.py << 'EOF'
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+
+if __name__ == "__main__":
+    print(f"5 + 3 = {add(5, 3)}")
+    print(f"5 - 3 = {subtract(5, 3)}")
+EOF
+
+<span style="color: #6c757d;"># Stage and commit</span>
+git add calculator.py
+git commit -m "Add calculator with add and subtract functions"
+
+<span style="color: #6c757d;"># View history with branch visualization</span>
+git log --oneline --graph --all</div>
+        </div>
+
+        <div class="step">
+            <h3>Exercise 8: Merging Branches</h3>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Switch back to main branch</span>
+git checkout main
+
+<span style="color: #6c757d;"># Verify calculator.py doesn't exist here</span>
+ls -la
+
+<span style="color: #6c757d;"># Merge feature branch into main</span>
+git merge feature/add-calculator
+
+<span style="color: #6c757d;"># Now calculator.py exists on main</span>
+ls -la
+
+<span style="color: #6c757d;"># View commit history</span>
+git log --oneline --graph --all
+
+<span style="color: #6c757d;"># Delete the feature branch (optional)</span>
+git branch -d feature/add-calculator</div>
+
+            <div class="note">
+                <strong>📝 Merge Types:</strong><br>
+                • <strong>Fast-forward</strong> - Moves pointer forward (no merge commit)<br>
+                • <strong>Three-way merge</strong> - Creates merge commit when branches diverge<br>
+                • <strong>Squash merge</strong> - Combines all commits into one
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Exercise 9: Handling Merge Conflicts</h3>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Create two conflicting branches</span>
+git checkout -b feature/multiply
+echo "def multiply(a, b):" >> calculator.py
+echo "    return a * b" >> calculator.py
+git add calculator.py
+git commit -m "Add multiply function"
+
+<span style="color: #6c757d;"># Switch to main and create conflict</span>
+git checkout main
+echo "def divide(a, b):" >> calculator.py
+echo "    return a / b" >> calculator.py
+git add calculator.py
+git commit -m "Add divide function"
+
+<span style="color: #6c757d;"># Try to merge - will cause conflict</span>
+git merge feature/multiply
+
+<span style="color: #6c757d;"># View conflict status</span>
+git status
+
+<span style="color: #6c757d;"># View conflicted file</span>
+cat calculator.py
+
+<span style="color: #6c757d;"># Open in VS Code to resolve</span>
+code calculator.py</div>
+
+            <div class="info">
+                <strong>🔧 Resolving Conflicts in VS Code:</strong>
+                <ol>
+                    <li>VS Code highlights conflicts with colors</li>
+                    <li>Click "Accept Current Change", "Accept Incoming Change", or "Accept Both Changes"</li>
+                    <li>Or manually edit the file to combine changes</li>
+                    <li>Save the file</li>
+                    <li>Stage the resolved file: <code>git add calculator.py</code></li>
+                    <li>Complete the merge: <code>git commit</code></li>
+                </ol>
+            </div>
+
+            <div class="command-block bash">
+<span style="color: #6c757d;"># After resolving in VS Code:</span>
+git add calculator.py
+git commit -m "Merge feature/multiply with both multiply and divide functions"
+
+<span style="color: #6c757d;"># View the result</span>
+git log --oneline --graph --all</div>
+        </div>
+
+        <div class="step">
+            <h3>Exercise 10: Using Git Stash</h3>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Start making changes</span>
+echo "# TODO: Add more operations" >> calculator.py
+
+<span style="color: #6c757d;"># Oops, need to switch branches urgently!</span>
+git status
+
+<span style="color: #6c757d;"># Stash your changes</span>
+git stash save "WIP: Planning calculator enhancements"
+
+<span style="color: #6c757d;"># Working directory is now clean</span>
+git status
+
+<span style="color: #6c757d;"># Do other work, switch branches, etc.</span>
+git checkout -b hotfix/bug-123
+# ... fix bug ...
+git checkout main
+
+<span style="color: #6c757d;"># List stashed changes</span>
+git stash list
+
+<span style="color: #6c757d;"># Apply stashed changes</span>
+git stash pop
+
+<span style="color: #6c757d;"># Or apply without removing from stash</span>
+git stash apply
+
+<span style="color: #6c757d;"># Drop specific stash</span>
+git stash drop stash@{0}
+
+<span style="color: #6c757d;"># Clear all stashes</span>
+git stash clear</div>
+
+            <div class="note">
+                <strong>💡 Git Stash vs TFS Shelvesets:</strong><br>
+                • <strong>Git stash</strong> - Local only, not shared<br>
+                • <strong>TFS shelveset</strong> - Stored on server, can be shared<br>
+                • For sharing work in Git, use feature branches instead
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Exercise 11: Viewing History</h3>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Basic log</span>
+git log
+
+<span style="color: #6c757d;"># Compact one-line format</span>
+git log --oneline
+
+<span style="color: #6c757d;"># With graph visualization</span>
+git log --oneline --graph --all
+
+<span style="color: #6c757d;"># Last N commits</span>
+git log -5
+
+<span style="color: #6c757d;"># Commits by author</span>
+git log --author="Your Name"
+
+<span style="color: #6c757d;"># Commits in date range</span>
+git log --since="2 weeks ago" --until="yesterday"
+
+<span style="color: #6c757d;"># Commits affecting specific file</span>
+git log calculator.py
+
+<span style="color: #6c757d;"># Show changes in each commit</span>
+git log -p
+
+<span style="color: #6c757d;"># Show stats for each commit</span>
+git log --stat
+
+<span style="color: #6c757d;"># Pretty formatted log</span>
+git log --pretty=format:"%h - %an, %ar : %s"
+
+<span style="color: #6c757d;"># Search commit messages</span>
+git log --grep="calculator"
+
+<span style="color: #6c757d;"># Search code changes</span>
+git log -S "multiply"</div>
+        </div>
+
+        <div class="step">
+            <h3>Exercise 12: Git Aliases for Productivity</h3>
+            
+            <div class="command-block bash">
+<span style="color: #6c757d;"># Create useful aliases</span>
+git config --global alias.st status
+git config --global alias.co checkout
+git config --global alias.br branch
+git config --global alias.ci commit
+git config --global alias.unstage 'reset HEAD --'
+git config --global alias.last 'log -1 HEAD'
+git config --global alias.visual 'log --oneline --graph --all --decorate'
+
+<span style="color: #6c757d;"># Now you can use short commands</span>
+git st
+git co main
+git br
+git visual</div>
+
+            <div class="success">
+                <strong>✅ Recommended Aliases:</strong>
+                <ul>
+                    <li><code>git st</code> - Quick status check</li>
+                    <li><code>git co</code> - Fast checkout</li>
+                    <li><code>git visual</code> - Beautiful history graph</li>
+                    <li><code>git unstage</code> - Remove from staging area</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📊 Git Command Reference</h2>
+        
+        <table>
+            <tr>
+                <th>Category</th>
+                <th>Command</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td rowspan="3"><strong>Setup</strong></td>
+                <td><code>git init</code></td>
+                <td>Initialize new repository</td>
+            </tr>
+            <tr>
+                <td><code>git clone &lt;url&gt;</code></td>
+                <td>Clone existing repository</td>
+            </tr>
+            <tr>
+                <td><code>git config</code></td>
+                <td>Configure Git settings</td>
+            </tr>
+            <tr>
+                <td rowspan="5"><strong>Basic Workflow</strong></td>
+                <td><code>git status</code></td>
+                <td>Check working directory status</td>
+            </tr>
+            <tr>
+                <td><code>git add &lt;file&gt;</code></td>
+                <td>Stage changes</td>
+            </tr>
+            <tr>
+                <td><code>git commit -m "msg"</code></td>
+                <td>Commit staged changes</td>
+            </tr>
+            <tr>
+                <td><code>git pull</code></td>
+                <td>Fetch and merge from remote</td>
+            </tr>
+            <tr>
+                <td><code>git push</code></td>
+                <td>Push commits to remote</td>
+            </tr>
+            <tr>
+                <td rowspan="4"><strong>Branching</strong></td>
+                <td><code>git branch</code></td>
+                <td>List branches</td>
+            </tr>
+            <tr>
+                <td><code>git branch &lt;name&gt;</code></td>
+                <td>Create branch</td>
+            </tr>
+            <tr>
+                <td><code>git checkout &lt;branch&gt;</code></td>
+                <td>Switch branches</td>
+            </tr>
+            <tr>
+                <td><code>git merge &lt;branch&gt;</code></td>
+                <td>Merge branch into current</td>
+            </tr>
+            <tr>
+                <td rowspan="3"><strong>Inspection</strong></td>
+                <td><code>git log</code></td>
+                <td>View commit history</td>
+            </tr>
+            <tr>
+                <td><code>git diff</code></td>
+                <td>View changes</td>
+            </tr>
+            <tr>
+                <td><code>git show &lt;commit&gt;</code></td>
+                <td>Show commit details</td>
+            </tr>
+            <tr>
+                <td rowspan="3"><strong>Undo</strong></td>
+                <td><code>git reset</code></td>
+                <td>Unstage or undo commits</td>
+            </tr>
+            <tr>
+                <td><code>git checkout -- &lt;file&gt;</code></td>
+                <td>Discard changes in file</td>
+            </tr>
+            <tr>
+                <td><code>git revert &lt;commit&gt;</code></td>
+                <td>Create new commit that undoes changes</td>
+            </tr>
+            <tr>
+                <td rowspan="3"><strong>Stashing</strong></td>
+                <td><code>git stash</code></td>
+                <td>Temporarily save changes</td>
+            </tr>
+            <tr>
+                <td><code>git stash pop</code></td>
+                <td>Apply and remove stash</td>
+            </tr>
+            <tr>
+                <td><code>git stash list</code></td>
+                <td>List all stashes</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>✅ Lab Completion Checklist</h2>
+        <ul>
+            <li>☐ Git installed and configured</li>
+            <li>☐ User name and email set</li>
+            <li>☐ Created first repository with <code>git init</code></li>
+            <li>☐ Made commits with meaningful messages</li>
+            <li>☐ Staged and unstaged files</li>
+            <li>☐ Viewed changes with <code>git diff</code></li>
+            <li>☐ Created and switched branches</li>
+            <li>☐ Merged branches successfully</li>
+            <li>☐ Resolved a merge conflict</li>
+            <li>☐ Used <code>git stash</code> to save work</li>
+            <li>☐ Viewed history with <code>git log</code></li>
+            <li>☐ Created useful Git aliases</li>
+            <li>☐ Understand difference between TFS and Git</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>🎯 Challenge Exercises</h2>
+        
+        <div class="note">
+            <h3>Challenge 1: Create a Feature Branch Workflow</h3>
+            <ol>
+                <li>Create a new branch: <code>feature/advanced-calc</code></li>
+                <li>Add power and square root functions to calculator</li>
+                <li>Commit your changes</li>
+                <li>Switch to main and create another branch: <code>feature/calc-ui</code></li>
+                <li>Add a simple text-based UI</li>
+                <li>Merge both branches into main</li>
+            </ol>
+        </div>
+
+        <div class="note">
+            <h3>Challenge 2: Practice Conflict Resolution</h3>
+            <ol>
+                <li>Create two branches that modify the same line in README.md</li>
+                <li>Merge one branch into main</li>
+                <li>Try to merge the second branch (conflict!)</li>
+                <li>Resolve the conflict in VS Code</li>
+                <li>Complete the merge</li>
+            </ol>
+        </div>
+
+        <div class="note">
+            <h3>Challenge 3: Master Git Log</h3>
+            <ol>
+                <li>Find all commits from the last week</li>
+                <li>Search for commits containing "calculator"</li>
+                <li>Show the history as a graph</li>
+                <li>Create a custom log format showing date and author</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📚 Additional Resources</h2>
+        <ul>
+            <li><a href="https://git-scm.com/doc">Official Git Documentation</a></li>
+            <li><a href="https://learngitbranching.js.org/">Learn Git Branching (Interactive)</a></li>
+            <li><a href="https://www.atlassian.com/git/tutorials">Atlassian Git Tutorials</a></li>
+            <li><a href="https://docs.github.com/en/get-started/quickstart/git-cheatsheet">GitHub Git Cheat Sheet</a></li>
+            <li><a href="https://code.visualstudio.com/docs/editor/versioncontrol">VS Code Git Integration</a></li>
+        </ul>
+    </div>
+
+    <div class="section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <h2 style="color: white; border-bottom-color: white;">🎉 Lab Complete!</h2>
+        <p>
+            Congratulations! You've learned the fundamental Git commands and concepts. You're now ready to 
+            migrate from TFS to GitLab in the next lab.
+        </p>
+        <p><strong>Next:</strong> Lab 1 - TFS Migration with git-tfs</p>
+    </div>
+</body>
+</html>

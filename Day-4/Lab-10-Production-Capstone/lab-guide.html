@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Day 4 - Capstone Project: Full SDLC with GitLab</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .objectives h3, .prerequisites h3, .verification h3, .troubleshooting h3 {
+            margin-top: 0;
+            color: #6e49cb;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #fc6d26;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .endpoint {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Lab 10: Production Capstone - Complete SDLC</h1>
+        <p><strong>Duration:</strong> 120+ minutes | <strong>Time Slot:</strong> 1:15pm - 3:30pm+ (Day 4)</p>
+        
+        <div class="prerequisites">
+            <h3>📋 Prerequisites</h3>
+            <ul>
+                <li><strong>MUST have completed Labs 0-9</strong> (all previous labs)</li>
+                <li>GitLab account on <a href="https://gitlab.alleen-ly.online" target="_blank">https://gitlab.alleen-ly.online</a></li>
+                <li>.NET 8 SDK installed</li>
+                <li>Git installed and configured</li>
+                <li>PowerShell installed</li>
+                <li>Understanding of ALL previous concepts</li>
+            </ul>
+            <div class="warning">
+                <strong>⚠️ Final Challenge:</strong> This lab integrates EVERYTHING you've learned. Take your time!
+            </div>
+        </div>
+
+        <div class="objectives">
+            <h3>🎯 Learning Objectives</h3>
+            <p><strong>Integrate ALL concepts from Labs 0-9:</strong></p>
+            <ol>
+                <li>Branch strategy and feature development (Lab 2)</li>
+                <li>Merge requests and code review (Lab 3)</li>
+                <li>Unit testing with xUnit (Lab 4)</li>
+                <li>Advanced CI/CD pipelines (Lab 5)</li>
+                <li>Automated deployment (Lab 6)</li>
+                <li>Rollback procedures (Lab 7)</li>
+                <li>API architecture (Lab 8)</li>
+                <li>Integration testing (Lab 9)</li>
+                <li>Complete production workflow from start to finish</li>
+            </ol>
+        </div>
+
+        <div class="overview">
+            <h3>📖 Overview</h3>
+            <p><strong>Final Scenario:</strong> You're taking a legacy monolithic app from TFS and transforming it into a modern, cloud-ready microservice with full GitLab CI/CD automation, comprehensive testing, and production deployment capabilities.</p>
+            
+            <p><strong>Complete SDLC Journey:</strong></p>
+            <ol>
+                <li>📂 <strong>Migrate</strong> code from tfs-legacy-source to GitLab</li>
+                <li>🌿 <strong>Create feature branch</strong> for new functionality</li>
+                <li>✅ <strong>Write tests</strong> (unit + integration)</li>
+                <li>💬 <strong>Create merge request</strong> with detailed description</li>
+                <li>🔧 <strong>Trigger CI/CD pipeline</strong> automatically</li>
+                <li>🚀 <strong>Deploy to staging</strong> on successful tests</li>
+                <li>🎯 <strong>Deploy to production</strong> with manual gate</li>
+                <li>⚠️ <strong>Simulate incident</strong> and execute rollback</li>
+                <li>📊 <strong>Generate final report</strong> documenting the journey</li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ This Is It!</strong> Your final demonstration of mastery over the entire Git/GitLab/CI/CD workflow!
+            </div>
+        </div>
+
+        <h2>🏗️ What You'll Build</h2>
+        <p><strong>E-Commerce Order API</strong> - Complete production-ready microservice</p>
+        <pre><code>Lab-10-Production-Capstone/
+├── tfs-legacy-source/
+│   └── LegacyOrderSystem.cs        # Monolithic legacy code from TFS
+├── src/
+│   └── CapstoneApi/
+│       ├── Controllers/
+│       │   ├── OrdersController.cs
+│       │   └── HealthController.cs
+│       ├── Services/
+│       │   ├── IOrderService.cs
+│       │   └── OrderService.cs
+│       ├── Models/
+│       │   └── Order.cs
+│       └── Program.cs
+├── tests/
+│   ├── CapstoneApi.UnitTests/
+│   │   └── OrderServiceTests.cs
+│   └── CapstoneApi.IntegrationTests/
+│       └── OrdersControllerTests.cs
+├── .gitlab-ci.yml                   # Full CI/CD pipeline
+├── deploy.ps1                       # Deployment automation
+├── rollback.ps1                     # Rollback automation
+└── .gitignore</code></pre>
+
+        <h2>🚀 Complete SDLC Workflow</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Navigate to Lab Folder</h3>
+            <pre><code>cd "Day-4/Lab-10-Production-Capstone"
+ls</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Review Legacy TFS Code</h3>
+            <pre><code>cat tfs-legacy-source/LegacyOrderSystem.cs</code></pre>
+            
+            <p>This represents the old monolithic system from TFS. You'll modernize this into a proper ASP.NET Core Web API with:</p>
+            <ul>
+                <li>✅ <strong>Separation of Concerns:</strong> Controllers, Services, Models</li>
+                <li>✅ <strong>Dependency Injection:</strong> Service registration in Program.cs</li>
+                <li>✅ <strong>RESTful Design:</strong> Proper HTTP methods and status codes</li>
+                <li>✅ <strong>Error Handling:</strong> Try-catch blocks with appropriate responses</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Initialize GitLab Repository with v1.0</h3>
+            <pre><code>git init
+git add .
+git commit -m "v1.0.0: Initial release - Migrated from TFS"
+git remote add origin https://gitlab.alleen-ly.online/YOUR_USERNAME/order-api-capstone.git
+git branch -M main
+git push -u origin main</code></pre>
+            
+            <div class="note">
+                <strong>📌 Milestone 1:</strong> Code migrated from TFS to GitLab!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Create Feature Branch for New Functionality</h3>
+            <p>Apply Lab 2 knowledge - feature branching:</p>
+            <pre><code>git checkout -b feature/add-order-search
+git push -u origin feature/add-order-search</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Add Search Endpoint to OrdersController</h3>
+            <p>Edit <code>src/CapstoneApi/Controllers/OrdersController.cs</code> and add:</p>
+            <pre><code>[HttpGet("search")]
+public async Task&lt;ActionResult&lt;List&lt;Order&gt;&gt;&gt; SearchOrders([FromQuery] string customerName)
+{
+    var orders = await _orderService.SearchByCustomerAsync(customerName);
+    return Ok(orders);
+}</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">6</span>Implement Service Method</h3>
+            <p>Add to <code>IOrderService.cs</code>:</p>
+            <pre><code>Task&lt;List&lt;Order&gt;&gt; SearchByCustomerAsync(string customerName);</code></pre>
+            
+            <p>Implement in <code>OrderService.cs</code>:</p>
+            <pre><code>public async Task&lt;List&lt;Order&gt;&gt; SearchByCustomerAsync(string customerName)
+{
+    var filtered = _orders.Where(o => 
+        o.CustomerName.Contains(customerName, StringComparison.OrdinalIgnoreCase));
+    return await Task.FromResult(filtered.ToList());
+}</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">7</span>Write Unit Test (Lab 4 Knowledge)</h3>
+            <p>Add to <code>tests/CapstoneApi.UnitTests/OrderServiceTests.cs</code>:</p>
+            <pre><code>[Theory]
+[InlineData("John", 1)]
+[InlineData("Jane", 1)]
+[InlineData("Unknown", 0)]
+public async Task SearchByCustomer_ReturnsMatchingOrders(string name, int expectedCount)
+{
+    // Arrange
+    var service = new OrderService();
+
+    // Act
+    var results = await service.SearchByCustomerAsync(name);
+
+    // Assert
+    results.Should().HaveCount(expectedCount);
+}</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>Write Integration Test (Lab 9 Knowledge)</h3>
+            <p>Add to <code>tests/CapstoneApi.IntegrationTests/OrdersControllerTests.cs</code>:</p>
+            <pre><code>[Fact]
+public async Task SearchOrders_ValidCustomer_ReturnsOrders()
+{
+    // Act
+    var response = await _client.GetAsync("/api/orders/search?customerName=John");
+
+    // Assert
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    var orders = await response.Content.ReadFromJsonAsync&lt;List&lt;Order&gt;&gt;();
+    orders.Should().NotBeEmpty();
+}</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Run Tests Locally</h3>
+            <pre><code>dotnet test</code></pre>
+            
+            <div class="success">
+                <strong>✅ All tests pass!</strong> Unit + Integration tests validated.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Commit and Push Feature</h3>
+            <pre><code>git add .
+git commit -m "feat: Add order search by customer name
+
+- Added SearchOrders endpoint
+- Implemented SearchByCustomerAsync service method
+- Added unit tests with Theory/InlineData
+- Added integration tests for HTTP endpoint
+- All tests passing"
+git push</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>Create Merge Request (Lab 3 Knowledge)</h3>
+            <ol>
+                <li>Go to GitLab → <strong>Merge Requests → New MR</strong></li>
+                <li>Source: <code>feature/add-order-search</code></li>
+                <li>Target: <code>main</code></li>
+                <li>Title: <strong>"Add order search by customer name"</strong></li>
+                <li>Description:</li>
+            </ol>
+            <pre><code>## Summary
+Adds search functionality to Orders API allowing customers to search orders by name.
+
+## Changes
+- Added GET /api/orders/search endpoint
+- Implemented SearchByCustomerAsync in OrderService
+- Added 3 unit tests (Theory with InlineData)
+- Added 1 integration test (HTTP endpoint validation)
+
+## Testing
+All tests passing (10 total tests now)
+
+## Closes
+Closes #1</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">12</span>Watch CI/CD Pipeline on MR</h3>
+            <p>The pipeline automatically runs on your MR:</p>
+            <ul>
+                <li>✅ Build stage compiles code</li>
+                <li>✅ Test stage runs all 10 tests</li>
+                <li>⏭️ Deploy skipped (feature branch, not main)</li>
+            </ul>
+            
+            <div class="note">
+                <strong>📌 Lab 5 Knowledge:</strong> Pipeline behavior differs for feature branches vs main!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Self-Review and Merge</h3>
+            <ol>
+                <li>Review your own code changes</li>
+                <li>Add comment: "Code looks good, tests pass ✅"</li>
+                <li>Click <strong>Merge</strong></li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ Feature merged to main!</strong>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Watch Full Pipeline on Main Branch</h3>
+            <p>Now that code is in main, the FULL pipeline runs:</p>
+            <ul>
+                <li>✅ Build (with artifacts + caching from Lab 5)</li>
+                <li>✅ Test (parallel jobs if configured)</li>
+                <li>✅ Deploy:staging (automated from Lab 6)</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Verify Staging Deployment</h3>
+            <ol>
+                <li>Go to <strong>Deployments → Environments → staging</strong></li>
+                <li>See v2.0 deployed successfully</li>
+                <li>Download artifacts</li>
+                <li>Check deployment-info.txt</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">16</span>Manual Production Deployment</h3>
+            <ol>
+                <li>Go to pipeline</li>
+                <li>Find <strong>deploy:production</strong> manual job</li>
+                <li>Click <strong>Play ▶️</strong></li>
+                <li>Watch production deployment execute</li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ v2.0 in production!</strong>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">17</span>Simulate Production Incident</h3>
+            <p>Introduce a bug intentionally:</p>
+            <pre><code>git checkout -b hotfix/critical-bug
+# Edit OrderService.cs - add throw new Exception("Critical bug!");
+git add .
+git commit -m "hotfix: Critical production bug"
+git push -u origin hotfix/critical-bug</code></pre>
+            
+            <p>Create MR, merge to main, deploy to production.</p>
+            
+            <div class="warning">
+                <strong>⚠️ Production down!</strong> Time to rollback!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">18</span>Execute Emergency Rollback (Lab 7 Knowledge)</h3>
+            <ol>
+                <li>Go to the buggy pipeline</li>
+                <li>Find <strong>rollback:production</strong> manual job</li>
+                <li>Click <strong>Play ▶️</strong></li>
+                <li>Watch rollback restore v2.0</li>
+            </ol>
+            
+            <div class="success">
+                <strong>✅ Production restored!</strong> v2.0 is back, incident resolved.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">19</span>Review Rollback Logs</h3>
+            <p>Download rollback artifacts:</p>
+            <ul>
+                <li>Check <code>rollback-logs/rollback-TIMESTAMP.log</code></li>
+                <li>See audit trail of rollback action</li>
+                <li>Verify safety backup was created</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">20</span>Generate Final Report</h3>
+            <p>Create <code>COMPLETION-REPORT.md</code>:</p>
+            <pre><code># Capstone Completion Report
+
+## Project: Order API Microservice
+
+### Migration from TFS
+- ✅ Legacy code migrated from TFS to GitLab
+- ✅ Modernized architecture (Controllers/Services/Models)
+
+### Feature Development
+- ✅ Feature branch created (feature/add-order-search)
+- ✅ Search functionality implemented
+- ✅ Unit tests added (Theory + InlineData)
+- ✅ Integration tests added (WebApplicationFactory)
+
+### CI/CD Pipeline
+- ✅ 5-stage pipeline configured
+- ✅ Automated testing on every commit
+- ✅ Artifacts and caching implemented
+- ✅ Parallel test execution
+
+### Deployment
+- ✅ Automated staging deployment
+- ✅ Manual production deployment gate
+- ✅ Environment tracking in GitLab
+
+### Incident Response
+- ✅ Production bug simulated
+- ✅ Emergency rollback executed successfully
+- ✅ Audit logs generated
+
+### Final Metrics
+- **Total Commits:** [X]
+- **Merge Requests:** [X]
+- **Pipeline Runs:** [X]
+- **Tests Passing:** 10/10
+- **Deployments:** 4 (2 staging, 2 production)
+- **Rollbacks:** 1 (successful)
+
+## Skills Demonstrated
+✅ Git branching and merging
+✅ Merge request workflow
+✅ xUnit testing (unit + integration)
+✅ CI/CD pipeline configuration
+✅ Automated deployment
+✅ Rollback procedures
+✅ Web API architecture
+✅ Complete SDLC from legacy to production
+
+## Completion Status: 🎉 **SUCCESS**</code></pre>
+        </div>
+                    <li>Copies new artifacts to deployment folder</li>
+                    <li>Updates version tracking file</li>
+                    <li>Shows deployment summary</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Test Rollback Capability</h3>
+            <p>Practice rolling back to a previous version:</p>
+            <pre><code># Trigger rollback
+pwsh rollback.ps1</code></pre>
+            
+            <div class="success">
+                <strong>✅ Rollback Actions:</strong>
+                <ul>
+                    <li>Identifies previous backup</li>
+                    <li>Restores previous version</li>
+                    <li>Updates version tracking</li>
+                    <li>Confirms rollback success</li>
+                </ul>
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Note:</strong> In production, rollback would be triggered via GitLab CI/CD manual action, not local script.
+            </div>
+        </div>
+
+        <h2>🎉 Production Capstone Complete!</h2>
+        <div class="success">
+            <strong>🏆 CONGRATULATIONS!</strong> You've successfully completed the entire Software Development Lifecycle journey!
+        </div>
+
+        <h3>📊 Final Achievement Summary</h3>
+        <table>
+            <tr>
+                <th>Lab</th>
+                <th>Skill</th>
+                <th>Applied in Capstone</th>
+            </tr>
+            <tr>
+                <td><strong>Lab 0</strong></td>
+                <td>Git Fundamentals</td>
+                <td>✅ Repository initialization, commits</td>
+            </tr>
+            <tr>
+                <td><strong>Lab 1</strong></td>
+                <td>TFS Migration</td>
+                <td>✅ Migrated legacy code to GitLab</td>
+            </tr>
+            <tr>
+                <td><strong>Lab 2</strong></td>
+                <td>Feature Branching</td>
+                <td>✅ Created feature/add-order-search branch</td>
+            </tr>
+            <tr>
+                <td><strong>Lab 3</strong></td>
+                <td>Merge Requests</td>
+                <td>✅ Full MR workflow with description</td>
+            </tr>
+            <tr>
+                <td><strong>Lab 4</strong></td>
+                <td>CI/CD Testing</td>
+                <td>✅ Unit tests with [Theory] + [InlineData]</td>
+            </tr>
+            <tr>
+                <td><strong>Lab 5</strong></td>
+                <td>Advanced Pipelines</td>
+                <td>✅ Artifacts, caching, conditional rules</td>
+            </tr>
+            <tr>
+                <td><strong>Lab 6</strong></td>
+                <td>Deployment Automation</td>
+                <td>✅ Automated staging, manual production</td>
+            </tr>
+            <tr>
+                <td><strong>Lab 7</strong></td>
+                <td>Rollback & Recovery</td>
+                <td>✅ Emergency rollback executed successfully</td>
+            </tr>
+            <tr>
+                <td><strong>Lab 8</strong></td>
+                <td>API Development</td>
+                <td>✅ Controllers/Services/Models architecture</td>
+            </tr>
+            <tr>
+                <td><strong>Lab 9</strong></td>
+                <td>Integration Testing</td>
+                <td>✅ WebApplicationFactory end-to-end tests</td>
+            </tr>
+        </table>
+
+        <h3>🔍 What You've Mastered</h3>
+        <div class="success">
+            <strong>Complete SDLC Skills:</strong>
+            <ul>
+                <li>✅ <strong>Legacy Modernization:</strong> TFS → GitLab migration strategy</li>
+                <li>✅ <strong>Version Control:</strong> Git branching, merging, conflict resolution</li>
+                <li>✅ <strong>Code Review:</strong> Merge request workflow with detailed descriptions</li>
+                <li>✅ <strong>Testing:</strong> Unit tests (xUnit Theory) + Integration tests (WebApplicationFactory)</li>
+                <li>✅ <strong>CI/CD:</strong> Automated pipelines with stages, artifacts, caching</li>
+                <li>✅ <strong>Deployment:</strong> Automated staging, manual production gates</li>
+                <li>✅ <strong>Monitoring:</strong> Environment tracking, deployment metadata</li>
+                <li>✅ <strong>Incident Response:</strong> Emergency rollback procedures with audit logs</li>
+                <li>✅ <strong>API Architecture:</strong> RESTful design with Controllers/Services/Models</li>
+                <li>✅ <strong>DevOps Culture:</strong> Automation, safety gates, disaster recovery</li>
+            </ul>
+        </div>
+
+        <h3>📈 Your Production Journey</h3>
+        <pre><code>Legacy TFS Code
+    ↓
+GitLab Migration (Lab 1 skills)
+    ↓
+Feature Development (Lab 2 branching)
+    ↓
+Comprehensive Testing (Labs 4 & 9 testing)
+    ↓
+Code Review Process (Lab 3 MR workflow)
+    ↓
+Automated CI/CD (Lab 5 pipeline)
+    ↓
+Staging Deployment (Lab 6 automation)
+    ↓
+Production Release (Manual gate)
+    ↓
+Incident Detection
+    ↓
+Emergency Rollback (Lab 7 procedures)
+    ↓
+✅ System Restored & Documented</code></pre>
+
+        <h3>🎓 Capstone Verification Checklist</h3>
+        <div class="verification">
+            <ol>
+                <li>☐ Migrated legacy TFS code to GitLab</li>
+                <li>☐ Created feature branch for new functionality</li>
+                <li>☐ Implemented search endpoint with service layer</li>
+                <li>☐ Wrote unit tests with [Theory] and [InlineData]</li>
+                <li>☐ Wrote integration tests with WebApplicationFactory</li>
+                <li>☐ All 10 tests passing locally</li>
+                <li>☐ Created detailed merge request with description</li>
+                <li>☐ Pipeline executed on feature branch (build + test only)</li>
+                <li>☐ Pipeline executed on main branch (full deployment)</li>
+                <li>☐ Staging deployed automatically</li>
+                <li>☐ Production deployed manually</li>
+                <li>☐ Simulated production incident</li>
+                <li>☐ Executed emergency rollback</li>
+                <li>☐ Reviewed rollback audit logs</li>
+                <li>☐ Generated final completion report</li>
+            </ol>
+        </div>
+
+        <h3>📚 Take These Skills to Your Team</h3>
+        <div class="note">
+            <strong>🎓 You're now ready to:</strong>
+            <ul>
+                <li>✅ Lead your team's migration from TFS to GitLab</li>
+                <li>✅ Establish modern CI/CD practices in your organization</li>
+                <li>✅ Implement comprehensive testing strategies</li>
+                <li>✅ Design robust deployment and rollback procedures</li>
+                <li>✅ Mentor colleagues on Git and GitLab workflows</li>
+                <li>✅ Build production-ready microservices with .NET 8</li>
+            </ul>
+        </div>
+
+        <h3>🚀 Continue Your DevOps Journey</h3>
+        <ul>
+            <li><strong>Explore GitLab Features:</strong> Issues, Boards, Wiki, Merge Request approvals, protected branches</li>
+            <li><strong>Advanced CI/CD:</strong> Docker containerization, Kubernetes deployments, multi-environment strategies</li>
+            <li><strong>Monitoring:</strong> Application Insights, distributed tracing, health checks, alerting</li>
+            <li><strong>Security:</strong> SAST/DAST scanning, dependency scanning, secret detection</li>
+            <li><strong>Infrastructure as Code:</strong> Terraform, ARM templates, Bicep</li>
+            <li><strong>Advanced Testing:</strong> Performance testing, load testing, chaos engineering</li>
+        </ul>
+
+        <div class="troubleshooting">
+            <h3>🔧 Common Issues & Solutions</h3>
+            
+            <h4>Tests Failing</h4>
+            <pre><code>dotnet clean
+dotnet restore
+dotnet build
+dotnet test</code></pre>
+            
+            <h4>Pipeline Not Triggering</h4>
+            <ul>
+                <li>Check GitLab Runner availability</li>
+                <li>Verify <code>.gitlab-ci.yml</code> syntax</li>
+                <li>Ensure repository has runners enabled</li>
+            </ul>
+            
+            <h4>Deployment Issues</h4>
+            <ul>
+                <li>Verify PowerShell 7+ installed: <code>pwsh --version</code></li>
+                <li>Check artifact dependencies in pipeline</li>
+                <li>Review deployment script permissions</li>
+            </ul>
+        </div>
+
+        <div class="success" style="margin-top: 30px; padding: 20px;">
+            <h2 style="color: #28a745; margin-top: 0;">🎉 WORKSHOP COMPLETE!</h2>
+            <p>You've completed the <strong>4-Day Git Enablement Program for .NET Developers</strong>!</p>
+            
+            <h3>Journey Summary:</h3>
+            <ul>
+                <li>✅ <strong>Day 1:</strong> Git fundamentals & TFS migration strategy</li>
+                <li>✅ <strong>Day 2:</strong> Feature branching, merge requests & automated testing</li>
+                <li>✅ <strong>Day 3:</strong> Advanced CI/CD pipelines, deployment automation & rollback procedures</li>
+                <li>✅ <strong>Day 4:</strong> API development, integration testing & complete SDLC capstone</li>
+            </ul>
+            
+            <p><strong>Your New Superpowers:</strong></p>
+            <ul>
+                <li>🚀 Modern Git workflows with branching strategies</li>
+                <li>🚀 Comprehensive CI/CD pipeline design</li>
+                <li>🚀 Automated testing (unit + integration)</li>
+                <li>🚀 Production deployment with safety gates</li>
+                <li>🚀 Disaster recovery and rollback procedures</li>
+                <li>🚀 Enterprise API architecture patterns</li>
+            </ul>
+            
+            <p style="font-size: 1.2em; font-weight: bold; color: #fc6d26; text-align: center; margin-top: 20px;">
+                You've transitioned from TFS to GitLab with confidence!<br>
+                Keep building amazing things! 🎯
+            </p>
+        </div>
+    </div>
+</body>
+</html>

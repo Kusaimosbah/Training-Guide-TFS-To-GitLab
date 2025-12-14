@@ -1,0 +1,131 @@
+# ============================================
+# GitLab CI/CD Pipeline for Lab 4 - CI/CD Testing
+# ============================================
+# This pipeline demonstrates a complete CI/CD workflow:
+# 1. BUILD: Compile the .NET application
+# 2. TEST: Run unit tests to verify functionality
+# 3. COVERAGE: Generate code coverage reports
+#
+# The pipeline runs automatically on:
+# - Pushes to main branch
+# - Merge requests
+# - All feature branches
+# ============================================
+
+# Define stages for the pipeline execution order
+# Jobs run sequentially: build → test → coverage
+stages:
+  - build      # First: Compile the application
+  - test       # Second: Run unit tests
+  - coverage   # Third: Generate coverage reports
+
+# Global variables available to all jobs
+variables:
+  # .NET SDK version to use (must match project target framework)
+  DOTNET_VERSION: "8.0"
+  
+  # Performance optimizations: disable telemetry and welcome messages
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+  DOTNET_NOLOGO: "true"
+
+# ============================================
+# BUILD JOB
+# ============================================
+# Purpose: Compile the .NET application
+# - Restores NuGet packages
+# - Builds in Release configuration
+# - Saves compiled binaries as artifacts
+# ============================================
+build:
+  stage: build                                    # Run in the "build" stage
+  image: mcr.microsoft.com/dotnet/sdk:8.0        # Docker image with .NET 8 SDK
+  script:
+    - echo "Starting build process..."
+    # Step 1: Restore NuGet packages (dependencies)
+    - dotnet restore src/CalculatorApp/CalculatorApp.csproj
+    # Step 2: Build the project in Release mode (optimized)
+    - dotnet build src/CalculatorApp/CalculatorApp.csproj --configuration Release --no-restore
+    - echo "Build completed successfully!"
+  artifacts:                                      # Save build output for later jobs
+    paths:
+      - src/CalculatorApp/bin/Release/          # Path to compiled binaries
+    expire_in: 1 hour                           # Keep artifacts for 1 hour
+  only:                                          # When to run this job
+    - main                                       # On pushes to main branch
+    - merge_requests                             # On merge requests
+    - branches                                   # On all branches
+
+# ============================================
+# TEST JOB
+# ============================================
+# Purpose: Run unit tests to verify functionality
+# - Uses xUnit test framework
+# - Shows detailed test output
+# - Fails the pipeline if any test fails
+# ============================================
+test:
+  stage: test                                     # Run in the "test" stage (after build)
+  image: mcr.microsoft.com/dotnet/sdk:8.0        # Docker image with .NET 8 SDK
+  script:
+    - echo "Restoring test project dependencies..."
+    # Step 1: Restore test project NuGet packages
+    - dotnet restore tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj
+    - echo "Installing JUnit logger for test reports..."
+    # Step 2: Install JUnit logger package
+    - dotnet add tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj package JunitXml.TestLogger
+    - echo "Running unit tests with detailed output..."
+    # Step 3: Run all tests with JUnit logger for GitLab test reports
+    - dotnet test tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj --configuration Release --no-restore --logger "console;verbosity=detailed" --logger "junit;LogFileName=test-results.xml"
+    - echo "All tests passed!"
+  artifacts:                                      # Save test results
+    when: always                                 # Save even if tests fail
+    paths:
+      - tests/CalculatorApp.Tests/TestResults/test-results.xml
+    reports:                                     # GitLab test report integration
+      junit: tests/CalculatorApp.Tests/TestResults/test-results.xml
+    expire_in: 7 days
+  dependencies:                                   # Jobs this job depends on
+    - build                                       # Wait for build job to complete
+  only:                                          # When to run this job
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# COVERAGE JOB
+# ============================================
+# Purpose: Generate code coverage reports
+# - Measures how much code is tested
+# - Uses Coverlet tool for .NET
+# - Generates Cobertura format report
+# - Shows coverage % in GitLab UI
+# ============================================
+coverage:
+  stage: coverage                                 # Run in the "coverage" stage (after test)
+  image: mcr.microsoft.com/dotnet/sdk:8.0        # Docker image with .NET 8 SDK
+  script:
+    - echo "Installing coverage tools..."
+    # Step 1: Add Coverlet package for coverage collection
+    - dotnet add tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj package coverlet.msbuild
+    - echo "Running tests with coverage..."
+    # Step 2: Run tests and collect coverage data
+    # /p:CollectCoverage=true        → Enable coverage collection
+    # /p:CoverletOutputFormat=cobertura → Generate Cobertura XML report
+    # /p:CoverletOutput=./coverage/  → Save report to coverage folder
+    - dotnet test tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./coverage/
+    - echo "Coverage report generated!"
+  artifacts:                                      # Save coverage reports
+    paths:
+      - tests/CalculatorApp.Tests/coverage/     # Coverage files location
+    reports:
+      coverage_report:                           # GitLab-specific coverage report
+        coverage_format: cobertura              # Report format
+        path: tests/CalculatorApp.Tests/coverage/coverage.cobertura.xml
+    expire_in: 1 week                           # Keep reports for 1 week
+  dependencies:
+    - build                                       # Wait for build job
+  only:                                          # Run on main and MRs only
+    - main
+    - merge_requests
+  coverage: '/Total\s+\|\s+(\d+\.?\d*)%/'      # Regex to extract coverage % from output
