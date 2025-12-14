@@ -83,6 +83,7 @@ Labs/
 - **Lab 9**: Integration testing with WebApplicationFactory
 - **Lab 10**: **Production Capstone** - Complete workflow from TFS migration to production deployment
 - **Lab 11**: SonarCloud code quality & security scanning (SAST)
+- **Lab 12**: Security scanning (SAST + DAST) & GitLab Variables mastery
 
 ## 🧪 Test Reporting
 

@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 12: Security Scanning (SAST + DAST) & GitLab Variables</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .objectives h3, .prerequisites h3, .verification h3, .troubleshooting h3 {
+            margin-top: 0;
+            color: #6e49cb;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .note {
+            background-color: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .security {
+            background-color: #ffe8e8;
+            border-left: 4px solid #dc3545;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #fc6d26;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+        .badge-sast { background-color: #007bff; color: white; }
+        .badge-dast { background-color: #dc3545; color: white; }
+        .badge-var { background-color: #6f42c1; color: white; }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .comparison-box {
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .comparison-box h4 {
+            margin-top: 0;
+            color: #292961;
+            border-bottom: 2px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Lab 12: Security Scanning (SAST + DAST) & GitLab Variables</h1>
+        <p><strong>Duration:</strong> 90 minutes | <strong>Time Slot:</strong> Final Advanced Lab</p>
+        
+        <div class="prerequisites">
+            <h3>📋 Prerequisites</h3>
+            <ul>
+                <li>Completed Lab 11 (SonarCloud SAST)</li>
+                <li>CapstoneApi project in GitLab</li>
+                <li>GitLab account with admin access</li>
+                <li>.NET 8 SDK installed</li>
+                <li>Docker installed (for OWASP ZAP DAST)</li>
+            </ul>
+        </div>
+
+        <div class="objectives">
+            <h3>🎯 Learning Objectives</h3>
+            <ul>
+                <li>Compare SAST (Static) vs DAST (Dynamic) testing</li>
+                <li>Master GitLab CI/CD variables (global, job-level, masked, protected)</li>
+                <li>Set up secret scanning to prevent token leaks</li>
+                <li>Implement dependency scanning for vulnerable packages</li>
+                <li>Configure OWASP ZAP for DAST (runtime security testing)</li>
+                <li>Use environment-specific variables for multi-stage deployments</li>
+                <li>Create custom variables for configuration management</li>
+                <li>Understand variable precedence and scoping</li>
+            </ul>
+        </div>
+
+        <div class="overview">
+            <h3>🔍 SAST vs DAST: Which Security Testing?</h3>
+            <div class="comparison">
+                <div class="comparison-box">
+                    <h4><span class="badge badge-sast">SAST</span> Static Testing</h4>
+                    <p><strong>What:</strong> Analyzes SOURCE CODE without running it</p>
+                    <p><strong>When:</strong> During development, in CI/CD before deployment</p>
+                    <p><strong>Examples:</strong></p>
+                    <ul>
+                        <li>SonarCloud (Lab 11) ✅ Already implemented</li>
+                        <li>GitLab SAST (built-in)</li>
+                        <li>Snyk, Checkmarx, Fortify</li>
+                    </ul>
+                    <p><strong>Detects:</strong> Code defects, vulnerabilities, code smells</p>
+                    <p><strong>Speed:</strong> Fast (1-5 minutes)</p>
+                    <p><strong>False Positives:</strong> Many (needs review)</p>
+                </div>
+                <div class="comparison-box">
+                    <h4><span class="badge badge-dast">DAST</span> Dynamic Testing</h4>
+                    <p><strong>What:</strong> Tests RUNNING APPLICATION by attacking it</p>
+                    <p><strong>When:</strong> After deployment to staging/production</p>
+                    <p><strong>Examples:</strong></p>
+                    <ul>
+                        <li>OWASP ZAP (Lab 12) ✅ Implementing today</li>
+                        <li>Burp Suite, Acunetix</li>
+                        <li>GitLab DAST (experimental)</li>
+                    </ul>
+                    <p><strong>Detects:</strong> Runtime vulnerabilities, API issues, misconfigurations</p>
+                    <p><strong>Speed:</strong> Slow (5-30 minutes)</p>
+                    <p><strong>False Positives:</strong> Few (more accurate)</p>
+                </div>
+            </div>
+            <p><strong>Best Practice:</strong> Use BOTH! SAST catches code issues early, DAST finds runtime problems.</p>
+        </div>
+
+        <h2>📋 Part 1: GitLab Variables Fundamentals</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Understand Variable Types</h3>
+            <p>GitLab supports 4 types of variables:</p>
+            <table>
+                <tr>
+                    <th>Type</th>
+                    <th>Scope</th>
+                    <th>Use Case</th>
+                    <th>Example</th>
+                </tr>
+                <tr>
+                    <td><strong>Global Variables</strong></td>
+                    <td>All jobs in pipeline</td>
+                    <td>Shared config like SDK version</td>
+                    <td><code>DOTNET_VERSION: "8.0"</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Job Variables</strong></td>
+                    <td>Specific job only</td>
+                    <td>Job-specific configuration</td>
+                    <td><code>only-in-deploy: "true"</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Masked Variables</strong></td>
+                    <td>Hidden in logs</td>
+                    <td>Secrets (tokens, passwords)</td>
+                    <td><code>SONAR_TOKEN: sqp_xxx...</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Protected Variables</strong></td>
+                    <td>Only in protected branches</td>
+                    <td>Production secrets</td>
+                    <td><code>DB_PASSWORD</code></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Explore Existing Variables in Lab 11</h3>
+            <p>Lab 11 already demonstrates variables! Open its <code>.gitlab-ci.yml</code>:</p>
+            <pre><code>variables:
+  DOTNET_VERSION: "8.0"                 # ✅ Global variable
+  PROJECT_PATH: "src/CapstoneApi/..."   # ✅ Used in multiple jobs
+  TEST_PATH: "tests/..."                # ✅ Reduces code duplication
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # ✅ Uses built-in variable
+  GIT_DEPTH: "0"                        # ✅ GitLab built-in override
+
+sonarcloud-scan:
+  stage: sonarcloud
+  script:
+    - echo "Using: $DOTNET_VERSION"     # ✅ Variables expanded in scripts
+    - dotnet tool install ...
+</code></pre>
+            <div class="note">
+                <strong>Built-in GitLab Variables:</strong>
+                <ul>
+                    <li><code>$CI_PROJECT_NAME</code> - Project name</li>
+                    <li><code>$CI_COMMIT_SHA</code> - Commit hash</li>
+                    <li><code>$CI_COMMIT_REF_NAME</code> - Branch name</li>
+                    <li><code>$CI_JOB_NAME</code> - Current job name</li>
+                    <li><code>$CI_PIPELINE_ID</code> - Pipeline ID</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Set Up GitLab CI/CD Variables (Secrets)</h3>
+            <p>Follow these steps for EACH secret variable:</p>
+            <ol>
+                <li>Go to GitLab project → <strong>Settings</strong> → <strong>CI/CD</strong></li>
+                <li>Expand <strong>"Variables"</strong> section</li>
+                <li>Click <strong>"Add variable"</strong> for each:</li>
+            </ol>
+            <table>
+                <tr>
+                    <th>Variable Name</th>
+                    <th>Value</th>
+                    <th>Flags</th>
+                </tr>
+                <tr>
+                    <td><code>SONAR_TOKEN</code></td>
+                    <td>Your SonarCloud token</td>
+                    <td>✅ Masked, ✅ Protected</td>
+                </tr>
+                <tr>
+                    <td><code>SONAR_HOST_URL</code></td>
+                    <td><code>https://sonarcloud.io</code></td>
+                    <td>None (public)</td>
+                </tr>
+                <tr>
+                    <td><code>APP_ENVIRONMENT</code></td>
+                    <td><code>staging</code></td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td><code>DEPLOY_URL</code></td>
+                    <td><code>https://staging.example.com</code></td>
+                    <td>✅ Protected (prod only)</td>
+                </tr>
+            </table>
+            <div class="security">
+                <strong>🔒 Security Best Practices:</strong>
+                <ul>
+                    <li>✅ ALWAYS mask sensitive variables (tokens, passwords, API keys)</li>
+                    <li>✅ ALWAYS protect production variables (only on main/prod branches)</li>
+                    <li>❌ NEVER commit secrets to git (use variables instead)</li>
+                    <li>❌ NEVER hardcode credentials in .gitlab-ci.yml</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Create Custom Pipeline with Variable Examples</h3>
+            <p>Create a comprehensive example <code>.gitlab-ci.yml</code> showing all variable types:</p>
+            <pre><code># ============================================
+# GITLAB VARIABLES COMPREHENSIVE EXAMPLE
+# ============================================
+
+# 1. GLOBAL VARIABLES - Available to all jobs
+variables:
+  DOTNET_VERSION: "8.0"
+  BUILD_CONFIG: "Release"
+  ARTIFACT_RETENTION: "1 week"
+  LOG_LEVEL: "INFO"
+  SONAR_HOST_URL: "https://sonarcloud.io"  # Populated by CI/CD Variables UI
+  # SONAR_TOKEN: Set in Settings → CI/CD → Variables (masked)
+
+# 2. JOB-LEVEL VARIABLES - Only in specific jobs
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+  variables:
+    BUILD_PATH: "src/CapstoneApi"         # ✅ Job-specific var
+    OUTPUT_PATH: "build-output"
+  script:
+    - echo "Building: $BUILD_PATH"        # ✅ Expands to src/CapstoneApi
+    - echo "Output: $OUTPUT_PATH"
+    - dotnet build $BUILD_PATH --configuration $BUILD_CONFIG
+  artifacts:
+    paths:
+      - $OUTPUT_PATH/
+
+# 3. USING CI PREDEFINED VARIABLES
+deploy:staging:
+  stage: deploy
+  script:
+    # Built-in variables automatically available
+    - echo "Project: $CI_PROJECT_NAME"    # ✅ CapstoneApi
+    - echo "Branch: $CI_COMMIT_REF_NAME"  # ✅ main
+    - echo "Commit: $CI_COMMIT_SHA"       # ✅ abc123def456...
+    - echo "Pipeline: $CI_PIPELINE_ID"    # ✅ 12345678
+    - echo "Job: $CI_JOB_NAME"            # ✅ deploy:staging
+    - echo "Environment: $APP_ENVIRONMENT"# ✅ staging (from CI/CD variables)
+
+# 4. ENVIRONMENT-SPECIFIC VARIABLES
+deploy:production:
+  stage: deploy
+  variables:
+    ENV_NAME: "production"
+    DEPLOY_TIMEOUT: "300"
+  only:
+    - main
+  script:
+    - echo "Deploying to $ENV_NAME with timeout $DEPLOY_TIMEOUT"
+
+# 5. CONDITIONAL VARIABLES
+security:scan:
+  stage: test
+  variables:
+    # Condition: Only set on main branch deployments
+    SECURITY_LEVEL: "strict"
+    SCAN_TIMEOUT: "600"
+  script:
+    - echo "Running security with level: $SECURITY_LEVEL"
+  only:
+    - main
+    - merge_requests
+</code></pre>
+        </div>
+
+        <h2>🛡️ Part 2: SAST in Action (SonarCloud Review)</h2>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Review Lab 11 SAST Implementation</h3>
+            <p>SonarCloud is SAST that we already implemented. Review key findings:</p>
+            <pre><code># Lab 11's SonarCloud scans for:
+✅ BUGS              - Logic errors, null pointers
+✅ VULNERABILITIES   - SQL injection, XSS, weak crypto
+✅ CODE SMELLS       - Duplication, complexity
+✅ SECURITY HOTSPOTS - Code requiring security review
+✅ COVERAGE          - Test coverage percentage
+
+# SonarCloud reports STATIC issues:
+- Found BEFORE code runs
+- Fast to analyze (1-5 minutes)
+- Many false positives (need review)
+</code></pre>
+            <div class="note">
+                <strong>📌 GitLab Built-in SAST:</strong> GitLab also provides native SAST scanning! 
+                See <a href="https://docs.gitlab.com/ee/user/application_security/sast/" target="_blank">GitLab SAST Documentation</a>
+            </div>
+        </div>
+
+        <h2>🚀 Part 3: DAST with OWASP ZAP (Dynamic Testing)</h2>
+
+        <div class="step">
+            <h3><span class="step-number">6</span>Understand DAST with OWASP ZAP</h3>
+            <p><strong>OWASP ZAP</strong> is a free, open-source tool for Dynamic Application Security Testing:</p>
+            <pre><code># DAST Process:
+1. Deploy application to staging
+2. Start OWASP ZAP scanner
+3. ZAP ATTACKS the running application:
+   - Makes malicious requests
+   - Tests for SQL injection
+   - Checks for XSS vulnerabilities
+   - Attempts authentication bypass
+   - Tests insecure configurations
+4. Generates vulnerability report
+5. Fails pipeline if critical issues found
+
+# Unlike SAST:
+❌ DAST finds runtime issues (found WHILE code runs)
+❌ DAST is slow (5-30 minutes per scan)
+✅ DAST finds fewer false positives
+✅ DAST discovers configuration issues
+✅ DAST validates actual deployed behavior
+</code></pre>
+            <div class="warning">
+                <strong>⚠️ IMPORTANT:</strong> DAST tests attack the running application. 
+                Only run on TEST/STAGING environments, NEVER on production without explicit approval!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">7</span>Add DAST Stage to Pipeline</h3>
+            <p>Add OWASP ZAP DAST scanning after deployment to staging:</p>
+            <pre><code># Add to .gitlab-ci.yml stages:
+stages:
+  - build
+  - test
+  - sonarcloud    # SAST
+  - deploy        # Deploy to staging
+  - dast          # ✅ NEW: DAST scanning
+
+# Add DAST job after deploy:
+dast:owasp-zap:
+  stage: dast
+  image: owasp/zap2docker-stable:latest
+  variables:
+    ZAP_REPORT_FILE: "zap-report.xml"
+    TARGET_URL: "http://staging.example.com:5000"  # Your staging URL
+  script:
+    - echo "🔓 Starting OWASP ZAP Dynamic Security Test..."
+    - echo "Target: $TARGET_URL"
+    
+    # Run ZAP baseline scan (fast, less aggressive)
+    - |
+      zaproxy \
+        -cmd \
+        -quickurl $TARGET_URL \
+        -quickout $ZAP_REPORT_FILE
+    
+    - echo "📊 Security test complete! Check $ZAP_REPORT_FILE"
+  artifacts:
+    paths:
+      - $ZAP_REPORT_FILE
+    reports:
+      dependency_scanning: $ZAP_REPORT_FILE
+    expire_in: 30 days
+  dependencies:
+    - deploy:staging     # Only run after deploy succeeds
+  allow_failure: false   # Fail pipeline if critical issues found
+  only:
+    - main
+    - merge_requests
+</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>Set Environment Variables for DAST</h3>
+            <p>Add DAST-specific variables in Settings → CI/CD → Variables:</p>
+            <table>
+                <tr>
+                    <th>Variable</th>
+                    <th>Value</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><code>STAGING_URL</code></td>
+                    <td><code>http://staging.example.com:5000</code></td>
+                    <td>Staging app URL for DAST testing</td>
+                </tr>
+                <tr>
+                    <td><code>ZAP_RULES_FILE</code></td>
+                    <td><code>zap-rules.yaml</code></td>
+                    <td>Custom ZAP configuration</td>
+                </tr>
+                <tr>
+                    <td><code>DAST_ENABLED</code></td>
+                    <td><code>true</code></td>
+                    <td>Feature flag to enable/disable DAST</td>
+                </tr>
+                <tr>
+                    <td><code>SCAN_TIMEOUT</code></td>
+                    <td><code>1800</code></td>
+                    <td>Scan timeout in seconds (30 minutes)</td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>🔐 Part 4: Dependency & Secret Scanning</h2>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Enable Dependency Scanning</h3>
+            <p>Detect vulnerable NuGet packages automatically:</p>
+            <pre><code># Add to .gitlab-ci.yml
+dependency_scanning:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "🔍 Scanning dependencies for vulnerabilities..."
+    - dotnet restore src/CapstoneApi/CapstoneApi.csproj
+    
+    # Use Snyk for dependency scanning (or GitLab native)
+    - npm install -g snyk
+    - snyk auth $SNYK_TOKEN        # ✅ Uses masked variable
+    - snyk test --json > dependency-report.json
+    
+    - echo "✅ Dependency scan complete!"
+  artifacts:
+    paths:
+      - dependency-report.json
+    expire_in: 30 days
+  only:
+    - main
+    - merge_requests
+</code></pre>
+            <div class="note">
+                <strong>📌 Add Snyk Token:</strong> Create free account at <a href="https://snyk.io" target="_blank">snyk.io</a>, 
+                then add <code>SNYK_TOKEN</code> to CI/CD Variables (masked + protected).
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Enable Secret Scanning</h3>
+            <p>Prevent accidental token/password commits:</p>
+            <pre><code># GitLab can scan for common patterns:
+# - AWS keys, GitHub tokens, Slack webhooks, etc.
+
+# Add to .gitlab-ci.yml
+secret_detection:
+  stage: test
+  image: python:3.9
+  script:
+    - echo "🔐 Scanning for accidentally committed secrets..."
+    
+    # Install TruffleHog (detects secrets in git history)
+    - pip install truffleHog3
+    - trufflehog git file://. --json > secret-report.json
+    
+    - echo "⚠️  If secrets found, repository is compromised!"
+    - cat secret-report.json
+  artifacts:
+    paths:
+      - secret-report.json
+    expire_in: 30 days
+  allow_failure: true   # Don't block pipeline, but alert
+  only:
+    - main
+    - merge_requests
+</code></pre>
+            <div class="security">
+                <strong>🚨 If Secrets Are Found:</strong>
+                <ul>
+                    <li>1. Immediately rotate/revoke the exposed secret</li>
+                    <li>2. Rewrite git history (git-filter-repo)</li>
+                    <li>3. Force push cleaned repo</li>
+                    <li>4. Add secret to .gitignore</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>📊 Complete Pipeline with All Security Scanning</h2>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>View Complete .gitlab-ci.yml</h3>
+            <p>Here's a production-ready pipeline combining everything:</p>
+            <pre><code># Complete CI/CD pipeline with SAST + DAST + Dependency + Secret scanning
+stages:
+  - build
+  - test
+  - sast          # Static code analysis
+  - dependency    # Package vulnerabilities
+  - secret        # Leaked credentials
+  - deploy        # Deploy to staging
+  - dast          # Dynamic app testing
+  - security_report
+
+variables:
+  DOTNET_VERSION: "8.0"
+  BUILD_CONFIG: "Release"
+  SONAR_HOST_URL: "https://sonarcloud.io"
+  SNYK_SEVERITY_THRESHOLD: "high"
+
+# ... BUILD JOB ...
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+  script:
+    - dotnet restore src/CapstoneApi/CapstoneApi.csproj
+    - dotnet build src/CapstoneApi/CapstoneApi.csproj --configuration $BUILD_CONFIG
+
+# ... TEST JOBS ...
+test:unit:
+  stage: test
+  script:
+    - dotnet test tests/CapstoneApi.Tests/ --filter "Unit"
+
+test:integration:
+  stage: test
+  script:
+    - dotnet test tests/CapstoneApi.Tests/ --filter "Integration"
+
+# ... SAST WITH SONARCLOUD ...
+sast:sonarcloud:
+  stage: sast
+  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+  script:
+    - dotnet tool install --global dotnet-sonarscanner
+    - export PATH="$PATH:$HOME/.dotnet/tools"
+    - dotnet sonarscanner begin /k:capstone-api /o:your-org /d:sonar.login=${SONAR_TOKEN}
+    - dotnet build src/CapstoneApi/ --configuration $BUILD_CONFIG
+    - dotnet sonarscanner end /d:sonar.token=${SONAR_TOKEN}
+
+# ... DEPENDENCY SCANNING ...
+dependency_scanning:
+  stage: dependency
+  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+  script:
+    - npm install -g snyk
+    - snyk auth ${SNYK_TOKEN}
+    - snyk test --severity-threshold=${SNYK_SEVERITY_THRESHOLD}
+
+# ... SECRET SCANNING ...
+secret_scanning:
+  stage: secret
+  image: python:3.9
+  script:
+    - pip install truffleHog3
+    - trufflehog git file://. --json > secret-report.json || true
+  artifacts:
+    paths:
+      - secret-report.json
+  allow_failure: true
+
+# ... DEPLOY TO STAGING ...
+deploy:staging:
+  stage: deploy
+  environment:
+    name: staging
+    url: https://staging.example.com
+  script:
+    - echo "Deploying to staging..."
+    - cp -r publish/ /var/www/staging/
+
+# ... DAST SCANNING ...
+dast:owasp-zap:
+  stage: dast
+  image: owasp/zap2docker-stable
+  variables:
+    TARGET_URL: "https://staging.example.com"
+  script:
+    - zaproxy -cmd -quickurl ${TARGET_URL} -quickout zap-report.xml
+  dependencies:
+    - deploy:staging
+  artifacts:
+    paths:
+      - zap-report.xml
+  allow_failure: false
+
+# ... SECURITY REPORT ...
+security_report:
+  stage: security_report
+  image: alpine
+  script:
+    - echo "📊 All security scans complete!"
+    - echo "SAST: SonarCloud report"
+    - echo "DAST: OWASP ZAP report"
+    - echo "Dependency: Snyk report"
+    - echo "Secret: TruffleHog report"
+</code></pre>
+        </div>
+
+        <h2>✅ Verification Checklist</h2>
+
+        <div class="verification">
+            <h3>🎓 By the end of this lab, you should have:</h3>
+            <ul>
+                <li>✅ Understand difference between SAST (static) and DAST (dynamic) testing</li>
+                <li>✅ Set up GitLab CI/CD Variables (global, job-level, masked, protected)</li>
+                <li>✅ Used variables in pipeline to reduce code duplication</li>
+                <li>✅ Used built-in GitLab variables (CI_COMMIT_SHA, CI_JOB_NAME, etc.)</li>
+                <li>✅ Secured secrets with masked and protected flags</li>
+                <li>✅ Reviewed Lab 11 SonarCloud SAST implementation</li>
+                <li>✅ Understood OWASP ZAP DAST scanning workflow</li>
+                <li>✅ Implemented dependency scanning with Snyk</li>
+                <li>✅ Enabled secret detection to prevent credential leaks</li>
+                <li>✅ Created complete security-focused pipeline</li>
+            </ul>
+        </div>
+
+        <h2>🔍 Comparison Matrix: Security Tools</h2>
+
+        <table style="font-size: 0.9em;">
+            <tr>
+                <th>Tool</th>
+                <th>Type</th>
+                <th>When</th>
+                <th>What It Tests</th>
+                <th>Lab</th>
+            </tr>
+            <tr>
+                <td><strong>SonarCloud</strong></td>
+                <td><span class="badge badge-sast">SAST</span></td>
+                <td>Before deploy</td>
+                <td>Code quality, bugs, vulns</td>
+                <td>Lab 11 ✅</td>
+            </tr>
+            <tr>
+                <td><strong>GitLab SAST</strong></td>
+                <td><span class="badge badge-sast">SAST</span></td>
+                <td>Before deploy</td>
+                <td>Known vulnerabilities</td>
+                <td>Lab 12</td>
+            </tr>
+            <tr>
+                <td><strong>Snyk</strong></td>
+                <td><span class="badge badge-sast">SAST</span></td>
+                <td>Before deploy</td>
+                <td>Dependency vulns</td>
+                <td>Lab 12</td>
+            </tr>
+            <tr>
+                <td><strong>TruffleHog</strong></td>
+                <td><span class="badge badge-sast">SAST</span></td>
+                <td>During commit</td>
+                <td>Leaked secrets</td>
+                <td>Lab 12</td>
+            </tr>
+            <tr>
+                <td><strong>OWASP ZAP</strong></td>
+                <td><span class="badge badge-dast">DAST</span></td>
+                <td>After deploy</td>
+                <td>Runtime vulns, config</td>
+                <td>Lab 12</td>
+            </tr>
+            <tr>
+                <td><strong>Burp Suite</strong></td>
+                <td><span class="badge badge-dast">DAST</span></td>
+                <td>After deploy</td>
+                <td>Web app vulns</td>
+                <td>Bonus</td>
+            </tr>
+        </table>
+
+        <h2>🎓 Key Takeaways</h2>
+
+        <ul>
+            <li><strong>SAST ≠ DAST:</strong> Use both! SAST catches code issues, DAST finds runtime problems</li>
+            <li><strong>Variables reduce duplication:</strong> Store config in variables, not hardcoded in YAML</li>
+            <li><strong>Masked variables hide secrets:</strong> Never expose tokens in logs</li>
+            <li><strong>Protected variables limit scope:</strong> Production secrets only on main branch</li>
+            <li><strong>Security is a pipeline stage:</strong> Scan early (SAST), scan often (DAST), scan everywhere</li>
+            <li><strong>Dependency scanning prevents supply-chain attacks:</strong> Know your dependencies</li>
+            <li><strong>Secret scanning prevents credential leaks:</strong> Catch accidents before they happen</li>
+        </ul>
+
+        <h2>🚀 Next Steps</h2>
+
+        <ol>
+            <li><strong>Implement all security stages</strong> in your actual projects</li>
+            <li><strong>Set up notifications</strong> for security failures</li>
+            <li><strong>Create security policies</strong> (which issues block merges)</li>
+            <li><strong>Run regular security audits</strong> of existing codebases</li>
+            <li><strong>Train team members</strong> on secure coding practices</li>
+            <li><strong>Document security workflows</strong> in your wiki</li>
+        </ol>
+
+        <h2>📚 Additional Resources</h2>
+        <ul>
+            <li><a href="https://docs.gitlab.com/ee/user/application_security/" target="_blank">GitLab Security Features</a></li>
+            <li><a href="https://www.zaproxy.org/" target="_blank">OWASP ZAP Documentation</a></li>
+            <li><a href="https://snyk.io/" target="_blank">Snyk Dependency Scanning</a></li>
+            <li><a href="https://truffleHog3.wordpress.com/" target="_blank">TruffleHog Secret Scanning</a></li>
+            <li><a href="https://owasp.org/www-project-dependency-check/" target="_blank">OWASP Dependency Check</a></li>
+            <li><a href="https://docs.gitlab.com/ee/ci/variables/" target="_blank">GitLab CI/CD Variables</a></li>
+        </ul>
+
+        <hr style="margin: 40px 0;">
+        
+        <p style="text-align: center; color: #666;">
+            <strong>🎉 Congratulations!</strong> You've mastered enterprise security scanning!<br>
+            <em>Security is not a feature, it's a requirement. Build secure from day one! 🔐</em>
+        </p>
+    </div>
+</body>
+</html>
