@@ -6,7 +6,7 @@ This repository contains comprehensive training materials for .NET developers tr
 
 ## 📋 Workshop Overview
 
-This 4-day intensive training program includes 11 hands-on labs designed to build practical skills progressively. Each lab includes:
+This 4-day intensive training program includes 12 hands-on labs designed to build practical skills progressively. Each lab includes:
 - Detailed HTML-based lab guides with step-by-step instructions
 - Complete .NET 8 project templates
 - GitLab CI/CD configuration files with comprehensive comments
@@ -82,8 +82,8 @@ Labs/
 - **Lab 8**: Building REST APIs with ASP.NET Core
 - **Lab 9**: Integration testing with WebApplicationFactory
 - **Lab 10**: **Production Capstone** - Complete workflow from TFS migration to production deployment
-- **Lab 11**: SonarCloud code quality & security scanning (SAST)
-- **Lab 12**: Security scanning (SAST + DAST) & GitLab Variables mastery
+- **Lab 11**: **SonarCloud Code Quality & Security** - Static Application Security Testing (SAST) with professional code quality analysis
+- **Lab 12**: **Security Scanning & Variables Mastery** - SAST vs DAST comparison, GitLab Variables (global, masked, protected), dependency scanning with dotnet-audit, and secret detection
 
 ## 🧪 Test Reporting
 
@@ -151,6 +151,7 @@ By completing this training program, you will:
 - [ ] Day 2: Labs 2-4 (Branching, MRs, CI/CD Testing)
 - [ ] Day 3: Labs 5-7 (Pipelines, Deployment, Rollback)
 - [ ] Day 4: Labs 8-10 (API Dev, Integration Testing, Capstone)
+- [ ] Day 4: Labs 11-12 (SonarCloud SAST, Security Scanning & Variables)
 
 ## 🤝 Contributing
 

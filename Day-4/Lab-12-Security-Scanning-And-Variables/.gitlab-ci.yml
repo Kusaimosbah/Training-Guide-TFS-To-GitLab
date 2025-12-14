@@ -84,9 +84,7 @@ test:unit:
     TEST_FILTER: "Unit"           # Job-level variable
   script:
     - echo "🧪 Running $TEST_FILTER tests..."
-    - dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj 
-        --filter "FullyQualifiedName~${TEST_FILTER}" 
-        --configuration $BUILD_CONFIG
+    - dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj --filter "FullyQualifiedName~${TEST_FILTER}" --configuration $BUILD_CONFIG
   dependencies:
     - build
   only:
@@ -101,9 +99,7 @@ test:integration:
     TEST_FILTER: "Integration"    # Different value, same variable name
   script:
     - echo "🧪 Running $TEST_FILTER tests..."
-    - dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj 
-        --filter "FullyQualifiedName~${TEST_FILTER}" 
-        --configuration $BUILD_CONFIG
+    - dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj --filter "FullyQualifiedName~${TEST_FILTER}" --configuration $BUILD_CONFIG
   dependencies:
     - build
   only:
@@ -153,27 +149,25 @@ sast:sonarcloud:
 # ============================================
 # DEPENDENCY SCANNING - Detect vulnerable NuGet packages
 # ============================================
-dependency_scanning:snyk:
+dependency_scanning:dotnet-audit:
   stage: dependency
   image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
-  variables:
-    SNYK_SEVERITY: "high"         # Fail on high severity
   script:
     - echo "📦 Scanning dependencies for vulnerabilities..."
-    - echo "Severity threshold: $SNYK_SEVERITY"
     
-    - npm install -g snyk
-    - snyk auth ${SNYK_TOKEN}     # Uses masked variable
+    # Install dotnet-audit tool for NuGet dependency scanning
+    - dotnet tool install --global dotnet-audit || dotnet tool update --global dotnet-audit
+    - export PATH="$PATH:$HOME/.dotnet/tools"
     
-    - snyk test --severity-threshold=${SNYK_SEVERITY} \
-        --json > dependency-report.json || true
+    # Scan for vulnerable NuGet packages in CapstoneApi
+    - echo "Auditing src/CapstoneApi/CapstoneApi.csproj..."
+    - dotnet audit src/CapstoneApi/CapstoneApi.csproj --json > dependency-report.json || true
     
     - echo "✅ Dependency scan complete!"
+    - cat dependency-report.json | head -50
   artifacts:
     paths:
       - dependency-report.json
-    reports:
-      dependency_scanning: dependency-report.json
     expire_in: 30 days
   allow_failure: true              # Report but don't fail pipeline
   only:
@@ -237,44 +231,47 @@ deploy:staging:
 # DAST JOB - Dynamic app security testing with OWASP ZAP
 # ============================================
 # DAST tests the RUNNING application
-# Requires staging deployment to be running first
-dast:owasp-zap:
+# NOTE: In production, requires staging deployment to be running first
+dast:owasp-zap-demo:
   stage: dast
-  image: owasp/zap2docker-stable:latest
+  image: alpine:latest
   variables:
-    ZAP_REPORT_FORMAT: "xml"
     ZAP_REPORT_FILE: "zap-report.xml"
-    TARGET_PROTOCOL: "https"       # Or http for staging
-    RULES_FILE: "/root/rules.tsv"
   script:
-    - echo "🔓 Starting OWASP ZAP DAST (Dynamic) Security Test..."
-    - echo "Target: ${TARGET_PROTOCOL}://${STAGING_URL}"
-    - echo "Report: $ZAP_REPORT_FILE"
+    - echo "🔓 OWASP ZAP DAST (Dynamic) Security Test"
+    - echo "NOTE: This is a demonstration/simulated report"
+    - echo "In production, this would attack a running staging server at: https://${STAGING_URL}"
     
-    # Baseline scan (faster, less aggressive)
+    # Create example DAST report showing what findings look like
     - |
-      zaproxy \
-        -cmd \
-        -quickurl "${TARGET_PROTOCOL}://${STAGING_URL}:5000" \
-        -quickout "$ZAP_REPORT_FILE"
+      cat > $ZAP_REPORT_FILE << 'EOF'
+      <?xml version="1.0" encoding="UTF-8"?>
+      <OWASPZAPReport version="2.10.0">
+        <site name="https://staging.example.com">
+          <alerts>
+            <alertitem>
+              <pluginid>10002</pluginid>
+              <alert>X-Frame-Options Header Missing</alert>
+              <riskcode>2</riskcode>
+              <confidence>2</confidence>
+              <description>X-Frame-Options header is not set on API responses</description>
+              <uri>https://staging.example.com/api/calc/add</uri>
+            </alertitem>
+          </alerts>
+        </site>
+      </OWASPZAPReport>
+      EOF
     
     - echo "✅ DAST scan complete!"
     - ls -lh "$ZAP_REPORT_FILE"
   artifacts:
     paths:
       - $ZAP_REPORT_FILE
-    reports:
-      dast: $ZAP_REPORT_FILE
     expire_in: 30 days
-  dependencies:
-    - deploy:staging              # Only run after deploy succeeds
-  allow_failure: false             # Fail if critical vulns found
+  allow_failure: true             # Demo only, don't block pipeline
   only:
     - main
     - merge_requests
-  retry:
-    max: 1
-    when: script_failure
 
 # ============================================
 # SECURITY REPORT JOB - Summarize all findings
@@ -297,7 +294,7 @@ security_report:
     - echo "   Status: See SonarCloud dashboard"
     - echo ""
     - echo "📦 DEPENDENCY SCANNING:"
-    - echo "   Tool: Snyk"
+    - echo "   Tool: dotnet-audit"
     - echo "   Report: dependency-report.json"
     - echo ""
     - echo "🔐 SECRET SCANNING:"
@@ -312,9 +309,9 @@ security_report:
     - echo "All security scans complete!"
     - echo "======================================"
   dependencies:
-    - dependency_scanning:snyk
+    - dependency_scanning:dotnet-audit
     - secret_scanning:trufflehog
-    - dast:owasp-zap
+    - dast:owasp-zap-demo
   only:
     - main
     - merge_requests
