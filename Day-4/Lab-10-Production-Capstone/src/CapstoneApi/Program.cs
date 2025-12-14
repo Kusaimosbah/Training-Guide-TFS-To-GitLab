@@ -46,3 +46,6 @@ app.Logger.LogInformation("🚀 Capstone API starting...");
 app.Logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentName);
 
 app.Run();
+
+// Make Program class accessible to integration tests
+public partial class Program { }
