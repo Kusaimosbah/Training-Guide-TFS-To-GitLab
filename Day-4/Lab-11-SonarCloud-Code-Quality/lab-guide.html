@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 11: SonarCloud Code Quality & Security Scanning</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .objectives h3, .prerequisites h3, .verification h3, .troubleshooting h3 {
+            margin-top: 0;
+            color: #6e49cb;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .note {
+            background-color: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .security {
+            background-color: #ffe8e8;
+            border-left: 4px solid #dc3545;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #fc6d26;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+        .badge-bug { background-color: #dc3545; color: white; }
+        .badge-vulnerability { background-color: #ff6b6b; color: white; }
+        .badge-code-smell { background-color: #ffc107; color: black; }
+        .badge-coverage { background-color: #28a745; color: white; }
+        .badge-security { background-color: #6f42c1; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Lab 11: SonarCloud Code Quality & Security Scanning</h1>
+        <p><strong>Duration:</strong> 60 minutes | <strong>Time Slot:</strong> 1:00pm - 2:00pm (Day 4)</p>
+        
+        <div class="prerequisites">
+            <h3>📋 Prerequisites</h3>
+            <ul>
+                <li>Completed Labs 8-10 (CapstoneApi project)</li>
+                <li>GitHub account (SonarCloud requires GitHub, not GitLab)</li>
+                <li>GitLab account with CI/CD runner access</li>
+                <li>.NET 8 SDK installed</li>
+                <li>Active internet connection for SonarCloud API</li>
+            </ul>
+        </div>
+
+        <div class="objectives">
+            <h3>🎯 Learning Objectives</h3>
+            <ul>
+                <li>Understand SAST (Static Application Security Testing) concepts</li>
+                <li>Set up SonarCloud for .NET projects</li>
+                <li>Integrate SonarCloud with GitLab CI/CD pipelines</li>
+                <li>Analyze code quality metrics (bugs, vulnerabilities, code smells)</li>
+                <li>Interpret security hotspots and fix issues</li>
+                <li>Set up quality gates to enforce code standards</li>
+                <li>Track technical debt and maintainability ratings</li>
+            </ul>
+        </div>
+
+        <div class="overview">
+            <h3>📖 What is SonarCloud?</h3>
+            <p><strong>SonarCloud</strong> is a cloud-based code quality and security service that performs static code analysis to detect:</p>
+            <ul>
+                <li><span class="badge badge-bug">BUGS</span> Code defects that will cause runtime errors</li>
+                <li><span class="badge badge-vulnerability">VULNERABILITIES</span> Security weaknesses (SQL injection, XSS, etc.)</li>
+                <li><span class="badge badge-code-smell">CODE SMELLS</span> Maintainability issues (duplicated code, complexity)</li>
+                <li><span class="badge badge-security">SECURITY HOTSPOTS</span> Code that requires security review</li>
+                <li><span class="badge badge-coverage">COVERAGE</span> Unit test code coverage percentage</li>
+            </ul>
+            <p><strong>Why SonarCloud?</strong></p>
+            <ul>
+                <li>✅ Free for open-source projects</li>
+                <li>✅ Supports 25+ languages including C#, JavaScript, TypeScript, SQL</li>
+                <li>✅ Integrates with GitLab CI/CD, GitHub Actions, Azure DevOps</li>
+                <li>✅ Provides actionable insights with fix recommendations</li>
+                <li>✅ Quality gates prevent merging substandard code</li>
+            </ul>
+        </div>
+
+        <h2>🛠️ Lab Setup</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Create SonarCloud Account</h3>
+            <ol>
+                <li>Go to <a href="https://sonarcloud.io" target="_blank">https://sonarcloud.io</a></li>
+                <li>Click <strong>"Log in"</strong> and choose <strong>"Sign up with GitHub"</strong></li>
+                <li>Authorize SonarCloud to access your GitHub account</li>
+                <li>Click <strong>"Analyze new project"</strong></li>
+            </ol>
+            <div class="note">
+                <strong>📌 Note:</strong> SonarCloud requires GitHub authentication. Even though we're using GitLab for CI/CD, 
+                SonarCloud only supports GitHub/Bitbucket/Azure DevOps authentication. You can still analyze GitLab projects!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Create SonarCloud Organization</h3>
+            <ol>
+                <li>In SonarCloud, click <strong>"+"</strong> → <strong>"Analyze new project"</strong></li>
+                <li>Click <strong>"Create an organization manually"</strong></li>
+                <li>Choose <strong>Free plan</strong> (for public/open-source projects)</li>
+                <li>Organization Key: <code>your-github-username</code></li>
+                <li>Organization Name: <code>Your Training Org</code></li>
+                <li>Click <strong>"Continue"</strong></li>
+            </ol>
+            <div class="success">
+                <strong>✅ Organization Created!</strong> This is where all your project analyses will live.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Create SonarCloud Project</h3>
+            <ol>
+                <li>Click <strong>"Analyze new project"</strong></li>
+                <li>Choose <strong>"Create project manually"</strong></li>
+                <li>Project Key: <code>capstone-api</code></li>
+                <li>Display Name: <code>CapstoneApi - Calculator Web API</code></li>
+                <li>Click <strong>"Set up"</strong></li>
+                <li>Choose <strong>"With GitLab CI"</strong></li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Generate SonarCloud Token</h3>
+            <ol>
+                <li>In SonarCloud project setup, you'll see instructions for GitLab CI</li>
+                <li>Click <strong>"Generate a token"</strong></li>
+                <li>Token name: <code>GitLab-CI-CapstoneApi</code></li>
+                <li>Click <strong>"Generate"</strong></li>
+                <li><strong>COPY THE TOKEN</strong> (you won't see it again!)</li>
+            </ol>
+            <div class="warning">
+                <strong>⚠️ IMPORTANT:</strong> Save this token securely! It looks like: <code>sqp_1234567890abcdef...</code>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Add Token to GitLab CI/CD Variables</h3>
+            <ol>
+                <li>Go to your GitLab project (CapstoneApi or Lab-8 project)</li>
+                <li>Navigate to <strong>Settings</strong> → <strong>CI/CD</strong></li>
+                <li>Expand <strong>"Variables"</strong> section</li>
+                <li>Click <strong>"Add variable"</strong></li>
+                <li>Key: <code>SONAR_TOKEN</code></li>
+                <li>Value: <code>[paste your SonarCloud token]</code></li>
+                <li>Flags: ✅ Protect variable, ✅ Mask variable</li>
+                <li>Click <strong>"Add variable"</strong></li>
+            </ol>
+            <div class="success">
+                <strong>✅ Secure Storage:</strong> Masked variables are hidden in CI/CD logs, preventing token exposure.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">6</span>Add SonarCloud Host URL Variable</h3>
+            <ol>
+                <li>Still in GitLab <strong>Settings</strong> → <strong>CI/CD</strong> → <strong>Variables</strong></li>
+                <li>Click <strong>"Add variable"</strong></li>
+                <li>Key: <code>SONAR_HOST_URL</code></li>
+                <li>Value: <code>https://sonarcloud.io</code></li>
+                <li>No flags needed (this is not sensitive)</li>
+                <li>Click <strong>"Add variable"</strong></li>
+            </ol>
+        </div>
+
+        <h2>🔧 Configure GitLab CI/CD Pipeline</h2>
+
+        <div class="step">
+            <h3><span class="step-number">7</span>Update .gitlab-ci.yml with SonarCloud Scan</h3>
+            <p>Open your <code>.gitlab-ci.yml</code> file and replace the simulated <code>quality_gate</code> job with real SonarCloud scanning:</p>
+            <pre><code>stages:
+  - build
+  - test
+  - sonarcloud      # NEW: Add SonarCloud stage
+  - deploy_staging
+  - rollback
+
+# ... existing build and test jobs ...
+
+# ============================================
+# SONARCLOUD JOB - Code Quality & Security Scan
+# ============================================
+sonarcloud-scan:
+  stage: sonarcloud
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Cache location
+    GIT_DEPTH: "0"  # Shallow clones disable SCM blame, needed for SonarCloud
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - echo "🔍 Installing SonarScanner for .NET..."
+    - dotnet tool install --global dotnet-sonarscanner
+    - export PATH="$PATH:$HOME/.dotnet/tools"
+    
+    - echo "📊 Starting SonarCloud analysis..."
+    - dotnet sonarscanner begin 
+        /k:"capstone-api" 
+        /o:"your-organization-key" 
+        /d:sonar.host.url="${SONAR_HOST_URL}" 
+        /d:sonar.login="${SONAR_TOKEN}" 
+        /d:sonar.cs.opencover.reportsPaths="tests/**/coverage.opencover.xml"
+        /d:sonar.coverage.exclusions="**Tests.cs"
+    
+    - echo "🔨 Building project for analysis..."
+    - dotnet build src/CapstoneApi/CapstoneApi.csproj --configuration Release
+    
+    - echo "🧪 Running tests with coverage..."
+    - dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj 
+        --configuration Release 
+        --no-build 
+        /p:CollectCoverage=true 
+        /p:CoverletOutputFormat=opencover 
+        /p:CoverletOutput=./coverage.opencover.xml
+    
+    - echo "📤 Uploading results to SonarCloud..."
+    - dotnet sonarscanner end /d:sonar.login="${SONAR_TOKEN}"
+    
+    - echo "✅ SonarCloud analysis complete!"
+  allow_failure: false  # BLOCK merge if quality gate fails
+  dependencies:
+    - build
+  only:
+    - main
+    - merge_requests
+</code></pre>
+            <div class="warning">
+                <strong>⚠️ Replace:</strong> <code>/o:"your-organization-key"</code> with your actual SonarCloud organization key!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>Install Code Coverage Package</h3>
+            <p>Add Coverlet for code coverage collection:</p>
+            <pre><code>cd tests/CapstoneApi.Tests
+dotnet add package coverlet.collector
+dotnet add package coverlet.msbuild</code></pre>
+            <div class="note">
+                <strong>📌 Coverlet:</strong> Open-source code coverage library for .NET that generates coverage reports in multiple formats.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">9</span>Commit and Push Changes</h3>
+            <pre><code>git add .gitlab-ci.yml tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj
+git commit -m "feat: Add SonarCloud code quality scanning"
+git push origin main</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">10</span>Watch Pipeline Execute</h3>
+            <ol>
+                <li>Go to GitLab → <strong>CI/CD</strong> → <strong>Pipelines</strong></li>
+                <li>Click on the latest pipeline</li>
+                <li>Watch the <code>sonarcloud-scan</code> job execute</li>
+                <li>This will take 3-5 minutes (first run downloads scanner)</li>
+            </ol>
+            <div class="success">
+                <strong>✅ Expected Output:</strong>
+                <ul>
+                    <li>SonarScanner installed successfully</li>
+                    <li>Project analyzed (files scanned, lines of code counted)</li>
+                    <li>Tests executed with coverage data collected</li>
+                    <li>Results uploaded to SonarCloud</li>
+                    <li>Analysis ID displayed</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>📊 Analyzing Results in SonarCloud</h2>
+
+        <div class="step">
+            <h3><span class="step-number">11</span>View Project Dashboard</h3>
+            <ol>
+                <li>Go to <a href="https://sonarcloud.io" target="_blank">https://sonarcloud.io</a></li>
+                <li>Click on your project: <strong>CapstoneApi - Calculator Web API</strong></li>
+                <li>Review the dashboard metrics:</li>
+            </ol>
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>What It Measures</th>
+                    <th>Target</th>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-bug">Bugs</span></td>
+                    <td>Code defects causing runtime errors</td>
+                    <td>0 bugs</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-vulnerability">Vulnerabilities</span></td>
+                    <td>Security weaknesses (SQL injection, XSS)</td>
+                    <td>0 vulnerabilities</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-security">Security Hotspots</span></td>
+                    <td>Code requiring security review</td>
+                    <td>All reviewed</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-code-smell">Code Smells</span></td>
+                    <td>Maintainability issues, tech debt</td>
+                    <td>&lt; 5 minor issues</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-coverage">Coverage</span></td>
+                    <td>% of code covered by tests</td>
+                    <td>&gt; 80%</td>
+                </tr>
+                <tr>
+                    <td><strong>Duplications</strong></td>
+                    <td>% of duplicated code blocks</td>
+                    <td>&lt; 3%</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">12</span>Explore Issues Tab</h3>
+            <ol>
+                <li>Click <strong>"Issues"</strong> in the left sidebar</li>
+                <li>Review each issue found by SonarCloud</li>
+                <li>Click on an issue to see:
+                    <ul>
+                        <li>Description of the problem</li>
+                        <li>File and line number location</li>
+                        <li>Why it's an issue (technical explanation)</li>
+                        <li>How to fix it (code examples)</li>
+                        <li>Severity: Blocker, Critical, Major, Minor, Info</li>
+                    </ul>
+                </li>
+            </ol>
+            <div class="note">
+                <strong>📌 Common C# Issues Found:</strong>
+                <ul>
+                    <li>Unused variables or parameters</li>
+                    <li>Missing XML documentation comments</li>
+                    <li>Methods that are too complex (cognitive complexity)</li>
+                    <li>Hardcoded strings that should be constants</li>
+                    <li>Missing null checks on reference types</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">13</span>Review Security Hotspots</h3>
+            <ol>
+                <li>Click <strong>"Security Hotspots"</strong> in the sidebar</li>
+                <li>Review any security-sensitive code detected</li>
+                <li>For each hotspot:
+                    <ul>
+                        <li>Understand why it's flagged</li>
+                        <li>Mark as <strong>"Safe"</strong> if reviewed and acceptable</li>
+                        <li>Mark as <strong>"Fix"</strong> if it needs correction</li>
+                    </ul>
+                </li>
+            </ol>
+            <div class="security">
+                <strong>🔒 Security Hotspot Examples:</strong>
+                <ul>
+                    <li>Weak cryptography algorithms (MD5, SHA1)</li>
+                    <li>HTTP connections instead of HTTPS</li>
+                    <li>Disabled CSRF protection</li>
+                    <li>Weak random number generators</li>
+                    <li>SQL concatenation (potential SQL injection)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">14</span>Check Code Coverage</h3>
+            <ol>
+                <li>Click <strong>"Measures"</strong> → <strong>"Coverage"</strong></li>
+                <li>Review overall coverage percentage</li>
+                <li>Drill down to see:
+                    <ul>
+                        <li>Files with low coverage (red/orange)</li>
+                        <li>Files with high coverage (green)</li>
+                        <li>Uncovered lines highlighted in red</li>
+                    </ul>
+                </li>
+            </ol>
+            <div class="success">
+                <strong>✅ Expected Coverage:</strong> CapstoneApi should have ~70-80% coverage from Labs 9-10 tests.
+            </div>
+        </div>
+
+        <h2>🛡️ Setting Up Quality Gates</h2>
+
+        <div class="step">
+            <h3><span class="step-number">15</span>Configure Quality Gate</h3>
+            <ol>
+                <li>In SonarCloud, click <strong>"Quality Gates"</strong> (top menu)</li>
+                <li>Click <strong>"Create"</strong></li>
+                <li>Name: <code>Strict Quality Gate</code></li>
+                <li>Add conditions:</li>
+            </ol>
+            <table>
+                <tr>
+                    <th>Condition</th>
+                    <th>Operator</th>
+                    <th>Error Threshold</th>
+                </tr>
+                <tr>
+                    <td>Coverage on New Code</td>
+                    <td>is less than</td>
+                    <td>80%</td>
+                </tr>
+                <tr>
+                    <td>Bugs</td>
+                    <td>is greater than</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>Vulnerabilities</td>
+                    <td>is greater than</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>Security Hotspots Reviewed</td>
+                    <td>is less than</td>
+                    <td>100%</td>
+                </tr>
+                <tr>
+                    <td>Code Smells</td>
+                    <td>is greater than</td>
+                    <td>5</td>
+                </tr>
+                <tr>
+                    <td>Duplicated Lines</td>
+                    <td>is greater than</td>
+                    <td>3%</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">16</span>Assign Quality Gate to Project</h3>
+            <ol>
+                <li>Go back to your project: <strong>CapstoneApi</strong></li>
+                <li>Click <strong>"Project Settings"</strong> → <strong>"Quality Gate"</strong></li>
+                <li>Select <strong>"Strict Quality Gate"</strong></li>
+                <li>Click <strong>"Save"</strong></li>
+            </ol>
+            <div class="warning">
+                <strong>⚠️ Impact:</strong> If the quality gate fails, the GitLab pipeline will FAIL and block merging!
+            </div>
+        </div>
+
+        <h2>🐛 Fixing Issues</h2>
+
+        <div class="step">
+            <h3><span class="step-number">17</span>Create Feature Branch to Fix Issues</h3>
+            <pre><code>git checkout -b fix/sonarcloud-issues
+git push -u origin fix/sonarcloud-issues</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">18</span>Fix a Sample Code Smell</h3>
+            <p>Let's fix a common issue: <strong>Add XML documentation to public APIs</strong></p>
+            <p>Open <code>src/CapstoneApi/Controllers/CalcController.cs</code> and add XML comments:</p>
+            <pre><code>/// &lt;summary&gt;
+/// Calculator API endpoints for basic arithmetic operations
+/// &lt;/summary&gt;
+[ApiController]
+[Route("api/[controller]")]
+public class CalcController : ControllerBase
+{
+    private readonly ICalculatorService _calculatorService;
+
+    /// &lt;summary&gt;
+    /// Initializes a new instance of the CalcController
+    /// &lt;/summary&gt;
+    /// &lt;param name="calculatorService"&gt;The calculator service dependency&lt;/param&gt;
+    public CalcController(ICalculatorService calculatorService)
+    {
+        _calculatorService = calculatorService;
+    }
+
+    /// &lt;summary&gt;
+    /// Adds two numbers together
+    /// &lt;/summary&gt;
+    /// &lt;param name="a"&gt;First number&lt;/param&gt;
+    /// &lt;param name="b"&gt;Second number&lt;/param&gt;
+    /// &lt;returns&gt;Sum of a and b&lt;/returns&gt;
+    /// &lt;response code="200"&gt;Returns the sum&lt;/response&gt;
+    [HttpGet("add")]
+    [ProducesResponseType(typeof(double), 200)]
+    public IActionResult Add(double a, double b)
+    {
+        var result = _calculatorService.Add(a, b);
+        return Ok(result);
+    }
+}</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">19</span>Enable XML Documentation Generation</h3>
+            <p>Open <code>src/CapstoneApi/CapstoneApi.csproj</code> and add:</p>
+            <pre><code>&lt;PropertyGroup&gt;
+  &lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
+  &lt;Nullable&gt;enable&lt;/Nullable&gt;
+  &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+  
+  &lt;!-- Generate XML documentation file --&gt;
+  &lt;GenerateDocumentationFile&gt;true&lt;/GenerateDocumentationFile&gt;
+  &lt;NoWarn&gt;$(NoWarn);1591&lt;/NoWarn&gt;  &lt;!-- Suppress missing XML comment warnings --&gt;
+&lt;/PropertyGroup&gt;</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">20</span>Commit, Push, and Create Merge Request</h3>
+            <pre><code>git add src/CapstoneApi/
+git commit -m "docs: Add XML documentation to CalcController (fixes SonarCloud code smell)"
+git push origin fix/sonarcloud-issues</code></pre>
+            <ol>
+                <li>Go to GitLab and create a Merge Request</li>
+                <li>Watch the pipeline run with SonarCloud analysis</li>
+                <li>View the SonarCloud report in the MR (if SonarCloud GitLab integration is enabled)</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">21</span>View SonarCloud Analysis on Merge Request</h3>
+            <ol>
+                <li>In your GitLab MR, scroll to the pipeline section</li>
+                <li>Click on the <code>sonarcloud-scan</code> job</li>
+                <li>At the end of the logs, you'll see a link to the SonarCloud analysis</li>
+                <li>SonarCloud will show:
+                    <ul>
+                        <li>New issues introduced in this branch</li>
+                        <li>Issues fixed compared to main branch</li>
+                        <li>Quality gate status (passed/failed)</li>
+                    </ul>
+                </li>
+            </ol>
+            <div class="success">
+                <strong>✅ Quality Gate:</strong> If passed, the pipeline turns green and you can merge!
+            </div>
+        </div>
+
+        <h2>📈 Advanced Features</h2>
+
+        <div class="step">
+            <h3><span class="step-number">22</span>View Project Activity</h3>
+            <ol>
+                <li>In SonarCloud, click <strong>"Activity"</strong></li>
+                <li>See history of all analyses</li>
+                <li>Track how metrics change over time:
+                    <ul>
+                        <li>Coverage trending up/down</li>
+                        <li>Technical debt hours added/removed</li>
+                        <li>Bugs introduced and fixed</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">23</span>Create Quality Profile (Optional)</h3>
+            <ol>
+                <li>Click <strong>"Quality Profiles"</strong> (top menu)</li>
+                <li>Find <strong>"Sonar way"</strong> for C#</li>
+                <li>Click <strong>"Copy"</strong></li>
+                <li>Name: <code>Enterprise C# Standards</code></li>
+                <li>Customize rules:
+                    <ul>
+                        <li>Activate additional security rules</li>
+                        <li>Change severity levels</li>
+                        <li>Disable noisy rules for your team</li>
+                    </ul>
+                </li>
+                <li>Assign to your project in <strong>Project Settings</strong> → <strong>Quality Profiles</strong></li>
+            </ol>
+        </div>
+
+        <h2>🔗 Integrating with GitLab (Optional Advanced)</h2>
+
+        <div class="step">
+            <h3><span class="step-number">24</span>Display SonarCloud Badge in README</h3>
+            <ol>
+                <li>In SonarCloud, go to <strong>Project Settings</strong> → <strong>Summary</strong></li>
+                <li>Scroll to <strong>"Badges"</strong></li>
+                <li>Copy the markdown badge code</li>
+                <li>Add to your project's <code>README.md</code>:</li>
+            </ol>
+            <pre><code># CapstoneApi - Calculator Web API
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=capstone-api&metric=alert_status)](https://sonarcloud.io/dashboard?id=capstone-api)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=capstone-api&metric=coverage)](https://sonarcloud.io/dashboard?id=capstone-api)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=capstone-api&metric=bugs)](https://sonarcloud.io/dashboard?id=capstone-api)
+
+A production-ready calculator API with comprehensive testing and code quality analysis.</code></pre>
+        </div>
+
+        <h2>✅ Verification Checklist</h2>
+
+        <div class="verification">
+            <h3>🎓 By the end of this lab, you should have:</h3>
+            <ul>
+                <li>✅ Created SonarCloud account and organization</li>
+                <li>✅ Set up CapstoneApi project in SonarCloud</li>
+                <li>✅ Generated and configured SonarCloud token in GitLab CI/CD variables</li>
+                <li>✅ Updated <code>.gitlab-ci.yml</code> with SonarCloud scanning job</li>
+                <li>✅ Successfully run SonarCloud analysis in GitLab pipeline</li>
+                <li>✅ Reviewed code quality metrics (bugs, vulnerabilities, code smells)</li>
+                <li>✅ Analyzed security hotspots and coverage reports</li>
+                <li>✅ Configured quality gate with strict thresholds</li>
+                <li>✅ Fixed at least one code smell (XML documentation)</li>
+                <li>✅ Understood how quality gates block merge requests</li>
+                <li>✅ Viewed SonarCloud analysis results on merge requests</li>
+            </ul>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>🔧 Common Issues & Solutions</h3>
+            
+            <h4>Issue: "SonarScanner not found" in pipeline</h4>
+            <p><strong>Solution:</strong> Ensure the job installs <code>dotnet-sonarscanner</code> globally and exports PATH:</p>
+            <pre><code>dotnet tool install --global dotnet-sonarscanner
+export PATH="$PATH:$HOME/.dotnet/tools"</code></pre>
+
+            <h4>Issue: "401 Unauthorized" when uploading to SonarCloud</h4>
+            <p><strong>Causes:</strong></p>
+            <ul>
+                <li>SONAR_TOKEN variable not set in GitLab CI/CD</li>
+                <li>Token expired or invalid</li>
+                <li>Wrong organization key in sonarscanner begin command</li>
+            </ul>
+            <p><strong>Solution:</strong> Verify token in GitLab Settings → CI/CD → Variables. Regenerate token if needed.</p>
+
+            <h4>Issue: "Coverage report not found"</h4>
+            <p><strong>Solution:</strong> Ensure coverlet packages are installed and coverage path matches:</p>
+            <pre><code>/d:sonar.cs.opencover.reportsPaths="tests/**/coverage.opencover.xml"</code></pre>
+
+            <h4>Issue: "Quality gate fails but I don't see issues"</h4>
+            <p><strong>Solution:</strong> Quality gates apply to <strong>New Code</strong> by default. Check:</p>
+            <ul>
+                <li>SonarCloud → Issues → Filter: "New Code"</li>
+                <li>Your branch may have introduced issues not visible in Overall metrics</li>
+            </ul>
+
+            <h4>Issue: "Pipeline takes too long (>10 minutes)"</h4>
+            <p><strong>Optimization:</strong></p>
+            <ul>
+                <li>Use GitLab CI cache for <code>.sonar/cache</code> directory</li>
+                <li>Skip SonarCloud scan on feature branches (only run on main + MRs)</li>
+                <li>Use <code>dotnet build --no-restore</code> if build already completed earlier</li>
+            </ul>
+        </div>
+
+        <h2>🎓 Key Takeaways</h2>
+
+        <ul>
+            <li><strong>SAST (Static Application Security Testing)</strong> catches issues before code runs</li>
+            <li><strong>Quality gates</strong> enforce standards and prevent technical debt accumulation</li>
+            <li><strong>Code coverage</strong> is a metric, not a goal - 80%+ is ideal, 100% is often wasteful</li>
+            <li><strong>Security hotspots</strong> require manual review - not all are vulnerabilities</li>
+            <li><strong>Technical debt</strong> is measured in time (hours/days to fix all issues)</li>
+            <li><strong>Continuous analysis</strong> in CI/CD prevents degradation over time</li>
+            <li><strong>Fix early</strong> - new issues are cheaper to fix than old ones</li>
+            <li><strong>SonarCloud is free</strong> for open-source projects, paid for private repos</li>
+        </ul>
+
+        <h2>🚀 Next Steps</h2>
+
+        <ol>
+            <li><strong>Fix all SonarCloud issues</strong> in CapstoneApi project</li>
+            <li><strong>Aim for Quality Gate pass</strong> with 0 bugs, 0 vulnerabilities</li>
+            <li><strong>Increase test coverage</strong> to 80%+ by adding more unit tests</li>
+            <li><strong>Apply to other projects</strong> - use SonarCloud for all your .NET applications</li>
+            <li><strong>Explore DAST</strong> (Dynamic Application Security Testing) with OWASP ZAP or Burp Suite</li>
+            <li><strong>Set up dependency scanning</strong> with Snyk or GitHub Dependabot</li>
+            <li><strong>Enable secret detection</strong> in GitLab CI/CD to prevent token leaks</li>
+        </ol>
+
+        <h2>📚 Additional Resources</h2>
+        <ul>
+            <li><a href="https://docs.sonarcloud.io/" target="_blank">SonarCloud Documentation</a></li>
+            <li><a href="https://docs.sonarcloud.io/advanced-setup/languages/csharp/" target="_blank">SonarCloud for C# / .NET</a></li>
+            <li><a href="https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/gitlab-ci/" target="_blank">SonarCloud GitLab CI Integration</a></li>
+            <li><a href="https://github.com/coverlet-coverage/coverlet" target="_blank">Coverlet Code Coverage</a></li>
+            <li><a href="https://owasp.org/www-community/Source_Code_Analysis_Tools" target="_blank">OWASP SAST Tools</a></li>
+            <li><a href="https://docs.gitlab.com/ee/user/application_security/sast/" target="_blank">GitLab SAST (Alternative to SonarCloud)</a></li>
+        </ul>
+
+        <hr style="margin: 40px 0;">
+        
+        <p style="text-align: center; color: #666;">
+            <strong>🎉 Congratulations!</strong> You've completed Lab 11 and learned professional code quality practices!<br>
+            <em>Remember: Quality is not an act, it's a habit. Keep your codebase clean! 🧹</em>
+        </p>
+    </div>
+</body>
+</html>

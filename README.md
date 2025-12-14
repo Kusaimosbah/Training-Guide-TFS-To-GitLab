@@ -82,6 +82,7 @@ Labs/
 - **Lab 8**: Building REST APIs with ASP.NET Core
 - **Lab 9**: Integration testing with WebApplicationFactory
 - **Lab 10**: **Production Capstone** - Complete workflow from TFS migration to production deployment
+- **Lab 11**: SonarCloud code quality & security scanning (SAST)
 
 ## 🧪 Test Reporting
 

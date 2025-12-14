@@ -1,0 +1,169 @@
+# ============================================
+# GitLab CI/CD Pipeline for Lab 11 - SonarCloud Code Quality
+# ============================================
+# Demonstrates professional code quality scanning with SonarCloud
+# Pipeline stages: BUILD → TEST → SONARCLOUD → DEPLOY
+# Enforces quality gates before deployment
+# ============================================
+
+# Define pipeline stages
+stages:
+  - build              # First: Compile and publish
+  - test              # Second: Run all tests
+  - sonarcloud        # Third: Code quality & security scan
+  - deploy_staging    # Fourth: Deploy to staging
+
+# Global variables
+variables:
+  DOTNET_VERSION: "8.0"                          # .NET SDK version
+  PROJECT_PATH: "src/CapstoneApi/CapstoneApi.csproj"  # API project path
+  TEST_PATH: "tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj"  # Test project path
+  ARTIFACTS_PATH: "publish"                      # Output directory
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"   # SonarCloud cache location
+  GIT_DEPTH: "0"                                 # Full clone for SCM blame data
+
+# ============================================
+# BUILD JOB - Compile and publish Web API
+# ============================================
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "🔨 Building CapstoneApi..."
+    - dotnet restore $PROJECT_PATH
+    - dotnet build $PROJECT_PATH --configuration Release --no-restore
+    - dotnet publish $PROJECT_PATH --configuration Release --no-build --output $ARTIFACTS_PATH
+    - echo "✅ Build completed successfully!"
+  artifacts:
+    paths:
+      - $ARTIFACTS_PATH/
+    expire_in: 1 hour
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# TEST JOB - Run all unit and integration tests
+# ============================================
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "🧪 Running tests..."
+    - dotnet restore $TEST_PATH
+    - echo "Installing JUnit logger for test reports..."
+    - dotnet add $TEST_PATH package JunitXml.TestLogger
+    - dotnet test $TEST_PATH --configuration Release --no-restore --logger "console;verbosity=detailed" --logger "junit;LogFileName=test-results.xml"
+    - echo "✅ All tests passed!"
+  artifacts:
+    when: always
+    paths:
+      - tests/CapstoneApi.Tests/TestResults/test-results.xml
+    reports:
+      junit: tests/CapstoneApi.Tests/TestResults/test-results.xml
+    expire_in: 7 days
+  dependencies:
+    - build
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# SONARCLOUD JOB - Code Quality & Security Scan
+# ============================================
+# Performs static code analysis with SonarCloud:
+# - Detects bugs, vulnerabilities, code smells
+# - Calculates code coverage from tests
+# - Enforces quality gate (blocks merge if fails)
+# - Uploads results to https://sonarcloud.io
+# ============================================
+sonarcloud-scan:
+  stage: sonarcloud
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache                             # Cache SonarCloud data for faster scans
+  script:
+    - echo "🔍 Installing SonarScanner for .NET..."
+    - dotnet tool install --global dotnet-sonarscanner
+    - export PATH="$PATH:$HOME/.dotnet/tools"
+    
+    - echo "📦 Installing code coverage tools..."
+    - dotnet add $TEST_PATH package coverlet.collector
+    - dotnet add $TEST_PATH package coverlet.msbuild
+    
+    - echo "📊 Starting SonarCloud analysis..."
+    - dotnet sonarscanner begin 
+        /k:"capstone-api" 
+        /o:"your-organization-key" 
+        /d:sonar.host.url="${SONAR_HOST_URL}" 
+        /d:sonar.login="${SONAR_TOKEN}" 
+        /d:sonar.cs.opencover.reportsPaths="tests/**/coverage.opencover.xml"
+        /d:sonar.coverage.exclusions="**Tests.cs,**/Program.cs"
+        /d:sonar.exclusions="**/obj/**,**/bin/**"
+    
+    - echo "🔨 Building project for analysis..."
+    - dotnet build $PROJECT_PATH --configuration Release
+    
+    - echo "🧪 Running tests with coverage collection..."
+    - dotnet test $TEST_PATH 
+        --configuration Release 
+        --no-build 
+        /p:CollectCoverage=true 
+        /p:CoverletOutputFormat=opencover 
+        /p:CoverletOutput=./coverage.opencover.xml
+    
+    - echo "📤 Uploading results to SonarCloud..."
+    - dotnet sonarscanner end /d:sonar.login="${SONAR_TOKEN}"
+    
+    - echo "✅ SonarCloud analysis complete! View results at https://sonarcloud.io"
+  allow_failure: false                           # BLOCK pipeline if quality gate fails
+  dependencies:
+    - build
+  only:
+    - main                                       # Run on main branch
+    - merge_requests                             # Run on merge requests
+
+# ============================================
+# DEPLOY:STAGING JOB - Deploy to staging (after quality gate passes)
+# ============================================
+deploy:staging:
+  stage: deploy_staging
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "🚀 Deploying to staging environment..."
+    - mkdir -p staging
+    - cp -r $ARTIFACTS_PATH/* staging/
+    - echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") - Version 1.0.$CI_PIPELINE_ID deployed" > staging/deployment-info.txt
+    - echo "✅ Deployment to staging completed"
+    - echo "📊 Application accessible at: https://staging.example.com"
+  artifacts:
+    paths:
+      - staging/
+    expire_in: 7 days
+  environment:
+    name: staging
+    url: https://staging.example.com
+  dependencies:
+    - build
+    - test
+    - sonarcloud-scan                            # ONLY deploy if SonarCloud passes
+  only:
+    - main
+
+# ============================================
+# NOTES FOR TRAINEES
+# ============================================
+# 1. Replace "your-organization-key" with your actual SonarCloud organization key
+# 2. Set SONAR_TOKEN and SONAR_HOST_URL in GitLab CI/CD Variables:
+#    - SONAR_TOKEN: Your SonarCloud token (masked)
+#    - SONAR_HOST_URL: https://sonarcloud.io
+# 3. Quality gate will FAIL the pipeline if:
+#    - New bugs are introduced
+#    - New vulnerabilities are found
+#    - Code coverage drops below threshold
+#    - Too many code smells are added
+# 4. View detailed analysis at: https://sonarcloud.io/dashboard?id=capstone-api
