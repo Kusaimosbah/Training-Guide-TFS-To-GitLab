@@ -36,9 +36,10 @@ build:
     - kusai
   script:
     - echo "🔨 Building Capstone API..."
-    - dotnet restore $PROJECT_PATH               # Restore NuGet packages
-    - dotnet build $PROJECT_PATH --configuration Release --no-restore
-    - dotnet publish $PROJECT_PATH --configuration Release --output $ARTIFACTS_PATH --no-build
+    - dotnet restore $PROJECT_PATH -r linux-x64  # Restore with linux-x64 runtime
+    - dotnet build $PROJECT_PATH --configuration Release --no-restore -r linux-x64
+    - echo "📦 Publishing as self-contained binary (Linux x64)..."
+    - dotnet publish $PROJECT_PATH --configuration Release --output $ARTIFACTS_PATH --self-contained --runtime linux-x64
     - echo "✅ Build completed successfully"
   artifacts:                                      # Save published API
     paths:
@@ -128,7 +129,7 @@ deploy_staging:
     expire_in: 7 days
   environment:
     name: production
-    url: http://139.59.248.22:5000/swagger
+    url: http://$DEPLOY_SERVER:$DEPLOY_PORT/swagger
   dependencies:
     - build
     - test
