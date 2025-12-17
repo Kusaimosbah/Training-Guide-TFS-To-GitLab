@@ -21,9 +21,10 @@ variables:
   ARTIFACTS_PATH: "publish"                      # Output directory
   DEPLOY_SERVER: "139.59.248.22"                 # Ubuntu server IP (shared by all trainees)
   DEPLOY_PORT: "5000"                            # Port for this trainee (change per trainee: 5001, 5002, 5003...)
-  # DEPLOY_USER and DEPLOY_PASSWORD are set as Protected/Masked CI/CD Variables in GitLab UI
-  # DO NOT hardcode credentials in git - use GitLab CI/CD Variables instead!
+  DEPLOY_USER: "root"                            # Server username (can be overridden by CI/CD Variable)
   DEPLOY_PATH: "/opt/capstone-api"               # Deployment path on server
+  # DEPLOY_PASSWORD is REQUIRED as a Protected/Masked CI/CD Variable in GitLab UI
+  # DO NOT hardcode credentials in git - use GitLab CI/CD Variables instead!
 
 # ============================================
 # BUILD JOB - Compile and publish Web API
@@ -92,6 +93,17 @@ deploy_staging:
     - apk add --no-cache openssh-client sshpass
   script: |
     echo "🚀 Deploying to Ubuntu server: $DEPLOY_SERVER:$DEPLOY_PORT..."
+    # Validate required variables
+    if [ -z "$DEPLOY_PASSWORD" ]; then
+      echo "❌ ERROR: DEPLOY_PASSWORD CI/CD Variable not set in GitLab"
+      echo "Please set it in: Settings → CI/CD → Variables"
+      exit 1
+    fi
+    if [ -z "$DEPLOY_USER" ]; then
+      echo "❌ ERROR: DEPLOY_USER CI/CD Variable not set"
+      exit 1
+    fi
+    echo "✅ Credentials validated"
     # Create deployment directory on server if it doesn't exist
     sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "mkdir -p $DEPLOY_PATH"
     echo "✅ Deployment directory ready"
