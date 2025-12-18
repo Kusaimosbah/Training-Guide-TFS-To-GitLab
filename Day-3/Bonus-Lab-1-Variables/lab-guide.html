@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonus Lab 1 - GitLab CI/CD Variables</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        table th {
+            background-color: #fc6d26;
+            color: white;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Bonus Lab 1: GitLab CI/CD Variables - Global & Local</h1>
+        
+        <p><strong>Duration:</strong> 60 minutes | <strong>Difficulty:</strong> Intermediate</p>
+        
+        <div class="prerequisites">
+            <h3>📋 Prerequisites</h3>
+            <ul>
+                <li>Completed at least one CI/CD lab from Day 3</li>
+                <li>Understanding of basic .gitlab-ci.yml structure</li>
+                <li>GitLab project with CI/CD enabled</li>
+                <li>.NET 8 SDK installed</li>
+            </ul>
+        </div>
+
+        <div class="objectives">
+            <h3>🎯 Learning Objectives</h3>
+            <ol>
+                <li>Understand the 4 types of GitLab variables: Global, Job-level, Protected, and Masked</li>
+                <li>Define and use global variables in pipeline configuration</li>
+                <li>Override global variables with job-level variables</li>
+                <li>Use Protected variables for sensitive data (only on protected branches)</li>
+                <li>Use Masked variables to hide secrets in logs</li>
+                <li>Access variables in .NET application code</li>
+                <li>Leverage GitLab built-in variables ($CI_COMMIT_SHA, etc.)</li>
+                <li>Create a variable reference guide</li>
+            </ol>
+        </div>
+
+        <div class="overview">
+            <h3>📖 Overview</h3>
+            <p><strong>Scenario:</strong> Your pipeline needs configuration that changes per environment. Instead of hardcoding values, use variables! Learn to manage global configs, environment-specific overrides, and secrets securely.</p>
+            
+            <table>
+                <tr>
+                    <th>Variable Type</th>
+                    <th>Scope</th>
+                    <th>Use Case</th>
+                </tr>
+                <tr>
+                    <td><strong>Global Variables</strong></td>
+                    <td>All jobs in pipeline</td>
+                    <td>Configuration used everywhere (versions, timeouts)</td>
+                </tr>
+                <tr>
+                    <td><strong>Job-level Variables</strong></td>
+                    <td>Specific job only</td>
+                    <td>Job-specific configuration or overrides</td>
+                </tr>
+                <tr>
+                    <td><strong>Protected Variables</strong></td>
+                    <td>Protected branches/tags only</td>
+                    <td>Secrets (API keys, credentials) - not exposed on feature branches</td>
+                </tr>
+                <tr>
+                    <td><strong>Masked Variables</strong></td>
+                    <td>Hidden in job logs</td>
+                    <td>Sensitive data that shouldn't appear in console output</td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>🔧 Step-by-Step Guide</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>Create Global Variables in .gitlab-ci.yml</h3>
+            <p>Create a new pipeline with different variable scopes:</p>
+            <pre><code>stages:
+  - build
+  - test
+  - deploy
+
+# ============================================
+# GLOBAL VARIABLES - Available to ALL jobs
+# ============================================
+variables:
+  # Configuration
+  DOTNET_VERSION: "8.0"
+  BUILD_CONFIG: "Release"
+  PROJECT_NAME: "CalculatorApp"
+  
+  # Environment-specific
+  STAGING_URL: "http://localhost:5000"
+  PROD_URL: "https://api.production.com"
+  
+  # Timeouts
+  BUILD_TIMEOUT: "300"
+  TEST_TIMEOUT: "600"
+  
+  # Performance
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"</code></pre>
+            
+            <div class="success">
+                <strong>✅ All jobs can now use:</strong> $DOTNET_VERSION, $BUILD_CONFIG, etc.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Create Job-Level Variables (Overrides)</h3>
+            <p>Override global variables for specific jobs:</p>
+            <pre><code>build:production:
+  stage: build
+  variables:
+    # Override global BUILD_CONFIG just for this job
+    BUILD_CONFIG: "Debug"  # Different from global Release
+    CUSTOM_VAR: "production-only"
+  script:
+    - echo "Building with $BUILD_CONFIG (overridden)"
+    - echo "Project: $PROJECT_NAME (global)"
+    - echo "Custom: $CUSTOM_VAR (job-level)"
+
+build:staging:
+  stage: build
+  variables:
+    BUILD_CONFIG: "Release"
+    DEPLOY_ENV: "staging"
+  script:
+    - echo "Building with $BUILD_CONFIG for $DEPLOY_ENV"</code></pre>
+            
+            <div class="note">
+                <strong>📌 Important:</strong> Job-level variables override global ones!
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Use GitLab Built-in Variables</h3>
+            <p>GitLab provides automatic variables every pipeline run:</p>
+            <pre><code>display_vars:
+  stage: build
+  script:
+    - echo "Commit SHA: $CI_COMMIT_SHA"
+    - echo "Short SHA: $CI_COMMIT_SHORT_SHA"
+    - echo "Branch: $CI_COMMIT_REF_NAME"
+    - echo "Pipeline ID: $CI_PIPELINE_ID"
+    - echo "Job ID: $CI_JOB_ID"
+    - echo "Project ID: $CI_PROJECT_ID"
+    - echo "Project Name: $CI_PROJECT_NAME"
+    - echo "Triggered by: $GITLAB_USER_NAME"
+    - echo "User Email: $GITLAB_USER_EMAIL"</code></pre>
+
+            <div class="success">
+                <strong>✅ Use these for versioning, tracking, and automation!</strong>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>Set Protected Variables (Via GitLab UI)</h3>
+            <p>For sensitive data, use GitLab web interface:</p>
+            <ol>
+                <li>Go to your project → <strong>Settings → CI/CD → Variables</strong></li>
+                <li>Click <strong>Add Variable</strong></li>
+                <li>Fill in:
+                    <ul>
+                        <li><strong>Key:</strong> <code>DATABASE_PASSWORD</code></li>
+                        <li><strong>Value:</strong> <code>your-secret-password</code></li>
+                        <li><strong>Protected:</strong> ✅ (only on main/protected branches)</li>
+                        <li><strong>Masked:</strong> ✅ (hide in logs)</li>
+                    </ul>
+                </li>
+                <li>Click <strong>Add variable</strong></li>
+            </ol>
+            <pre><code>deploy:production:
+  stage: deploy
+  script:
+    - echo "Connecting to database..."
+    - # $DATABASE_PASSWORD is available but won't show in logs
+    - dotnet publish --configuration Release
+  only:
+    - main  # Only runs on main branch</code></pre>
+
+            <div class="warning">
+                <strong>⚠️ Protected variables do NOT appear on feature branches!</strong> This prevents accidental exposure.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>Access Variables in .NET Code</h3>
+            <p>Read environment variables in your C# application:</p>
+            <pre><code>// Program.cs
+var apiKey = Environment.GetEnvironmentVariable("API_KEY");
+var environment = Environment.GetEnvironmentVariable("DEPLOY_ENV") ?? "development";
+var version = Environment.GetEnvironmentVariable("CI_COMMIT_SHORT_SHA") ?? "local";
+
+Console.WriteLine($"Running in: {environment}");
+Console.WriteLine($"Version: {version}");
+Console.WriteLine($"API Key configured: {!string.IsNullOrEmpty(apiKey)}");</code></pre>
+
+            <p>In your .gitlab-ci.yml, pass variables as environment variables:</p>
+            <pre><code>test:
+  stage: test
+  variables:
+    DEPLOY_ENV: "testing"
+    API_KEY: "test-key-123"
+  script:
+    - dotnet test --configuration Release
+    # Your app can now read DEPLOY_ENV and API_KEY

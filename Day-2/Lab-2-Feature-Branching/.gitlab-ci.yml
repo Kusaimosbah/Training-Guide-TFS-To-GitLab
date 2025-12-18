@@ -29,6 +29,8 @@ variables:
 build:
   stage: build                                    # Runs in "build" stage
   image: mcr.microsoft.com/dotnet/sdk:8.0        # Docker container with .NET SDK
+  tags:
+    - kusai
   script:
     - echo "Starting build process..."
     - dotnet restore src/CalculatorApp/CalculatorApp.csproj    # Download dependencies
@@ -49,6 +51,8 @@ build:
 test:
   stage: test                                     # Runs in "test" stage (after build)
   image: mcr.microsoft.com/dotnet/sdk:8.0
+  tags:
+    - kusai
   script:
     - echo "Restoring test project dependencies..."
     - dotnet restore tests/CalculatorApp.Tests/CalculatorApp.Tests.csproj

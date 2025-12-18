@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonus Lab 3 - React Portfolio with Vite & GitLab Pages</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting, .outcomes {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .objectives h3, .prerequisites h3, .verification h3, .troubleshooting h3, .outcomes h3 {
+            margin-top: 0;
+            color: #6e49cb;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .info-box {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #fc6d26;
+        }
+        .info-box strong {
+            display: block;
+            color: #292961;
+            margin-bottom: 5px;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table th {
+            background-color: #292961;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            margin-right: 10px;
+            color: #fc6d26;
+            font-weight: bold;
+        }
+        .structure {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            white-space: pre;
+            font-size: 13px;
+        }
+        .phase {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .phase h3 {
+            margin-top: 0;
+            color: #1565c0;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .comparison-box {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #fc6d26;
+        }
+        .comparison-box h4 {
+            color: #292961;
+            margin-top: 0;
+        }
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Bonus Lab 3: React Portfolio with Vite & GitLab Pages</h1>
+
+        <div class="overview">
+            <h3>Lab Overview</h3>
+            <p>In this lab, you'll build a modern web application using <strong>React</strong> and <strong>Vite</strong>, then deploy it automatically to GitLab Pages using CI/CD pipelines. This demonstrates how GitLab Pages works with compiled/built applications, not just static HTML.</p>
+        </div>
+
+        <div class="info-section">
+            <div class="info-box">
+                <strong>Difficulty Level</strong>
+                Intermediate (Build Tooling)
+            </div>
+            <div class="info-box">
+                <strong>Estimated Duration</strong>
+                25-35 minutes
+            </div>
+            <div class="info-box">
+                <strong>Technologies</strong>
+                React 18, Vite, Node.js, npm, CI/CD
+            </div>
+        </div>
+
+        <h2>📋 Prerequisites</h2>
+        <div class="prerequisites">
+            <h3>Before Starting This Lab</h3>
+            <ul>
+                <li><strong>Node.js 18+</strong> installed (check with <code>node -v</code>)</li>
+                <li><strong>npm</strong> installed (comes with Node.js)</li>
+                <li>Completed Bonus Lab 2 (Tetris game) recommended for GitLab Pages familiarity</li>
+                <li>Basic React knowledge (JSX, components, hooks)</li>
+                <li>Understanding of build tools and package managers</li>
+                <li>Git and GitLab access</li>
+            </ul>
+        </div>
+
+        <h2>🎯 Learning Objectives</h2>
+        <ul>
+            <li>Understand modern frontend build tools (Vite)</li>
+            <li>Build React applications for production</li>
+            <li>Implement CI/CD for compiled applications</li>
+            <li>Deploy built artifacts to GitLab Pages</li>
+            <li>Use caching in CI/CD pipelines for performance</li>
+            <li>Compare static vs. compiled application deployment</li>
+        </ul>
+
+        <h2>📁 Project Structure</h2>
+        <div class="structure">
+developer-portfolio/
+├── src/
+│   ├── main.jsx       # React entry point
+│   ├── App.jsx        # Portfolio component (tabs, projects, skills)
+│   ├── index.css      # Global styles
+│   └── App.css        # Placeholder (styles in index.css)
+├── public/            # Static assets (empty for this project)
+├── index.html         # HTML template
+├── package.json       # Dependencies (React 18, Vite)
+├── vite.config.js     # Vite configuration (base path)
+├── .gitlab-ci.yml     # CI/CD pipeline (build + deploy)
+└── README.md          # Project documentation
+        </div>
+
+        <h2>🔄 Lab 2 vs Lab 3: Key Differences</h2>
+        <div class="comparison">
+            <div class="comparison-box">
+                <h4>Bonus Lab 2: Tetris Game</h4>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li><strong>Type:</strong> Static HTML/CSS/JS</li>
+                    <li><strong>Build Step:</strong> None ✗</li>
+                    <li><strong>Files:</strong> Directly to public/</li>
+                    <li><strong>Pipeline:</strong> Validate → Test → Deploy</li>
+                    <li><strong>Size:</strong> ~500 bytes</li>
+                </ul>
+            </div>
+            <div class="comparison-box">
+                <h4>Bonus Lab 3: React Portfolio</h4>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li><strong>Type:</strong> React application</li>
+                    <li><strong>Build Step:</strong> Vite compilation ✓</li>
+                    <li><strong>Files:</strong> dist/ → public/</li>
+                    <li><strong>Pipeline:</strong> Validate → Test → Build → Deploy</li>
+                    <li><strong>Size:</strong> ~50KB (minified/optimized)</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>🛠️ The Build Process</h2>
+        <pre><code>Source Code (src/)
+    ↓
+npm install (dependencies)
+    ↓
+npm run build (Vite compilation)
+    ↓
+dist/ folder (optimized bundle)
+    ↓
+cp dist/* → public/
+    ↓
+GitLab Pages deploys public/</code></pre>
+
+        <h2>⚙️ Pipeline Architecture</h2>
+        <p>The pipeline has <strong>4 stages</strong> with <strong>5 jobs</strong> total:</p>
+        <pre><code>VALIDATE → TEST → BUILD → DEPLOY</code></pre>
+
+        <h3>Stage Breakdown</h3>
+        <table>
+            <tr>
+                <th>Stage</th>
+                <th>Jobs</th>
+                <th>Purpose</th>
+            </tr>
+            <tr>
+                <td><strong>Validate</strong></td>
+                <td>validate:dependencies</td>
+                <td>Check package.json, src/, vite.config.js exist</td>
+            </tr>
+            <tr>
+                <td><strong>Test</strong></td>
+                <td>test:dependencies, test:syntax</td>
+                <td>Install npm packages, verify React components</td>
+            </tr>
+            <tr>
+                <td><strong>Build</strong></td>
+                <td>build:vite</td>
+                <td>Run <code>npm run build</code> to generate optimized dist/</td>
+            </tr>
+            <tr>
+                <td><strong>Deploy</strong></td>
+                <td>pages</td>
+                <td>Copy dist/ to public/, deploy to GitLab Pages</td>
+            </tr>
+        </table>
+
+        <h3>Key Pipeline Features</h3>
+        <ul>
+            <li><strong>npm caching:</strong> Speeds up builds by reusing node_modules</li>
+            <li><strong>Parallel testing:</strong> test:dependencies and test:syntax run simultaneously</li>
+            <li><strong>Artifact passing:</strong> dist/ from build:vite passed to pages job</li>
+            <li><strong>Main-only deployment:</strong> Only main branch deploys to Pages</li>
+        </ul>
+
+        <h2>🚀 Getting Started</h2>
+
+        <div class="phase">
+            <h3>Phase 1: Local Setup & Development</h3>
+
+            <div class="step">
+                <span class="step-number">1</span><strong>Navigate to lab directory</strong>
+                <pre><code>cd "Day-3/Bonus-Lab-3-React-Portfolio"</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span><strong>Verify Node.js is installed</strong>
+                <pre><code>node -v    # Should be v18.0.0 or higher
+npm -v     # Should be 9.0.0 or higher</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span><strong>Install dependencies</strong>
+                <pre><code>npm install</code></pre>
+                <p>This creates <code>node_modules/</code> folder with React, Vite, and other packages (~500MB).</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span><strong>Start development server</strong>
+                <pre><code>npm run dev</code></pre>
+                <p>Opens http://localhost:5173 with hot-reload enabled.</p>
+                <div class="success">
+                    <strong>Expected Result:</strong> Portfolio site with tabs (About, Projects, Skills), interactive navigation, responsive design.
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">5</span><strong>Test the application</strong>
+                <ul>
+                    <li>Click each tab (About, Projects, Skills)</li>
+                    <li>Verify smooth transitions and content changes</li>
+                    <li>Resize browser window to test responsiveness</li>
+                    <li>Check browser console (F12) for any errors</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">6</span><strong>Stop the dev server</strong>
+                <pre><code>Ctrl+C</code></pre>
+            </div>
+        </div>
+
+        <div class="phase">
+            <h3>Phase 2: Build for Production</h3>
+
+            <div class="step">
+                <span class="step-number">1</span><strong>Build the application</strong>
+                <pre><code>npm run build</code></pre>
+                <p>Vite compiles React code, optimizes assets, generates <code>dist/</code> folder.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span><strong>Examine build output</strong>
+                <pre><code>ls -lah dist/
+du -sh dist/    # Check total size</code></pre>
+                <p>Expected: Minified, optimized files (~50-100KB total).</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span><strong>Preview production build</strong>
+                <pre><code>npm run preview</code></pre>
+                <p>Opens http://localhost:4173 showing the production-optimized build.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span><strong>Verify production build works</strong>
+                <ul>
+                    <li>Test all tabs and interactions</li>
+                    <li>Verify no console errors</li>
+                    <li>Check that styling is applied correctly</li>
+                </ul>
+            </div>
+
+            <div class="success">
+                <strong>Key Insight:</strong> The dist/ folder is what gets deployed to GitLab Pages. It's small, optimized, and ready for production.
+            </div>
+        </div>
+
+        <div class="phase">
+            <h3>Phase 3: Examine the CI/CD Pipeline</h3>
+
+            <div class="step">
+                <span class="step-number">1</span><strong>Review the pipeline file</strong>
+                <pre><code>cat .gitlab-ci.yml</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span><strong>Understand the stages</strong>
+                <ul>
+                    <li><strong>Validate:</strong> Checks files exist (package.json, src/, vite.config.js)</li>
+                    <li><strong>Test:</strong> Runs <code>npm install</code> and validates React components</li>
+                    <li><strong>Build:</strong> Executes <code>npm run build</code> to generate dist/</li>
+                    <li><strong>Deploy:</strong> Copies dist/ to public/ for GitLab Pages</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span><strong>Identify caching strategy</strong>
+                <pre><code>grep -A 5 "cache:" .gitlab-ci.yml</code></pre>
+                <p>Answer: What is being cached and why? <strong>Answer:</strong> node_modules/ to avoid re-downloading on each build.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span><strong>Find the deploy job</strong>
+                <pre><code>grep -A 20 "^pages:" .gitlab-ci.yml</code></pre>
+                <p>Observe: It depends on build:vite and uses dist/ artifacts.</p>
+            </div>
+        </div>
+
+        <div class="phase">
+            <h3>Phase 4: Push and Deploy</h3>
+
+            <div class="step">
+                <span class="step-number">1</span><strong>Create feature branch</strong>
+                <pre><code>git checkout -b feature/react-portfolio</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span><strong>Commit the project</strong>
+                <pre><code>git add .
+git commit -m "Add React portfolio with Vite build pipeline
+
+- Modern React 18 portfolio app
+- Responsive design with tab navigation
+- Vite build optimization
+- CI/CD with npm caching
+- Automated deployment to GitLab Pages
+
+Build process: npm install → npm run build → dist/ → public/"</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span><strong>Push to GitLab</strong>
+                <pre><code>git push -u origin feature/react-portfolio</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span><strong>Create Merge Request</strong>
+                <ul>
+                    <li>Go to GitLab → Merge Requests</li>
+                    <li>Create MR from feature/react-portfolio → main</li>
+                    <li>Review pipeline execution (should show 5 jobs)</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">5</span><strong>Merge to main</strong>
+                <ul>
+                    <li>All jobs should ✅ pass</li>
+                    <li>Merge the MR to main</li>
+                    <li>Pipeline runs again on main</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">6</span><strong>Access deployed application</strong>
+                <ul>
+                    <li>Go to Project → Deployments</li>
+                    <li>Find Pages deployment</li>
+                    <li>Copy URL or construct: <code>https://your-username.gitlab.io/training-guide-tfs-to-gitlab/</code></li>
+                    <li>Open in browser - portfolio goes LIVE! 🎉</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>📊 Pipeline Execution Timeline</h2>
+        <table>
+            <tr>
+                <th>Job</th>
+                <th>Duration</th>
+                <th>Purpose</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td>validate:dependencies</td>
+                <td>~5-10s</td>
+                <td>Check files</td>
+                <td>✅ Fast</td>
+            </tr>
+            <tr>
+                <td>test:dependencies</td>
+                <td>~30-60s</td>
+                <td>npm install</td>
+                <td>⏱️ Slow (first time only)</td>
+            </tr>
+            <tr>
+                <td>test:syntax</td>
+                <td>~10-15s</td>
+                <td>Validate code</td>
+                <td>✅ Fast</td>
+            </tr>
+            <tr>
+                <td>build:vite</td>
+                <td>~20-40s</td>
+                <td>Build React app</td>
+                <td>⏱️ Medium</td>
+            </tr>
+            <tr>
+                <td>pages</td>
+                <td>~5-10s</td>
+                <td>Deploy to Pages</td>
+                <td>✅ Fast</td>
+            </tr>
+        </table>
+
+        <div class="note">
+            <strong>Total time: ~2-3 minutes (first run)</strong> | ~1-2 minutes (subsequent runs with cached node_modules)
+        </div>
+
+        <h2>🔍 Common Issues & Solutions</h2>
+        <table>
+            <tr>
+                <th>Issue</th>
+                <th>Cause</th>
+                <th>Solution</th>
+            </tr>
+            <tr>
+                <td>npm install fails locally</td>
+                <td>Node.js/npm version mismatch</td>
+                <td>Ensure Node 18+: <code>node -v</code></td>
+            </tr>
+            <tr>
+                <td>Vite build fails with "cannot find module"</td>
+                <td>Dependencies not installed</td>
+                <td>Run <code>npm install</code> before <code>npm run build</code></td>
+            </tr>
+            <tr>
+                <td>test:dependencies job timeout</td>
+                <td>npm install takes too long</td>
+                <td>Caching solves this on subsequent runs</td>
+            </tr>
+            <tr>
+                <td>Pages deployment fails</td>
+                <td>dist/ not in artifacts</td>
+                <td>Verify build:vite job completes successfully</td>
+            </tr>
+            <tr>
+                <td>Portfolio shows 404</td>
+                <td>Wrong URL or base path</td>
+                <td>Check vite.config.js <code>base</code> matches project slug</td>
+            </tr>
+            <tr>
+                <td>Styles not loading on deployed site</td>
+                <td>Base path mismatch</td>
+                <td>Update vite.config.js: <code>base: '/project-name/'</code></td>
+            </tr>
+        </table>
+
+        <h2>🎓 Learning Outcomes</h2>
+        <div class="outcomes">
+            <h3>After completing this lab, you will understand:</h3>
+            <ul>
+                <li>✅ Modern frontend build tools (Vite advantages over Webpack)</li>
+                <li>✅ npm package management and dependency resolution</li>
+                <li>✅ Build optimization: minification, tree-shaking, code splitting</li>
+                <li>✅ CI/CD for compiled applications (not just static files)</li>
+                <li>✅ Pipeline caching for performance improvements</li>
+                <li>✅ Artifact management across pipeline stages</li>
+                <li>✅ Deployment of production builds to GitLab Pages</li>
+                <li>✅ Difference between development and production environments</li>
+            </ul>
+        </div>
+
+        <h2>🎯 Lab Verification Checklist</h2>
+        <ul class="checklist">
+            <li>Node.js 18+ and npm verified</li>
+            <li>npm install completes successfully</li>
+            <li>Development server runs (npm run dev)</li>
+            <li>Portfolio renders with all tabs functional</li>
+            <li>Production build generates dist/ folder</li>
+            <li>Preview build works (npm run preview)</li>
+            <li>Review .gitlab-ci.yml pipeline structure</li>
+            <li>Create feature branch and commit project</li>
+            <li>Push to GitLab and create MR</li>
+            <li>All 5 pipeline jobs execute successfully</li>
+            <li>Merge to main branch</li>
+            <li>Portfolio deployed to GitLab Pages</li>
+            <li>Access live URL and verify functionality</li>
+            <li>Test responsive design on mobile view</li>
+            <li>Document deployment URL</li>
+        </ul>
+
+        <h2>🎓 Challenge Questions</h2>
+        <table>
+            <tr>
+                <th>Question</th>
+                <th>Answer</th>
+            </tr>
+            <tr>
+                <td><strong>Why use Vite instead of Webpack?</strong></td>
+                <td>Vite is faster: ES modules for dev, pre-bundled deps, faster HMR (Hot Module Reload).</td>
+            </tr>
+            <tr>
+                <td><strong>What's in node_modules and why cache it?</strong></td>
+                <td>Contains all npm packages (~500MB). Caching prevents re-downloading on each build, saving 30-60 seconds.</td>
+            </tr>
+            <tr>
+                <td><strong>Why separate test and build stages?</strong></td>
+                <td>Fail fast: if tests fail, don't waste time building. Cleaner separation of concerns.</td>
+            </tr>
+            <tr>
+                <td><strong>What happens if we deploy from src/ instead of dist/?</strong></td>
+                <td>Browser can't read JSX. React code must be compiled to JavaScript first.</td>
+            </tr>
+            <tr>
+                <td><strong>How would we add TypeScript?</strong></td>
+                <td>Vite supports it natively: rename files to .tsx, add tsconfig.json, install TypeScript package.</td>
+            </tr>
+            <tr>
+                <td><strong>Can we deploy to a CDN instead of Pages?</strong></td>
+                <td>Yes! Instead of copying to public/, you'd upload dist/ to AWS S3, Netlify, Vercel, etc.</td>
+            </tr>
+        </table>
+
+        <h2>🚀 Extensions & Enhancements</h2>
+        <ul>
+            <li><strong>Add TypeScript:</strong> Better type safety and developer experience</li>
+            <li><strong>Integrate API:</strong> Fetch data from backend for dynamic portfolio</li>
+            <li><strong>Add animations:</strong> Framer Motion or React Spring for smooth interactions</li>
+            <li><strong>Dark mode:</strong> Add theme switcher with localStorage persistence</li>
+            <li><strong>Performance monitoring:</strong> Add Lighthouse CI to pipeline</li>
+            <li><strong>Unit tests:</strong> Vitest (Vite-native testing framework)</li>
+            <li><strong>E2E tests:</strong> Cypress or Playwright for user flow testing</li>
+            <li><strong>SEO optimization:</strong> Add meta tags, structured data</li>
+        </ul>
+
+        <h2>📖 Additional Resources</h2>
+        <ul>
+            <li><strong>Vite Guide:</strong> <a href="https://vitejs.dev/" target="_blank">Official Vite Documentation</a></li>
+            <li><strong>React Docs:</strong> <a href="https://react.dev/" target="_blank">React 18 Documentation</a></li>
+            <li><strong>npm Best Practices:</strong> <a href="https://docs.npmjs.com/" target="_blank">npm Documentation</a></li>
+            <li><strong>GitLab CI Caching:</strong> <a href="https://docs.gitlab.com/ee/ci/caching/" target="_blank">Pipeline Caching Guide</a></li>
+        </ul>
+
+        <h2>🎉 Comparison: All Three Bonus Labs</h2>
+        <table>
+            <tr>
+                <th></th>
+                <th>Lab 2: Tetris</th>
+                <th>Lab 3: Portfolio</th>
+            </tr>
+            <tr>
+                <td><strong>Technology</strong></td>
+                <td>Vanilla JavaScript</td>
+                <td>React 18 + Vite</td>
+            </tr>
+            <tr>
+                <td><strong>Build Step</strong></td>
+                <td>❌ None</td>
+                <td>✅ npm run build</td>
+            </tr>
+            <tr>
+                <td><strong>Pipeline Stages</strong></td>
+                <td>3 (validate, test, deploy)</td>
+                <td>4 (validate, test, build, deploy)</td>
+            </tr>
+            <tr>
+                <td><strong>Caching</strong></td>
+                <td>N/A</td>
+                <td>✅ node_modules cached</td>
+            </tr>
+            <tr>
+                <td><strong>Learning Focus</strong></td>
+                <td>Static site deployment</td>
+                <td>Build tool optimization</td>
+            </tr>
+            <tr>
+                <td><strong>Duration</strong></td>
+                <td>30-45 min</td>
+                <td>25-35 min</td>
+            </tr>
+        </table>
+
+        <hr style="margin-top: 40px; border: none; border-top: 2px solid #fc6d26;">
+        <p style="text-align: center; color: #666; margin-top: 20px;">
+            <strong>Lab Version:</strong> 1.0 | 
+            <strong>Last Updated:</strong> December 2025 | 
+            <strong>Difficulty:</strong> Intermediate (Build Tooling)
+        </p>
+    </div>
+</body>
+</html>

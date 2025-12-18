@@ -244,130 +244,139 @@
         <div class="step">
             <h3><span class="step-number">4</span>Generate SonarCloud Token</h3>
             <ol>
-                <li>In SonarCloud project setup, you'll see instructions for GitLab CI</li>
-                <li>Click <strong>"Generate a token"</strong></li>
+                <li>In SonarCloud, click your profile icon (top right)</li>
+                <li>Select <strong>"My Account"</strong></li>
+                <li>Click <strong>"Security"</strong> tab</li>
+                <li>Under <strong>"Tokens"</strong>, click <strong>"Generate Tokens"</strong></li>
                 <li>Token name: <code>GitLab-CI-CapstoneApi</code></li>
+                <li>Type: <strong>"Global Analysis Token"</strong> (default)</li>
                 <li>Click <strong>"Generate"</strong></li>
-                <li><strong>COPY THE TOKEN</strong> (you won't see it again!)</li>
+                <li><strong>⚠️ IMMEDIATELY COPY THE TOKEN</strong> (you won't see it again!)</li>
             </ol>
             <div class="warning">
-                <strong>⚠️ IMPORTANT:</strong> Save this token securely! It looks like: <code>sqp_1234567890abcdef...</code>
+                <strong>⚠️ CRITICAL:</strong> Token format looks like: <code>sqp_1234567890abcdef...</code><br>
+                Save it somewhere safe - you cannot retrieve it later!
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">5</span>Add Token to GitLab CI/CD Variables</h3>
+            <h3><span class="step-number">5</span>Add SONAR_TOKEN to GitLab CI/CD Variables</h3>
             <ol>
-                <li>Go to your GitLab project (CapstoneApi or Lab-8 project)</li>
+                <li>Go to your GitLab Lab 11 project</li>
                 <li>Navigate to <strong>Settings</strong> → <strong>CI/CD</strong></li>
                 <li>Expand <strong>"Variables"</strong> section</li>
                 <li>Click <strong>"Add variable"</strong></li>
                 <li>Key: <code>SONAR_TOKEN</code></li>
-                <li>Value: <code>[paste your SonarCloud token]</code></li>
-                <li>Flags: ✅ Protect variable, ✅ Mask variable</li>
+                <li>Value: <code>[paste your SonarCloud token from step 4]</code></li>
+                <li>Flags: ✅ <strong>Protect variable</strong>, ✅ <strong>Mask variable</strong></li>
                 <li>Click <strong>"Add variable"</strong></li>
             </ol>
             <div class="success">
-                <strong>✅ Secure Storage:</strong> Masked variables are hidden in CI/CD logs, preventing token exposure.
+                <strong>✅ Secure Storage:</strong> Masked variables are hidden in CI/CD logs and pipeline outputs.
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">6</span>Add SonarCloud Host URL Variable</h3>
+            <h3><span class="step-number">6</span>Update Organization Key in .gitlab-ci.yml</h3>
             <ol>
-                <li>Still in GitLab <strong>Settings</strong> → <strong>CI/CD</strong> → <strong>Variables</strong></li>
-                <li>Click <strong>"Add variable"</strong></li>
-                <li>Key: <code>SONAR_HOST_URL</code></li>
-                <li>Value: <code>https://sonarcloud.io</code></li>
-                <li>No flags needed (this is not sensitive)</li>
-                <li>Click <strong>"Add variable"</strong></li>
+                <li>Open <code>.gitlab-ci.yml</code> in your Lab 11 project</li>
+                <li>Find line with: <code>/o:"your-organization-key"</code></li>
+                <li>Replace <code>your-organization-key</code> with your SonarCloud organization key (usually your GitHub username)</li>
+                <li>Example: <code>/o:"kusaimosbah"</code></li>
+                <li>Save the file</li>
             </ol>
+            <div class="note">
+                <strong>📌 Where to find your org key:</strong> SonarCloud dashboard → Organization Settings → Key
+            </div>
         </div>
 
-        <h2>🔧 Configure GitLab CI/CD Pipeline</h2>
+        <h2>🔧 Pipeline Overview</h2>
 
         <div class="step">
-            <h3><span class="step-number">7</span>Update .gitlab-ci.yml with SonarCloud Scan</h3>
-            <p>Open your <code>.gitlab-ci.yml</code> file and replace the simulated <code>quality_gate</code> job with real SonarCloud scanning:</p>
+            <h3><span class="step-number">7</span>Lab 11 .gitlab-ci.yml Structure</h3>
+            <p>Lab 11 includes a complete CI/CD pipeline that:</p>
+            <ol>
+                <li><strong>BUILD</strong> - Compiles CapstoneApi</li>
+                <li><strong>TEST</strong> - Runs all unit and integration tests</li>
+                <li><strong>SONARCLOUD</strong> - Performs code quality & security scanning</li>
+                <li><strong>DEPLOY</strong> - Archives build artifacts (only after quality gate passes)</li>
+            </ol>
             <pre><code>stages:
-  - build
-  - test
-  - sonarcloud      # NEW: Add SonarCloud stage
-  - deploy_staging
-  - rollback
+  - build              # First: Compile and publish
+  - test              # Second: Run all tests
+  - sonarcloud        # Third: Code quality & security scan
+  - deploy_staging    # Fourth: Archive artifacts
 
-# ... existing build and test jobs ...
-
-# ============================================
-# SONARCLOUD JOB - Code Quality & Security Scan
-# ============================================
+# SonarCloud scan with automatic analysis
 sonarcloud-scan:
   stage: sonarcloud
   image: mcr.microsoft.com/dotnet/sdk:8.0
-  variables:
-    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Cache location
-    GIT_DEPTH: "0"  # Shallow clones disable SCM blame, needed for SonarCloud
-  cache:
-    key: "${CI_JOB_NAME}"
-    paths:
-      - .sonar/cache
   script:
     - echo "🔍 Installing SonarScanner for .NET..."
     - dotnet tool install --global dotnet-sonarscanner
     - export PATH="$PATH:$HOME/.dotnet/tools"
     
     - echo "📊 Starting SonarCloud analysis..."
-    - dotnet sonarscanner begin 
-        /k:"capstone-api" 
-        /o:"your-organization-key" 
-        /d:sonar.host.url="${SONAR_HOST_URL}" 
-        /d:sonar.login="${SONAR_TOKEN}" 
-        /d:sonar.cs.opencover.reportsPaths="tests/**/coverage.opencover.xml"
-        /d:sonar.coverage.exclusions="**Tests.cs"
+    - dotnet sonarscanner begin \
+        /k:"capstone-api" \
+        /o:"your-organization-key" \
+        /d:sonar.host.url="https://sonarcloud.io" \
+        /d:sonar.login="${SONAR_TOKEN}"
     
     - echo "🔨 Building project for analysis..."
-    - dotnet build src/CapstoneApi/CapstoneApi.csproj --configuration Release
+    - dotnet build src/CapstoneApi/CapstoneApi.csproj --configuration Release --no-restore
     
-    - echo "🧪 Running tests with coverage..."
-    - dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj 
-        --configuration Release 
-        --no-build 
-        /p:CollectCoverage=true 
-        /p:CoverletOutputFormat=opencover 
-        /p:CoverletOutput=./coverage.opencover.xml
+    - echo "🧪 Running tests..."
+    - dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj --configuration Release --no-build
     
     - echo "📤 Uploading results to SonarCloud..."
     - dotnet sonarscanner end /d:sonar.login="${SONAR_TOKEN}"
     
-    - echo "✅ SonarCloud analysis complete!"
-  allow_failure: false  # BLOCK merge if quality gate fails
-  dependencies:
+    - echo "SonarCloud analysis complete!"
+  allow_failure: false  # BLOCK pipeline if quality gate fails
+  needs:
     - build
+    - test
   only:
     - main
-    - merge_requests
 </code></pre>
-            <div class="warning">
-                <strong>⚠️ Replace:</strong> <code>/o:"your-organization-key"</code> with your actual SonarCloud organization key!
+            <div class="success">
+                <strong>✅ Key Features:</strong> Quality gate enforcement, automatic test execution, simplified configuration
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">8</span>Install Code Coverage Package</h3>
-            <p>Add Coverlet for code coverage collection:</p>
-            <pre><code>cd tests/CapstoneApi.Tests
-dotnet add package coverlet.collector
-dotnet add package coverlet.msbuild</code></pre>
+            <h3><span class="step-number">8</span>Lab 11 File Structure</h3>
+            <p>Lab 11 includes its own copy of the CapstoneApi project:</p>
+            <pre><code>Lab-11-SonarCloud-Code-Quality/
+├── .gitlab-ci.yml              # Complete CI/CD pipeline
+├── lab-guide.html              # This guide
+├── src/
+│   └── CapstoneApi/            # Copied from Lab 10
+│       ├── Program.cs
+│       ├── Controllers/
+│       ├── Services/
+│       └── CapstoneApi.csproj
+└── tests/
+    └── CapstoneApi.Tests/      # Copied from Lab 10
+        ├── Unit/
+        ├── Integration/
+        └── CapstoneApi.Tests.csproj
+</code></pre>
             <div class="note">
-                <strong>📌 Coverlet:</strong> Open-source code coverage library for .NET that generates coverage reports in multiple formats.
+                <strong>📌 Self-Contained:</strong> Lab 11 works independently and can be pushed to GitLab as its own project
             </div>
         </div>
 
         <div class="step">
             <h3><span class="step-number">9</span>Commit and Push Changes</h3>
-            <pre><code>git add .gitlab-ci.yml tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj
-git commit -m "feat: Add SonarCloud code quality scanning"
+            <p>Push Lab 11 to GitLab with all source files:</p>
+            <pre><code>git add .
+git commit -m "feat: Lab 11 - Add SonarCloud code quality scanning"
 git push origin main</code></pre>
+            <div class="note">
+                <strong>📌 First Run:</strong> Takes 3-5 minutes as SonarScanner needs to install and analyze the codebase
+            </div>
         </div>
 
         <div class="step">
@@ -375,17 +384,22 @@ git push origin main</code></pre>
             <ol>
                 <li>Go to GitLab → <strong>CI/CD</strong> → <strong>Pipelines</strong></li>
                 <li>Click on the latest pipeline</li>
-                <li>Watch the <code>sonarcloud-scan</code> job execute</li>
-                <li>This will take 3-5 minutes (first run downloads scanner)</li>
+                <li>Watch each job execute in order:
+                    <ul>
+                        <li>✅ <strong>build</strong> - Compiles the API</li>
+                        <li>✅ <strong>test</strong> - Runs all tests</li>
+                        <li>✅ <strong>sonarcloud-scan</strong> - Performs code analysis</li>
+                        <li>✅ <strong>deploy:staging</strong> - Archives artifacts (only if quality gate passes)</li>
+                    </ul>
+                </li>
             </ol>
             <div class="success">
-                <strong>✅ Expected Output:</strong>
+                <strong>✅ Expected Pipeline Results:</strong>
                 <ul>
-                    <li>SonarScanner installed successfully</li>
-                    <li>Project analyzed (files scanned, lines of code counted)</li>
-                    <li>Tests executed with coverage data collected</li>
-                    <li>Results uploaded to SonarCloud</li>
-                    <li>Analysis ID displayed</li>
+                    <li>All 4 stages complete successfully</li>
+                    <li>SonarCloud analysis completes</li>
+                    <li>Quality gate passes or fails based on issues found</li>
+                    <li>Artifacts archived in staging/</li>
                 </ul>
             </div>
         </div>

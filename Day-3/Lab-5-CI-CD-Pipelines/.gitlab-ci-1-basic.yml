@@ -1,0 +1,44 @@
+# ============================================
+# Lab 5 - STEP 1: Basic Pipeline (Build + Test)
+# ============================================
+# This is the starting point showing the simplest pipeline
+# with just build and test stages.
+
+stages:
+  - build
+  - test
+
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+  DOTNET_NOLOGO: "true"
+
+# ============================================
+# BUILD JOB
+# ============================================
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Building application..."
+    - dotnet restore src/WebApi/WebApi.csproj
+    - dotnet build src/WebApi/WebApi.csproj --configuration Release --no-restore
+    - echo "Build completed successfully!"
+  artifacts:
+    paths:
+      - src/WebApi/bin/Release/
+    expire_in: 1 hour
+
+# ============================================
+# TEST JOB
+# ============================================
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Running tests..."
+    - dotnet restore tests/StatusApi.Tests/StatusApi.Tests.csproj
+    - dotnet test tests/StatusApi.Tests/StatusApi.Tests.csproj --configuration Release --no-restore
+    - echo "Tests passed!"
+  dependencies:
+    - build

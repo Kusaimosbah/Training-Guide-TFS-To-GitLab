@@ -3,7 +3,8 @@
 # ============================================
 # Complete enterprise SDLC pipeline demonstrating production-ready practices
 # Pipeline stages: BUILD → UNIT-TEST → INTEGRATION-TEST → DEPLOY-STAGING → DEPLOY-PRODUCTION → ROLLBACK
-# Features: Automated testing, staging gate, manual production approval, emergency rollback
+# Features: Self-contained build, SSH deployment, staging gate, manual production approval
+# Deploys to Ubuntu server: 139.59.248.22 (Staging: 8000, Production: 8001)
 # ============================================
 
 # Define pipeline stages
@@ -21,7 +22,17 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "true"           # Disable telemetry
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"     # Skip welcome
   DOTNET_NOLOGO: "true"                         # Hide logo
+  PROJECT_PATH: "src/CapstoneApi/CapstoneApi.csproj"  # API project path
+  TEST_PATH: "tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj"  # Test project path
+  ARTIFACTS_PATH: "publish"                      # Output directory
+  DEPLOY_SERVER: "139.59.248.22"                 # Ubuntu server IP (shared by all trainees)
+  DEPLOY_PORT_STAGING: "8000"                    # Staging port (automatic deployment)
+  DEPLOY_PORT_PRODUCTION: "8001"                 # Production port (manual approval)
+  DEPLOY_USER: "root"                            # Server username
+  DEPLOY_PATH: "/opt/capstone-api"               # Base deployment path on server
   APP_VERSION: "2.0.0"                          # Application version
+  RUNNER_TAG: "kusai"                            # GitLab runner tag
+  # DEPLOY_PASSWORD is REQUIRED as a Protected/Masked CI/CD Variable in GitLab UI
 
 # ============================================
 # BUILD JOB - Compile and publish Order API
@@ -29,18 +40,19 @@ variables:
 build:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:8.0        # .NET 8 SDK
+  tags:
+    - $RUNNER_TAG
   script:
-    - echo "Building Order API version $APP_VERSION..."
-    - dotnet restore src/CapstoneApi/CapstoneApi.csproj    # Restore packages
-    - dotnet build src/CapstoneApi/CapstoneApi.csproj --configuration Release --no-restore
-    - echo "Publishing application..."
-    - dotnet publish src/CapstoneApi/CapstoneApi.csproj -c Release -o ./publish --no-restore
-    - echo "Build completed successfully!"
+    - echo "🔨 Building Capstone API version $APP_VERSION..."
+    - dotnet restore $PROJECT_PATH -r linux-x64  # Restore with linux-x64 runtime
+    - dotnet build $PROJECT_PATH --configuration Release --no-restore -r linux-x64
+    - echo "📦 Publishing as self-contained binary (Linux x64)..."
+    - dotnet publish $PROJECT_PATH --configuration Release --output $ARTIFACTS_PATH --self-contained --runtime linux-x64
+    - echo "✅ Build completed successfully"
   artifacts:                                      # Save build outputs
     paths:
-      - publish/                                 # Published application
-      - src/CapstoneApi/bin/Release/            # Build binaries
-    expire_in: 1 week
+      - $ARTIFACTS_PATH/                         # Published application
+    expire_in: 1 hour                            # Short retention for staging
   only:
     - main
     - merge_requests
@@ -55,6 +67,8 @@ build:
 unit-test:
   stage: unit-test
   image: mcr.microsoft.com/dotnet/sdk:8.0
+  tags:
+    - $RUNNER_TAG
   script:
     - echo "Running unit tests..."
     - dotnet restore tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj
@@ -85,6 +99,8 @@ unit-test:
 integration-test:
   stage: integration-test
   image: mcr.microsoft.com/dotnet/sdk:8.0
+  tags:
+    - $RUNNER_TAG
   script:
     - echo "Running integration tests (full API)..."
     - dotnet restore tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj
@@ -109,96 +125,166 @@ integration-test:
 # ============================================
 # DEPLOY:STAGING JOB - Automated staging deployment
 # ============================================
-# Deploys automatically to staging after all tests pass
+# Deploys automatically to staging (port 8000) after all tests pass
+# Uses SSH to Ubuntu server for real deployment
 # Creates backup for potential rollback
-# Tracks version for audit trail
 # ============================================
 deploy:staging:
   stage: deploy-staging
-  image: mcr.microsoft.com/powershell:latest     # PowerShell container
-  script:
-    - echo "Deploying version $APP_VERSION to STAGING..."
-    # Deploy script creates backup automatically
-    - pwsh deploy.ps1 -Version $APP_VERSION -SourcePath "./publish" -StagingPath "./deployments/staging"
-    - echo "✅ Deployment to STAGING completed!"
-    - echo "Version deployed:"
-    # Display deployed version
-    - cat deployments/staging/staging-version.txt
-  artifacts:                                      # Save deployment artifacts
+  image: alpine:latest
+  tags:
+    - $RUNNER_TAG
+  before_script:
+    - apk add --no-cache openssh-client sshpass
+  script: |
+    echo "🚀 Deploying version $APP_VERSION to STAGING (port $DEPLOY_PORT_STAGING)..."
+    # Validate required variables
+    if [ -z "$DEPLOY_PASSWORD" ]; then
+      echo "❌ ERROR: DEPLOY_PASSWORD CI/CD Variable not set in GitLab"
+      exit 1
+    fi
+    echo "✅ Credentials validated"
+    # Stop previous staging instance
+    echo "🛑 Stopping previous staging instance on port $DEPLOY_PORT_STAGING..."
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "lsof -i :$DEPLOY_PORT_STAGING | grep -v COMMAND | awk '{print \$2}' | xargs -r kill -9 2>/dev/null || true"
+    sleep 2
+    # Create staging directory
+    DEPLOY_DIR_STAGING="$DEPLOY_PATH/${DEPLOY_PORT_STAGING}"
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "rm -rf $DEPLOY_DIR_STAGING 2>/dev/null || true && mkdir -p $DEPLOY_DIR_STAGING"
+    echo "✅ Staging directory ready"
+    # Upload artifacts
+    echo "📦 Uploading artifacts to staging..."
+    sshpass -p "$DEPLOY_PASSWORD" scp -o StrictHostKeyChecking=no -r $ARTIFACTS_PATH/* $DEPLOY_USER@$DEPLOY_SERVER:$DEPLOY_DIR_STAGING/
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "chmod +x $DEPLOY_DIR_STAGING/CapstoneApi"
+    echo "✅ Artifacts uploaded"
+    # Start staging API
+    echo "🚀 Starting Capstone API on port $DEPLOY_PORT_STAGING..."
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "nohup $DEPLOY_DIR_STAGING/CapstoneApi --urls=http://0.0.0.0:$DEPLOY_PORT_STAGING > $DEPLOY_DIR_STAGING/api.log 2>&1 &"
+    sleep 3
+    echo "✅ Deployment to STAGING completed!"
+    echo "📌 Staging API: http://$DEPLOY_SERVER:$DEPLOY_PORT_STAGING/swagger"
+    echo "📌 Version: $APP_VERSION"
+  artifacts:
     paths:
-      - deployments/staging/                     # Current staging deployment
-      - deployments/staging-backup/              # Backup for rollback
-    expire_in: 1 month
-  environment:                                   # Environment tracking
+      - $ARTIFACTS_PATH/
+    expire_in: 7 days
+  environment:
     name: staging
-    url: https://staging-order-api.example.com
+    url: http://139.59.248.22:8000/swagger
   dependencies:
     - build
+    - unit-test
+    - integration-test
   only:
     - main
 
 # ============================================
 # DEPLOY:PRODUCTION JOB - Manual production deployment
 # ============================================
-# Requires MANUAL approval before deploying to production
+# Requires MANUAL approval before deploying to production (port 8001)
 # Only runs after successful staging deployment
-# Creates production backup for emergency rollback
+# Uses SSH to Ubuntu server for real production deployment
 # ============================================
 deploy:production:
   stage: deploy-production
-  image: mcr.microsoft.com/powershell:latest
-  script:
-    - echo "🚀 Deploying version $APP_VERSION to PRODUCTION..."
-    # Deploy to production directory
-    - pwsh deploy.ps1 -Version $APP_VERSION -SourcePath "./publish" -StagingPath "./deployments/production"
-    - echo "✅ Deployment to PRODUCTION completed!"
-    - echo "Production version:"
-    # Display production version
-    - cat deployments/production/staging-version.txt
-  artifacts:                                      # Save production artifacts
+  image: alpine:latest
+  tags:
+    - $RUNNER_TAG
+  before_script:
+    - apk add --no-cache openssh-client sshpass
+  script: |
+    echo "🚀 Deploying version $APP_VERSION to PRODUCTION (port $DEPLOY_PORT_PRODUCTION)..."
+    # Validate required variables
+    if [ -z "$DEPLOY_PASSWORD" ]; then
+      echo "❌ ERROR: DEPLOY_PASSWORD CI/CD Variable not set in GitLab"
+      exit 1
+    fi
+    echo "✅ Credentials validated"
+    # Stop previous production instance
+    echo "🛑 Stopping previous production instance on port $DEPLOY_PORT_PRODUCTION..."
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "lsof -i :$DEPLOY_PORT_PRODUCTION | grep -v COMMAND | awk '{print \$2}' | xargs -r kill -9 2>/dev/null || true"
+    sleep 2
+    # Create production directory
+    DEPLOY_DIR_PRODUCTION="$DEPLOY_PATH/${DEPLOY_PORT_PRODUCTION}"
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "rm -rf $DEPLOY_DIR_PRODUCTION 2>/dev/null || true && mkdir -p $DEPLOY_DIR_PRODUCTION"
+    echo "✅ Production directory ready"
+    # Upload artifacts
+    echo "📦 Uploading artifacts to production..."
+    sshpass -p "$DEPLOY_PASSWORD" scp -o StrictHostKeyChecking=no -r $ARTIFACTS_PATH/* $DEPLOY_USER@$DEPLOY_SERVER:$DEPLOY_DIR_PRODUCTION/
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "chmod +x $DEPLOY_DIR_PRODUCTION/CapstoneApi"
+    echo "✅ Artifacts uploaded"
+    # Start production API
+    echo "🚀 Starting Capstone API on port $DEPLOY_PORT_PRODUCTION..."
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "nohup $DEPLOY_DIR_PRODUCTION/CapstoneApi --urls=http://0.0.0.0:$DEPLOY_PORT_PRODUCTION > $DEPLOY_DIR_PRODUCTION/api.log 2>&1 &"
+    sleep 3
+    echo "✅ Deployment to PRODUCTION completed!"
+    echo "📌 Production API: http://$DEPLOY_SERVER:$DEPLOY_PORT_PRODUCTION/swagger"
+    echo "📌 Version: $APP_VERSION"
+  artifacts:
     paths:
-      - deployments/production/                  # Current production
-      - deployments/production-backup/           # Backup for emergency rollback
-    expire_in: 3 months                         # Longer retention for production
-  environment:                                   # Production environment
+      - $ARTIFACTS_PATH/
+    expire_in: 30 days
+  environment:
     name: production
-    url: https://order-api.example.com
-  dependencies:
-    - build
+    url: http://139.59.248.22:8001/swagger
   when: manual                                   # REQUIRES MANUAL APPROVAL
   only:
     - main
-  needs:                                         # Must wait for staging
+  needs:
+    - build
+    - unit-test
+    - integration-test
     - deploy:staging
 
 # ============================================
-# ROLLBACK:PRODUCTION JOB - Emergency rollback (MANUAL)
+# ROLLBACK:PRODUCTION JOB - Emergency rollback only
 # ============================================
-# EMERGENCY use only - restores previous production version
-# Triggered manually when critical issues are detected
-# Restores backup created during last deployment
+# Manually triggered emergency recovery for production
+# Restores previous working version from production backup
+# Used only when production deployment fails or causes issues
 # ============================================
 rollback:production:
   stage: rollback
-  image: mcr.microsoft.com/powershell:latest
-  script:
-    - echo "⚠️⚠️⚠️ EMERGENCY ROLLBACK INITIATED ⚠️⚠️⚠️"
-    - echo "Rolling back production to previous version..."
-    # Restore production backup
-    - pwsh rollback.ps1 -StagingPath "./deployments/production" -BackupPath "./deployments/production-backup"
-    - echo "✅ Rollback completed!"
-    - echo "Current production version after rollback:"
-    # Display restored version
-    - cat deployments/production/staging-version.txt
-  artifacts:                                      # Save rollback state
-    paths:
-      - deployments/production/
-    expire_in: 3 months
+  image: alpine:latest
+  tags:
+    - $RUNNER_TAG
+  before_script:
+    - apk add --no-cache openssh-client sshpass
+  script: |
+    echo "⚠️ EMERGENCY: Rolling back PRODUCTION to previous version..."
+    # Validate credentials
+    if [ -z "$DEPLOY_PASSWORD" ]; then
+      echo "❌ ERROR: DEPLOY_PASSWORD CI/CD Variable not set"
+      exit 1
+    fi
+    # Get backup path
+    DEPLOY_DIR_PRODUCTION="$DEPLOY_PATH/${DEPLOY_PORT_PRODUCTION}"
+    BACKUP_DIR_PRODUCTION="$DEPLOY_PATH/${DEPLOY_PORT_PRODUCTION}-backup"
+    # Check if backup exists
+    echo "🔍 Checking for production backup..."
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "ls -la $BACKUP_DIR_PRODUCTION 2>/dev/null" || {
+      echo "❌ ERROR: No backup found at $BACKUP_DIR_PRODUCTION"
+      exit 1
+    }
+    # Stop current production instance
+    echo "🛑 Stopping current production instance on port $DEPLOY_PORT_PRODUCTION..."
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "lsof -i :$DEPLOY_PORT_PRODUCTION | grep -v COMMAND | awk '{print \$2}' | xargs -r kill -9 2>/dev/null || true"
+    sleep 2
+    # Restore from backup
+    echo "📦 Restoring previous production version from backup..."
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "rm -rf $DEPLOY_DIR_PRODUCTION && cp -r $BACKUP_DIR_PRODUCTION $DEPLOY_DIR_PRODUCTION"
+    echo "✅ Backup restored"
+    # Restart API with restored version
+    echo "🚀 Restarting API with previous version on port $DEPLOY_PORT_PRODUCTION..."
+    sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER "chmod +x $DEPLOY_DIR_PRODUCTION/CapstoneApi && nohup $DEPLOY_DIR_PRODUCTION/CapstoneApi --urls=http://0.0.0.0:$DEPLOY_PORT_PRODUCTION > $DEPLOY_DIR_PRODUCTION/api.log 2>&1 &"
+    sleep 3
+    echo "⚠️ ROLLBACK COMPLETED!"
+    echo "📌 Production restored to previous version"
+    echo "📌 API: http://$DEPLOY_SERVER:$DEPLOY_PORT_PRODUCTION/swagger"
   environment:
     name: production
-    url: https://order-api.example.com
-  when: manual                                   # MANUAL trigger only
+    url: http://139.59.248.22:8001/swagger
+    action: stop
+  when: manual                                   # ONLY manual rollback, no auto
   only:
     - main
-  needs:                                         # Can only rollback after deployment
-    - deploy:production

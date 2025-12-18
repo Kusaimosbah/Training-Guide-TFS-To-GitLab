@@ -1,0 +1,34 @@
+.row {
+    overflow: hidden;
+    
+}
+.cell {
+    float: left;
+    width: 30px;
+    height: 30px;
+    background: #ddd;
+}
+.row .border {
+    background: #333;
+}
+.block-T {
+    background: #EDA107;
+}
+.block-L {
+    background: #E9724C;
+}
+.block-L2 {
+    background: #345830;
+}
+.block-I {
+    background: #C5283D;
+}
+.block-Z {
+    background: #481D24;
+}
+.block-Z2 {
+    background: #3E2F5B;
+}
+.block-O {
+    background: #255F85;
+}

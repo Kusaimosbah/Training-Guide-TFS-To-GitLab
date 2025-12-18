@@ -245,7 +245,34 @@
         <h2>🚀 Step-by-Step Guide</h2>
 
         <div class="step">
-            <h3><span class="step-number">1</span>Navigate to Lab Folder</h3>
+            <h3><span class="step-number">1</span>Initialize Git Repository and Push to GitLab</h3>
+            <p>First, initialize the lab as a Git repository and push it to GitLab:</p>
+            <pre><code># Navigate to lab folder
+cd "Day-4/Lab-8-API-Development"
+
+# Initialize Git repository
+git init
+git add .
+git commit -m "Initial commit: Capstone API with CI/CD pipeline"
+
+# Add GitLab remote (replace with your GitLab URL and project name)
+git remote add origin https://gitlab.allen-ly.online/git-workshop-2025/capstone-api-{your-username}.git
+
+# Push to GitLab
+git branch -M main
+git push -u origin main</code></pre>
+            
+            <div class="success">
+                <strong>✅ After push:</strong> Go to https://gitlab.allen-ly.online/git-workshop-2025/capstone-api-{your-username} and verify the code is there
+            </div>
+            
+            <div class="note">
+                <strong>📌 Note:</strong> The CI/CD pipeline will automatically trigger after the first push. You can watch it in <strong>CI/CD</strong> → <strong>Pipelines</strong>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Navigate to Lab Folder</h3>
             <pre><code>cd "Day-4/Lab-8-API-Development"
 ls src/CapstoneApi/</code></pre>
             
@@ -255,7 +282,7 @@ ls src/CapstoneApi/</code></pre>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">2</span>Explore Program.cs - API Startup Configuration</h3>
+            <h3><span class="step-number">3</span>Explore Program.cs - API Startup Configuration</h3>
             <pre><code>cat src/CapstoneApi/Program.cs</code></pre>
             
             <p>Key sections to understand:</p>
@@ -279,7 +306,7 @@ app.MapControllers();    // Route mapping</code></pre>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">3</span>Explore Services - Business Logic Layer</h3>
+            <h3><span class="step-number">4</span>Explore Services - Business Logic Layer</h3>
             <pre><code>cat src/CapstoneApi/Services/ICalculatorService.cs
 cat src/CapstoneApi/Services/CalculatorService.cs</code></pre>
             
@@ -325,7 +352,7 @@ cat src/CapstoneApi/Services/CalculatorService.cs</code></pre>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">4</span>Explore Controllers - Presentation Layer</h3>
+            <h3><span class="step-number">5</span>Explore Controllers - Presentation Layer</h3>
             <pre><code>cat src/CapstoneApi/Controllers/CalcController.cs
 cat src/CapstoneApi/Controllers/InfoController.cs
 cat src/CapstoneApi/Controllers/StatusController.cs</code></pre>
@@ -383,7 +410,7 @@ public class CalcController : ControllerBase
         </div>
 
         <div class="step">
-            <h3><span class="step-number">5</span>Run the API Locally</h3>
+            <h3><span class="step-number">6</span>Run API Locally</h3>
             <pre><code>cd src/CapstoneApi
 dotnet restore
 dotnet build
@@ -510,7 +537,7 @@ dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj --filter "FullyQual
         </div>
 
         <div class="step">
-            <h3><span class="step-number">12</span>Understand Data Flow</h3>
+            <h3><span class="step-number">13</span>Understand Data Flow</h3>
             <div class="note">
                 <strong>📊 Request Flow for Calculator API:</strong>
                 <ol>
@@ -526,7 +553,7 @@ dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj --filter "FullyQual
         </div>
 
         <div class="step">
-            <h3><span class="step-number">13</span>Understand Dependency Injection Benefits</h3>
+            <h3><span class="step-number">14</span>Understand Dependency Injection Benefits</h3>
             <div class="success">
                 <strong>✅ Why DI is Powerful in CapstoneApi:</strong>
                 <ul>
@@ -540,7 +567,7 @@ dotnet test tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj --filter "FullyQual
         </div>
 
         <div class="step">
-            <h3><span class="step-number">14</span>Explore Test Architecture</h3>
+            <h3><span class="step-number">15</span>Explore Test Architecture</h3>
             <p>Examine the test structure:</p>
             <pre><code>cat tests/CapstoneApi.Tests/Unit/CalculatorServiceTests.cs
 cat tests/CapstoneApi.Tests/Integration/CalcControllerTests.cs</code></pre>
@@ -571,8 +598,8 @@ cat tests/CapstoneApi.Tests/Integration/CalcControllerTests.cs</code></pre>
         </div>
                 </tr>
                 <tr>
-                    <td><strong>quality_gate</strong></td>
-                    <td>Code quality checks (simulated)</td>
+                    <td><strong>pages</strong></td>
+                    <td>Publish Swagger API docs to GitLab Pages</td>
                     <td>~1 min</td>
                 </tr>
                 <tr>
@@ -587,13 +614,49 @@ cat tests/CapstoneApi.Tests/Integration/CalcControllerTests.cs</code></pre>
                 <li>✅ <strong>Artifact Management:</strong> Build artifacts stored for 1 hour</li>
                 <li>✅ <strong>Automated Testing:</strong> Tests run on every commit</li>
                 <li>✅ <strong>Staging Deployment:</strong> Automatic deployment to staging</li>
+                <li>✅ <strong>GitLab Pages:</strong> API documentation published automatically</li>
                 <li>✅ <strong>Manual Gates:</strong> Rollback requires manual trigger</li>
             </ul>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">8</span>Trigger Pipeline</h3>
-            <p>Make a small change and push to trigger the pipeline:</p>
+            <h3><span class="step-number">10</span>Trigger Pipeline</h3>
+            <p>Before pushing, set up deployment credentials in GitLab CI/CD Variables:</p>
+            
+            <h4>⚙️ Configure GitLab CI/CD Variables (Required for Deployment)</h4>
+            <ol>
+                <li>Go to: <code>https://gitlab.allen-ly.online/git-workshop-2025/api-k</code></li>
+                <li>Click <strong>Settings</strong> (left sidebar) → <strong>CI/CD</strong></li>
+                <li>Expand <strong>Variables</strong> section</li>
+                <li>Click <strong>Add variable</strong> and create:
+                    <table>
+                        <tr>
+                            <th>Key</th>
+                            <th>Value</th>
+                            <th>Protect</th>
+                            <th>Mask</th>
+                        </tr>
+                        <tr>
+                            <td><code>DEPLOY_USER</code></td>
+                            <td><code>root</code></td>
+                            <td>✅</td>
+                            <td>❌</td>
+                        </tr>
+                        <tr>
+                            <td><code>DEPLOY_PASSWORD</code></td>
+                            <td><code>GitLab2025Lab</code></td>
+                            <td>✅</td>
+                            <td>✅</td>
+                        </tr>
+                    </table>
+                </li>
+            </ol>
+            
+            <div class="warning">
+                <strong>⚠️ Security Note:</strong> Never hardcode credentials in git. GitLab CI/CD Variables are encrypted and secure.
+            </div>
+            
+            <p>Now make a change and push to trigger the pipeline:</p>
             <pre><code># Make a small change
 echo "# Capstone API Project" >> README.md
 git add README.md
@@ -606,15 +669,26 @@ git push origin main</code></pre>
                 <strong>✅ Pipeline Success Indicators:</strong>
                 <ul>
                     <li>✅ Build stage completes with artifacts</li>
-                    <li>✅ Test stage passes all 15 tests</li>
-                    <li>✅ Deploy stage shows staging URL</li>
-                    <li>✅ Quality gate passes checks</li>
+                    <li>✅ Test stage passes all 18 tests</li>
+                    <li>✅ Deploy stage uploads to Ubuntu server and starts API</li>
+                    <li>✅ API accessible at: <code>http://139.59.248.22:5000/swagger</code></li>
                 </ul>
+            </div>
+            
+            <div class="note">
+                <strong>📌 After Pipeline Completes:</strong> Your live Capstone API will be running at:<br>
+                <code>http://139.59.248.22:5000/swagger</code><br>
+                <strong>Health Check:</strong> <code>http://139.59.248.22:5000/api/status/health</code>
+            </div>
+            
+            <div class="note">
+                <strong>📌 After Pipeline Completes:</strong> Your Swagger API documentation will be available at:<br>
+                <code>https://{username}-capstone-api.pages.allen-ly.online/</code>
             </div>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">9</span>Local Deployment Test</h3>
+            <h3><span class="step-number">11</span>Local Deployment Test</h3>
             <p>Test the deployment script locally:</p>
             <pre><code># Build and publish
 dotnet publish src/CapstoneApi/CapstoneApi.csproj -c Release -o publish
@@ -634,7 +708,7 @@ pwsh deploy.ps1</code></pre>
         </div>
 
         <div class="step">
-            <h3><span class="step-number">10</span>Test Rollback Capability</h3>
+            <h3><span class="step-number">12</span>Test Rollback Capability</h3>
             <p>Practice rolling back to a previous version:</p>
             <pre><code># Trigger rollback
 pwsh rollback.ps1</code></pre>
@@ -679,10 +753,13 @@ pwsh rollback.ps1</code></pre>
 
         <h3>DevOps Practices (Already Configured)</h3>
         <ul>
-            <li>✅ <strong>.gitlab-ci.yml:</strong> Multi-stage CI/CD pipeline (build, unit-test, integration-test, deploy)</li>
-            <li>✅ <strong>Deployment Scripts:</strong> deploy.ps1/.sh and rollback.ps1/.sh</li>
-            <li>✅ <strong>Cross-Platform:</strong> PowerShell (Windows) and Bash (Linux) scripts</li>
+            <li>✅ <strong>.gitlab-ci.yml:</strong> Multi-stage CI/CD pipeline (build, test, deploy)</li>
+            <li>✅ <strong>SSH Deployment:</strong> Automated deployment to Ubuntu server via sshpass</li>
+            <li>✅ <strong>CI/CD Variables:</strong> Secure credential management (DEPLOY_USER, DEPLOY_PASSWORD)</li>
+            <li>✅ <strong>Protected Variables:</strong> Credentials only available on main branch</li>
+            <li>✅ <strong>Masked Variables:</strong> Passwords hidden in pipeline logs</li>
             <li>✅ <strong>Test Reporting:</strong> JunitXml.TestLogger configured for GitLab</li>
+            <li>✅ <strong>Zero-Downtime Deployment:</strong> Stop old API, start new API on same port</li>
         </ul>
 
         <h2>🎓 Lab 8 Checklist</h2>
@@ -739,6 +816,21 @@ dotnet test --verbosity normal</code></pre>
                 <li>Ensure Program.cs has <code>public partial class Program { }</code> at the end</li>
                 <li>This is required for WebApplicationFactory to access Program class</li>
                 <li>Already fixed in starter code!</li>
+            </ul>
+            
+            <h4>Pipeline Job Failed</h4>
+            <ul>
+                <li>Click on the failed job in GitLab CI/CD to view full logs</li>
+                <li>Check build/test logs for specific error messages</li>
+                <li>Ensure all code changes are committed before pushing</li>
+            </ul>
+            
+            <h4>Can't Access Deployed API</h4>
+            <ul>
+                <li>Verify CI/CD variables are set: <code>DEPLOY_USER</code> and <code>DEPLOY_PASSWORD</code></li>
+                <li>Check deploy stage logs for SSH errors</li>
+                <li>Verify Ubuntu server is running: ping 139.59.248.22</li>
+                <li>See DEPLOYMENT-SETUP.md for complete deployment troubleshooting</li>
             </ul>
         </div>
 

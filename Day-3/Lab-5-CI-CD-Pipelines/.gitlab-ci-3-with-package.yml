@@ -1,0 +1,84 @@
+# ============================================
+# Lab 5 - STEP 3: Add Package Stage
+# ============================================
+# Adds deployment package creation
+# Creates a published/packaged version for deployment
+
+stages:
+  - build
+  - test
+  - package
+
+variables:
+  DOTNET_VERSION: "8.0"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+  DOTNET_NOLOGO: "true"
+  NUGET_PACKAGES: ".nuget"
+
+cache:
+  paths:
+    - .nuget/
+
+# ============================================
+# BUILD JOB
+# ============================================
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+  tags:
+    - kusai
+  script:
+    - echo "Building application..."
+    - dotnet restore src/WebApi/WebApi.csproj --packages $NUGET_PACKAGES
+    - dotnet build src/WebApi/WebApi.csproj --configuration Release --no-restore
+    - echo "Build completed successfully!"
+  artifacts:
+    paths:
+      - src/WebApi/bin/Release/
+    expire_in: 1 hour
+
+# ============================================
+# TEST JOB
+# ============================================
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+  tags:
+    - kusai
+  script:
+    - echo "Running tests..."
+    - dotnet restore tests/StatusApi.Tests/StatusApi.Tests.csproj --packages $NUGET_PACKAGES
+    - dotnet test tests/StatusApi.Tests/StatusApi.Tests.csproj --configuration Release --no-restore
+    - echo "Tests passed!"
+  dependencies:
+    - build
+
+# ============================================
+# PACKAGE JOB - NEW STAGE
+# ============================================
+# Creates deployment package only on main branch
+package:
+  stage: package
+  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+  tags:
+    - kusai
+  script:
+    - echo "Creating deployment package..."
+    - dotnet restore src/WebApi/WebApi.csproj --packages $NUGET_PACKAGES
+    - dotnet publish src/WebApi/WebApi.csproj --configuration Release --output ./publish --no-restore
+    - |
+      echo "Version: $(date +%Y-%m-%d_%H:%M:%S)" > ./publish/version.txt
+      echo "Commit: $CI_COMMIT_SHORT_SHA" >> ./publish/version.txt
+      echo "Branch: $CI_COMMIT_REF_NAME" >> ./publish/version.txt
+    - cat ./publish/version.txt
+    - echo "Package created successfully!"
+  artifacts:
+    name: "webapi-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - publish/
+    expire_in: 1 week
+  dependencies:
+    - build
+  only:
+    - main

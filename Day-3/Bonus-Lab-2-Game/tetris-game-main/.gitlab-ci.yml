@@ -1,0 +1,119 @@
+# ============================================
+# Bonus Lab 2 - Web-Based Tetris Game CI/CD Pipeline
+# ============================================
+# Deploys game to GitLab Pages for live playability
+
+stages:
+  - validate
+  - test
+  - deploy
+
+variables:
+  ARTIFACT_RETENTION: "7 days"
+
+# ============================================
+# VALIDATE STAGE - Verify file structure
+# ============================================
+validate:files:
+  stage: validate
+  image: alpine:latest
+  tags:
+    - kusai
+  script:
+    - echo "🔍 Validating project files..."
+    - test -f index.html && echo "✅ index.html found" || (echo "❌ index.html missing" && exit 1)
+    - test -f game.js && echo "✅ game.js found" || (echo "❌ game.js missing" && exit 1)
+    - test -f style.css && echo "✅ style.css found" || (echo "❌ style.css missing" && exit 1)
+    - echo "✅ All core files present"
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# TEST STAGE - Check HTML/CSS/JS integrity
+# ============================================
+test:html:
+  stage: test
+  image: alpine:latest
+  tags:
+    - kusai
+  script:
+    - echo "🧪 Testing HTML structure..."
+    - grep -q "<!DOCTYPE html>" index.html && echo "✅ Valid HTML5 doctype" || echo "⚠️ Missing doctype"
+    - grep -q "<title>Tetris Game</title>" index.html && echo "✅ Title present" || echo "⚠️ Missing title"
+    - grep -q 'id="game"' index.html && echo "✅ Game container found" || (echo "❌ Game container missing" && exit 1)
+    - echo "✅ HTML validation passed"
+  only:
+    - main
+    - merge_requests
+    - branches
+
+test:javascript:
+  stage: test
+  image: node:18-alpine
+  tags:
+    - kusai
+  script:
+    - echo "🧪 Testing JavaScript syntax..."
+    - node -c game.js && echo "✅ JavaScript syntax valid" || (echo "❌ JavaScript syntax error" && exit 1)
+    - grep -q "class Block" game.js && echo "✅ Block class found" || echo "⚠️ Block class missing"
+    - grep -q "class TetrisGame" game.js && echo "✅ TetrisGame class found" || echo "⚠️ TetrisGame class missing"
+    - echo "✅ JavaScript validation passed"
+  only:
+    - main
+    - merge_requests
+    - branches
+
+test:css:
+  stage: test
+  image: alpine:latest
+  tags:
+    - kusai
+  script:
+    - echo "🧪 Testing CSS styling..."
+    - grep -q ".cell" style.css && echo "✅ Cell styling found" || echo "⚠️ Cell styling missing"
+    - grep -q ".block-T" style.css && echo "✅ Block styles found" || echo "⚠️ Block styles missing"
+    - test $(grep -c "background:" style.css) -ge 7 && echo "✅ All piece colors defined" || echo "⚠️ Missing color definitions"
+    - echo "✅ CSS validation passed"
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# DEPLOY STAGE - Deploy to GitLab Pages
+# ============================================
+pages:
+  stage: deploy
+  image: alpine:latest
+  tags:
+    - kusai
+  script: |
+    echo "🚀 Deploying to GitLab Pages..."
+    mkdir -p public
+    cp index.html public/
+    cp game.js public/
+    cp style.css public/
+    echo "📝 Creating deployment info..."
+    echo "Game deployed: $(date)" > public/DEPLOYED.txt
+    echo "Commit: $CI_COMMIT_SHA" >> public/DEPLOYED.txt
+    echo "Branch: $CI_COMMIT_REF_NAME" >> public/DEPLOYED.txt
+    echo "✅ Deployment complete!"
+    ls -la public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+
+# ============================================
+# NOTES
+# ============================================
+# GitLab Pages Configuration:
+# - Game is deployed to: public/ directory
+# - Automatically hosted at: https://{user}.gitlab.io/{project}/
+# - Accessible after pipeline success on main branch
+# - No manual deployment needed
+# - Live game playable in browser
+# ============================================

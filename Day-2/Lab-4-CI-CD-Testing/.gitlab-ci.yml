@@ -40,6 +40,8 @@ variables:
 build:
   stage: build                                    # Run in the "build" stage
   image: mcr.microsoft.com/dotnet/sdk:8.0        # Docker image with .NET 8 SDK
+  tags:
+    - kusai
   script:
     - echo "Starting build process..."
     # Step 1: Restore NuGet packages (dependencies)
@@ -67,6 +69,8 @@ build:
 test:
   stage: test                                     # Run in the "test" stage (after build)
   image: mcr.microsoft.com/dotnet/sdk:8.0        # Docker image with .NET 8 SDK
+  tags:
+    - kusai
   script:
     - echo "Restoring test project dependencies..."
     # Step 1: Restore test project NuGet packages
@@ -104,6 +108,8 @@ test:
 coverage:
   stage: coverage                                 # Run in the "coverage" stage (after test)
   image: mcr.microsoft.com/dotnet/sdk:8.0        # Docker image with .NET 8 SDK
+  tags:
+    - kusai
   script:
     - echo "Installing coverage tools..."
     # Step 1: Add Coverlet package for coverage collection

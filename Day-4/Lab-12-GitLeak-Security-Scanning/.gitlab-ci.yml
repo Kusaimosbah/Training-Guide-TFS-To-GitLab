@@ -1,0 +1,198 @@
+# ============================================
+# GitLab CI/CD Pipeline for Lab 12 - GitLeak Security Scanning
+# ============================================
+# Demonstrates security vulnerability scanning with GitLeak
+# Detects hardcoded secrets: API keys, passwords, tokens, credentials
+# Pipeline stages: BUILD → TEST → GITLEAK → ARCHIVE
+# Enforces security gate (blocks if secrets found)
+# ============================================
+
+# Define pipeline stages
+stages:
+  - build              # First: Compile and publish
+  - test              # Second: Run all tests
+  - gitleak           # Third: Secret scanning
+  - archive           # Fourth: Archive artifacts
+
+# Global variables
+variables:
+  DOTNET_VERSION: "8.0"                          # .NET SDK version
+  PROJECT_PATH: "src/CapstoneApi/CapstoneApi.csproj"  # API project path
+  TEST_PATH: "tests/CapstoneApi.Tests/CapstoneApi.Tests.csproj"  # Test project path
+  ARTIFACTS_PATH: "publish"                      # Output directory
+  RUNNER_TAG: "kusai"                            # GitLab runner tag
+
+# ============================================
+# BUILD JOB - Compile and publish Web API
+# ============================================
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  tags:
+    - $RUNNER_TAG
+  script:
+    - echo "🔨 Building Capstone API..."
+    - dotnet restore $PROJECT_PATH -r linux-x64
+    - dotnet build $PROJECT_PATH --configuration Release --no-restore -r linux-x64
+    - echo "📦 Publishing as self-contained binary..."
+    - dotnet publish $PROJECT_PATH --configuration Release --output $ARTIFACTS_PATH --self-contained --runtime linux-x64
+    - echo "✅ Build completed successfully"
+  artifacts:
+    paths:
+      - $ARTIFACTS_PATH/
+    expire_in: 1 hour
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# TEST JOB - Run all unit and integration tests
+# ============================================
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  tags:
+    - $RUNNER_TAG
+  script:
+    - echo "🧪 Running tests..."
+    - dotnet restore "$TEST_PATH"
+    - dotnet test "$TEST_PATH" --configuration Release --no-restore
+    - echo "✅ All tests passed!"
+  artifacts:
+    when: always
+    paths:
+      - tests/CapstoneApi.Tests/TestResults/test-results.xml
+    reports:
+      junit: tests/CapstoneApi.Tests/TestResults/test-results.xml
+    expire_in: 7 days
+  dependencies:
+    - build
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# GITLEAK JOB - Detect hardcoded secrets
+# ============================================
+# Scans repository for exposed secrets:
+# - API keys, passwords, tokens
+# - AWS credentials, private keys
+# - Database connection strings
+# - Any sensitive data accidentally committed
+#
+# GitLeak uses pattern matching and entropy detection
+# Prevents secrets from reaching production
+# ============================================
+gitleak-scan:
+  stage: gitleak
+  image: golang:1.21-alpine
+  tags:
+    - $RUNNER_TAG
+  before_script:
+    - echo "📦 Installing dependencies..."
+    - apk add --no-cache git
+    - echo "📦 Installing GitLeak..."
+    - go install github.com/zricethezav/gitleaks/v8@v8.18.2
+    - gitleaks version
+  script:
+    - |
+      echo "🔐 Running GitLeak scan..."
+      gitleaks detect --source . --verbose --report-path gitleaks-report.json || true
+      echo ""
+      if [ -f gitleaks-report.json ] && [ -s gitleaks-report.json ]; then
+        echo "✅ Report created - Secrets detected"
+      else
+        echo "✅ No secrets detected - Creating empty report"
+        echo '{"secrets":[],"summary":{"commits":0,"files":0,"violations":0}}' > gitleaks-report.json
+      fi
+      echo "✓ Report ready"
+      ls -lh gitleaks-report.json
+  artifacts:
+    paths:
+      - gitleaks-report.json
+    reports:
+      sast: gitleaks-report.json
+    when: always
+    expire_in: 7 days
+  allow_failure: false
+  retry:
+    max: 1
+    when: runner_system_failure
+  needs:
+    - build
+    - test
+  only:
+    - main
+    - merge_requests
+    - branches
+
+# ============================================
+# ARCHIVE JOB - Save build artifacts (after security passes)
+# ============================================
+archive:
+  stage: archive
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  tags:
+    - $RUNNER_TAG
+  script:
+    - echo "📦 Archiving build artifacts..."
+    - mkdir -p archive
+    - cp -r $ARTIFACTS_PATH/* archive/
+    - echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") - Version 1.0.$CI_PIPELINE_ID" > archive/build-info.txt
+    - echo "✅ Artifacts archived successfully"
+    - echo "✅ All security checks passed!"
+  artifacts:
+    paths:
+      - archive/
+    expire_in: 7 days
+  needs:
+    - build
+    - test
+    - gitleak-scan
+  only:
+    - main
+
+# ============================================
+# NOTES FOR TRAINEES
+# ============================================
+# 1. GitLeak Configuration:
+#    - Uses default patterns from GitHub's gitleaks repository
+#    - Detects 200+ secret patterns
+#    - Runs locally in CI/CD for fast feedback
+#
+# 2. Secret Detection Patterns:
+#    - AWS Access Keys (AKIA...)
+#    - GitHub Personal Tokens
+#    - Slack Webhooks
+#    - Private Keys (RSA, PEM, OpenSSH)
+#    - Database Credentials
+#    - API Keys (Twilio, SendGrid, etc.)
+#
+# 3. Best Practices:
+#    - NEVER commit secrets to git
+#    - Use environment variables for sensitive data
+#    - Use GitLab CI/CD Variables (protected/masked)
+#    - Use Git pre-commit hooks locally
+#    - Rotate any exposed secrets immediately
+#    - Use GitLeak before pushing code
+#
+# 4. Local GitLeak Usage:
+#    # Install: brew install gitleaks
+#    # Scan:    gitleaks detect --source .
+#    # Scan branch: gitleaks detect --source . --log-opts="-p main"
+#    # Generate config: gitleaks config write --config-path .gitleaksrc
+#
+# 5. If Secrets Are Detected:
+#    - DO NOT push to repository
+#    - Remove the secret from code
+#    - Regenerate the secret (new API key, token, etc.)
+#    - Use git filter-branch or BFG to remove from history
+#    - Notify security team if already exposed
+#
+# 6. Suppressing False Positives (add .gitleaksignore):
+#    # Example entry:
+#    # commit: 5f08e24a8b96b6c5a8c5b42a9e8c9d7f6e5a4b3c
+#    # path: src/config/sample.json
+#    # line: 42

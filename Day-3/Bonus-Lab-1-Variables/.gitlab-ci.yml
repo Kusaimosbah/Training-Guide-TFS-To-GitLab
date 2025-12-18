@@ -1,0 +1,167 @@
+stages:
+  - display
+  - build
+  - test
+  - deploy
+
+# ============================================
+# GLOBAL VARIABLES - Available to ALL jobs
+# ============================================
+variables:
+  # Configuration
+  DOTNET_VERSION: "8.0"
+  BUILD_CONFIG: "Release"
+  PROJECT_NAME: "CalculatorApp"
+  
+  # Environment-specific
+  STAGING_URL: "http://localhost:5000"
+  PROD_URL: "https://api.production.com"
+  
+  # Timeouts
+  BUILD_TIMEOUT: "300"
+  TEST_TIMEOUT: "600"
+  
+  # Performance
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+  DOTNET_NOLOGO: "true"
+
+# ============================================
+# JOB 1: Display All Variables
+# ============================================
+# Shows how to access and display variables
+display_variables:
+  stage: display
+  tags:
+    - kusai
+  script: |
+    echo "========================================="
+    echo "GLOBAL VARIABLES"
+    echo "========================================="
+    echo "Project: $PROJECT_NAME"
+    echo ".NET Version: $DOTNET_VERSION"
+    echo "Build Config: $BUILD_CONFIG"
+    echo "Staging URL: $STAGING_URL"
+    echo "Production URL: $PROD_URL"
+    echo ""
+    echo "========================================="
+    echo "GITLAB BUILT-IN VARIABLES"
+    echo "========================================="
+    echo "Commit SHA: $CI_COMMIT_SHA"
+    echo "Short SHA: $CI_COMMIT_SHORT_SHA"
+    echo "Branch: $CI_COMMIT_REF_NAME"
+    echo "Pipeline ID: $CI_PIPELINE_ID"
+    echo "Job ID: $CI_JOB_ID"
+    echo "Project Name: $CI_PROJECT_NAME"
+    echo "Triggered by: $GITLAB_USER_NAME"
+    echo "========================================="
+
+# ============================================
+# JOB 2: Global Variable Usage
+# ============================================
+build_standard:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+  tags:
+    - kusai
+  script: |
+    echo "Building $PROJECT_NAME with .NET $DOTNET_VERSION"
+    echo "Configuration: $BUILD_CONFIG"
+    echo "Using global variables for consistency"
+
+# ============================================
+# JOB 3: Override Global Variables at Job Level
+# ============================================
+build_debug:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+  tags:
+    - kusai
+  variables:
+    BUILD_CONFIG: "Debug"
+    JOB_SPECIFIC_VAR: "debug-mode"
+  script: |
+    echo "Building with OVERRIDDEN config: $BUILD_CONFIG"
+    echo "Global project name still available: $PROJECT_NAME"
+    echo "Job-level variable: $JOB_SPECIFIC_VAR"
+
+# ============================================
+# JOB 4: Environment-Specific Configuration
+# ============================================
+deploy_staging:
+  stage: deploy
+  tags:
+    - kusai
+  variables:
+    DEPLOY_ENV: "staging"
+    DATABASE_HOST: "staging-db.local"
+    DEPLOY_TIMEOUT: "120"
+  script: |
+    echo "Deploying to $DEPLOY_ENV environment"
+    echo "Database: $DATABASE_HOST"
+    echo "URL: $STAGING_URL"
+    echo "Timeout: $DEPLOY_TIMEOUT seconds"
+
+deploy_production:
+  stage: deploy
+  tags:
+    - kusai
+  variables:
+    DEPLOY_ENV: "production"
+    DATABASE_HOST: "prod-db.local"
+    DEPLOY_TIMEOUT: "300"
+  script: |
+    echo "Deploying to $DEPLOY_ENV environment"
+    echo "Database: $DATABASE_HOST"
+    echo "URL: $PROD_URL"
+    echo "Timeout: $DEPLOY_TIMEOUT seconds"
+    echo "Connecting with database password (masked in logs)..."
+    echo "Password available: $DATABASE_PASSWORD"
+  only:
+    - main
+
+# ============================================
+# TEST JOB: Using Multiple Variable Types
+# ============================================
+test_all:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+  tags:
+    - kusai
+  variables:
+    TEST_ENVIRONMENT: "testing"
+    TEST_TIMEOUT: "900"
+  script: |
+    echo "Running tests in $TEST_ENVIRONMENT"
+    echo "Project: $PROJECT_NAME (global)"
+    echo "Build Config: $BUILD_CONFIG (global)"
+    echo "Test Timeout: $TEST_TIMEOUT (job-level override)"
+    echo "Pipeline ID: $CI_PIPELINE_ID (GitLab built-in)"
+    echo "Commit: $CI_COMMIT_SHORT_SHA (GitLab built-in)"
+
+# ============================================
+# VERIFICATION JOB: Demonstrate Protected & Masked Variables
+# ============================================
+verify_protected_variables:
+  stage: test
+  tags:
+    - kusai
+  script: |
+    echo "========================================="
+    echo "PROTECTED & MASKED VARIABLES DEMO"
+    echo "========================================="
+    echo "This job only runs on main branch (protected)"
+    echo ""
+    echo "Database Password Status:"
+    echo "Password provided: $DATABASE_PASSWORD"
+    echo ""
+    echo "Notice: In the logs above, DATABASE_PASSWORD is MASKED (hidden as ****)"
+    echo "This confirms the variable is:"
+    echo "1. Protected - Only available on main branch"
+    echo "2. Masked - Hidden in job logs for security"
+    echo ""
+    echo "Connection string example (for reference):"
+    echo "Server=prod-db.local;Password=\$DATABASE_PASSWORD;UserId=admin"
+    echo "========================================="
+  only:
+    - main

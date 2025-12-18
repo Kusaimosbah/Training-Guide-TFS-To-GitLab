@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 12 - GitLeak Security Scanning</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        main {
+            padding: 40px;
+        }
+        section {
+            margin-bottom: 40px;
+        }
+        h2 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        h3 {
+            color: #764ba2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        .goal-box {
+            background: #f0f4ff;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .success-box {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .step {
+            background: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #764ba2;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #667eea;
+            color: white;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        .secret-pattern {
+            background: #fff5f5;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #dc3545;
+        }
+        .pipeline-diagram {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .stage {
+            background: #667eea;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            margin: 10px;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+        .stage.success { background: #28a745; }
+        .stage.security { background: #dc3545; }
+        footer {
+            background: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #ddd;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Lab 12 - GitLeak Security Scanning</h1>
+            <p>Detect Hardcoded Secrets and Prevent Security Breaches</p>
+        </header>
+
+        <main>
+            <!-- Overview Section -->
+            <section>
+                <h2>📚 Lab Overview</h2>
+                <div class="goal-box">
+                    <h3>Learning Goals</h3>
+                    <ul>
+                        <li>Understand security vulnerabilities in code (hardcoded secrets)</li>
+                        <li>Use GitLeak to detect exposed credentials before they reach production</li>
+                        <li>Integrate secret scanning into GitLab CI/CD pipeline</li>
+                        <li>Follow security best practices for credential management</li>
+                        <li>Learn how to prevent common security breaches</li>
+                    </ul>
+                </div>
+
+                <h3>What is GitLeak?</h3>
+                <p>GitLeak is an open-source tool that scans repositories for secrets accidentally committed to version control. It detects:</p>
+                <ul>
+                    <li>API Keys (AWS, Azure, GitHub, Google, etc.)</li>
+                    <li>Database passwords and connection strings</li>
+                    <li>Private encryption keys (RSA, PEM, OpenSSH)</li>
+                    <li>Bearer tokens and JWT secrets</li>
+                    <li>OAuth tokens and refresh tokens</li>
+                    <li>Slack/Discord webhooks</li>
+                    <li>Hardcoded credentials in configuration files</li>
+                </ul>
+
+                <h3>Why This Matters</h3>
+                <p><strong>Real-world impact:</strong> Exposed credentials can lead to:</p>
+                <ul>
+                    <li>💰 Unauthorized cloud infrastructure usage (AWS/Azure bill fraud)</li>
+                    <li>🔓 Database breaches and data theft</li>
+                    <li>🎯 Compromised applications and services</li>
+                    <li>📉 Reputation damage and loss of customer trust</li>
+                    <li>⚖️ Legal/compliance violations (GDPR, HIPAA, etc.)</li>
+                </ul>
+            </section>
+
+            <!-- Pipeline Diagram -->
+            <section>
+                <h2>🔄 Pipeline Architecture</h2>
+                <p>Lab 12 implements a 4-stage security-focused pipeline:</p>
+                <div class="pipeline-diagram">
+                    <div class="stage">BUILD<br>Compile</div>
+                    <div class="stage">TEST<br>Verify</div>
+                    <div class="stage security">GITLEAK<br>Scan Secrets</div>
+                    <div class="stage success">ARCHIVE<br>Store</div>
+                </div>
+                <p><strong>Key difference from Lab 11:</strong> GitLeak focuses on <em>security secrets</em> while SonarCloud focuses on <em>code quality</em>. Both are essential for production-ready code.</p>
+            </section>
+
+            <!-- Setup Instructions -->
+            <section>
+                <h2>⚙️ Setup Instructions</h2>
+
+                <div class="step">
+                    <h3>Step 1: Clone Lab 12</h3>
+                    <pre><code>cd Labs/Day-4
+git clone https://gitlab.allen-ly.online/[YOUR-GROUP]/Training-Guide-TFS-To-GitLab.git
+cd Training-Guide-TFS-To-GitLab/Labs/Day-4/Lab-12-GitLeak-Security-Scanning</code></pre>
+                </div>
+
+                <div class="step">
+                    <h3>Step 2: Review Directory Structure</h3>
+                    <pre><code>Lab-12-GitLeak-Security-Scanning/
+├── .gitlab-ci.yml          # Pipeline configuration
+├── lab-guide.html          # This guide
+├── src/
+│   └── CapstoneApi/        # Application code
+├── tests/
+│   └── CapstoneApi.Tests/  # Test suite</code></pre>
+                </div>
+
+                <div class="step">
+                    <h3>Step 3: Push to GitLab</h3>
+                    <p>The pipeline will automatically trigger on push:</p>
+                    <pre><code>git add .
+git commit -m "Lab-12: Add GitLeak security scanning"
+git push origin main</code></pre>
+                </div>
+
+                <div class="step">
+                    <h3>Step 4: Monitor Pipeline</h3>
+                    <p>Go to your GitLab project and watch the pipeline stages:</p>
+                    <ul>
+                        <li><strong>BUILD:</strong> Compiles the code</li>
+                        <li><strong>TEST:</strong> Runs all unit/integration tests</li>
+                        <li><strong>GITLEAK:</strong> Scans for hardcoded secrets</li>
+                        <li><strong>ARCHIVE:</strong> Archives build artifacts if all checks pass</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Secret Detection -->
+            <section>
+                <h2>🔍 What GitLeak Detects</h2>
+
+                <h3>Common Secret Patterns</h3>
+                <table>
+                    <tr>
+                        <th>Secret Type</th>
+                        <th>Example Pattern</th>
+                        <th>Risk Level</th>
+                    </tr>
+                    <tr>
+                        <td>AWS Access Key</td>
+                        <td><code>AKIA1234567890ABCDEF</code></td>
+                        <td>🔴 Critical</td>
+                    </tr>
+                    <tr>
+                        <td>GitHub Token</td>
+                        <td><code>ghp_1234567890abcdefghijklmnopqrstuvwxyz</code></td>
+                        <td>🔴 Critical</td>
+                    </tr>
+                    <tr>
+                        <td>Database Password</td>
+                        <td><code>password: "MySecretPwd123!"</code></td>
+                        <td>🔴 Critical</td>
+                    </tr>
+                    <tr>
+                        <td>Private Key</td>
+                        <td><code>-----BEGIN RSA PRIVATE KEY-----</code></td>
+                        <td>🔴 Critical</td>
+                    </tr>
+                    <tr>
+                        <td>JWT Secret</td>
+                        <td><code>secret: "my-super-secret-key"</code></td>
+                        <td>🟠 High</td>
+                    </tr>
+                    <tr>
+                        <td>API Key</td>
+                        <td><code>api_key: "sk_test_123..."</code></td>
+                        <td>🟠 High</td>
+                    </tr>
+                </table>
+
+                <h3>Secret Patterns in Your Code</h3>
+                <p>GitLeak will check your repository for these patterns:</p>
+                <div class="secret-pattern">
+                    <strong>AWS Credentials:</strong> Detects Access Key IDs and Secret Access Keys
+                </div>
+                <div class="secret-pattern">
+                    <strong>Database Strings:</strong> Detects connection strings with embedded passwords
+                </div>
+                <div class="secret-pattern">
+                    <strong>Private Keys:</strong> Detects RSA, PEM, and OpenSSH private keys
+                </div>
+                <div class="secret-pattern">
+                    <strong>Bearer Tokens:</strong> Detects OAuth tokens, JWT secrets
+                </div>
+            </section>
+
+            <!-- Best Practices -->
+            <section>
+                <h2>✅ Security Best Practices</h2>
+
+                <h3>DO's ✅</h3>
+                <ul>
+                    <li>✅ Use <strong>environment variables</strong> for all secrets</li>
+                    <li>✅ Use <strong>GitLab CI/CD Variables</strong> (protected/masked) for pipeline secrets</li>
+                    <li>✅ Use <strong>Azure Key Vault</strong> / <strong>AWS Secrets Manager</strong> in production</li>
+                    <li>✅ Use <strong>Git pre-commit hooks</strong> to catch secrets locally</li>
+                    <li>✅ Rotate credentials if accidentally exposed</li>
+                    <li>✅ Review GitLeak reports before merging code</li>
+                    <li>✅ Keep .gitleaksignore updated for false positives</li>
+                </ul>
+
+                <h3>DON'Ts ❌</h3>
+                <ul>
+                    <li>❌ NEVER commit passwords, API keys, tokens to git</li>
+                    <li>❌ NEVER hardcode connection strings in code</li>
+                    <li>❌ NEVER store private keys in repositories</li>
+                    <li>❌ NEVER commit .env files with real secrets</li>
+                    <li>❌ NEVER assume secrets will be "removed later"</li>
+                    <li>❌ NEVER push to main without passing security checks</li>
+                </ul>
+
+                <h3>Configuration Management</h3>
+                <pre><code>// ❌ WRONG - Hardcoded password
+var connectionString = "Server=localhost;User=admin;Password=MySecret123";
+
+// ✅ CORRECT - Use environment variable
+var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+
+// ✅ CORRECT - Use Azure Key Vault (production)
+var credential = new DefaultAzureCredential();
+var client = new SecretClient(new Uri("https://myvault.vault.azure.net/"), credential);
+KeyVaultSecret secret = client.GetSecret("db-connection-string");</code></pre>
+            </section>
+
+            <!-- Local Testing -->
+            <section>
+                <h2>🧪 Local Testing</h2>
+
+                <h3>Install GitLeak Locally</h3>
+                <pre><code># macOS
+brew install gitleaks
+
+# Linux
+sudo apt-get install gitleaks
+
+# Windows (via Chocolatey)
+choco install gitleaks</code></pre>
+
+                <h3>Scan Your Repository</h3>
+                <pre><code># Scan entire repository
+gitleaks detect --source .
+
+# Verbose output (detailed findings)
+gitleaks detect --source . --verbose
+
+# Scan specific branch
+gitleaks detect --source . --log-opts="-p main"
+
+# Generate JSON report
+gitleaks detect --source . --report-path report.json</code></pre>
+
+                <h3>Pre-commit Hook Setup</h3>
+                <p>Prevent secrets from being committed:</p>
+                <pre><code># Install pre-commit
+pip install pre-commit
+
+# Create .pre-commit-config.yaml in repo root:
+# repos:
+#   - repo: https://github.com/gitleaks/gitleaks
+#     rev: v8.17.0
+#     hooks:
+#       - id: gitleaks
+
+# Install the hook
+pre-commit install
+
+# Now gitleaks runs automatically before each commit!</code></pre>
+            </section>
+
+            <!-- Pipeline Details -->
+            <section>
+                <h2>🔧 Pipeline Jobs Explained</h2>
+
+                <h3>BUILD Job</h3>
+                <p>Compiles the CapstoneApi as a self-contained Linux x64 binary.</p>
+                <ul>
+                    <li>Restores NuGet packages</li>
+                    <li>Builds in Release configuration</li>
+                    <li>Publishes as self-contained executable</li>
+                </ul>
+
+                <h3>TEST Job</h3>
+                <p>Runs all unit and integration tests (18 tests in CapstoneApi.Tests).</p>
+                <ul>
+                    <li>Ensures code functionality is correct</li>
+                    <li>Generates JUnit test reports</li>
+                    <li>Requires BUILD job to complete first</li>
+                </ul>
+
+                <h3>GITLEAK-SCAN Job 🔐</h3>
+                <p>Scans the repository for hardcoded secrets using GitLeak.</p>
+                <ul>
+                    <li>Uses official GitLeak Docker image</li>
+                    <li>Scans entire repository (all branches, history)</li>
+                    <li>Generates JSON report with findings</li>
+                    <li><strong>Blocks pipeline if secrets found</strong> (allow_failure: false)</li>
+                    <li>Requires BUILD and TEST jobs to complete first</li>
+                </ul>
+
+                <h3>ARCHIVE Job</h3>
+                <p>Archives build artifacts only after all security checks pass.</p>
+                <ul>
+                    <li>Copies published app to archive folder</li>
+                    <li>Adds build-info.txt with timestamp and version</li>
+                    <li>Only runs if all previous jobs succeed</li>
+                </ul>
+            </section>
+
+            <!-- Troubleshooting -->
+            <section>
+                <h2>🐛 Troubleshooting</h2>
+
+                <div class="warning-box">
+                    <h3>GitLeak Pipeline Failed - Secrets Detected!</h3>
+                    <p><strong>What it means:</strong> GitLeak found hardcoded secrets in your code.</p>
+                    <p><strong>What to do:</strong></p>
+                    <ol>
+                        <li>Review the gitleaks-report.json in the pipeline artifacts</li>
+                        <li>Identify which files contain secrets</li>
+                        <li>Remove the secrets from your code</li>
+                        <li>Use environment variables instead</li>
+                        <li>Commit and push the fixed code</li>
+                        <li>Pipeline will run again automatically</li>
+                    </ol>
+                </div>
+
+                <div class="warning-box">
+                    <h3>False Positive - Legitimate String Detected as Secret</h3>
+                    <p><strong>What it means:</strong> GitLeak detected a pattern that looks like a secret but isn't.</p>
+                    <p><strong>What to do:</strong></p>
+                    <ol>
+                        <li>Create <code>.gitleaksignore</code> file in repo root</li>
+                        <li>Add the commit hash, file path, and line number</li>
+                        <li>GitLeak will skip this false positive in future scans</li>
+                    </ol>
+                    <pre><code># Example .gitleaksignore
+commit: a1b2c3d4e5f6g7h8i9j0
+path: src/sample-data.json
+line: 42</code></pre>
+                </div>
+
+                <div class="success-box">
+                    <h3>Pipeline Success! ✅</h3>
+                    <p>Your code passed all security checks:</p>
+                    <ul>
+                        <li>✅ No hardcoded secrets detected</li>
+                        <li>✅ All tests passed</li>
+                        <li>✅ Code compiled successfully</li>
+                        <li>✅ Artifacts archived</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Lab Completion -->
+            <section>
+                <h2>🎯 Lab Completion Checklist</h2>
+                <ul>
+                    <li>☑️ Pipeline configured with BUILD, TEST, GITLEAK, ARCHIVE stages</li>
+                    <li>☑️ GitLeak successfully scans repository</li>
+                    <li>☑️ No hardcoded secrets found in code</li>
+                    <li>☑️ All tests pass (18 tests in CapstoneApi.Tests)</li>
+                    <li>☑️ Artifacts archived after security checks</li>
+                    <li>☑️ Understand secret detection patterns</li>
+                    <li>☑️ Know how to use environment variables for credentials</li>
+                    <li>☑️ Can set up pre-commit hooks locally</li>
+                </ul>
+            </section>
+
+            <!-- Next Steps -->
+            <section>
+                <h2>🚀 Next Steps</h2>
+                <ul>
+                    <li><strong>Lab Comparison:</strong> Compare Lab 11 (SonarCloud - Code Quality) with Lab 12 (GitLeak - Security)</li>
+                    <li><strong>Combined Security:</strong> Use both in production pipelines</li>
+                    <li><strong>Git History:</strong> Learn how to remove secrets from git history using BFG</li>
+                    <li><strong>Credential Rotation:</strong> Understand how to handle exposed secrets</li>
+                    <li><strong>Infrastructure as Code:</strong> Implement secrets management in Azure/AWS</li>
+                </ul>
+            </section>
+
+            <!-- Resources -->
+            <section>
+                <h2>📖 Resources</h2>
+                <ul>
+                    <li><a href="https://github.com/gitleaks/gitleaks" target="_blank">GitLeak GitHub Repository</a></li>
+                    <li><a href="https://gitleaks.io/" target="_blank">GitLeak Official Website</a></li>
+                    <li><a href="https://owasp.org/www-project-top-ten/" target="_blank">OWASP Top 10 Security Risks</a></li>
+                    <li><a href="https://docs.gitlab.com/ee/ci/variables/" target="_blank">GitLab CI/CD Variables</a></li>
+                    <li><a href="https://docs.microsoft.com/en-us/azure/key-vault/" target="_blank">Azure Key Vault Documentation</a></li>
+                </ul>
+            </section>
+        </main>
+
+        <footer>
+            <p>Lab 12 - GitLeak Security Scanning | Git Enablement Program for .NET Developers</p>
+            <p>Created: December 2025</p>
+        </footer>
+    </div>
+</body>
+</html>

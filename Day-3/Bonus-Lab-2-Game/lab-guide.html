@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonus Lab 2 - Web-Based Tetris Game with GitLab Pages</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #fc6d26;
+            border-bottom: 3px solid #fc6d26;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #292961;
+            margin-top: 30px;
+            border-left: 4px solid #fc6d26;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+        }
+        .objectives, .prerequisites, .verification, .troubleshooting, .outcomes {
+            background-color: #f9f9f9;
+            border-left: 4px solid #6e49cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .objectives h3, .prerequisites h3, .verification h3, .troubleshooting h3, .outcomes h3 {
+            margin-top: 0;
+            color: #6e49cb;
+        }
+        .overview {
+            background-color: #e8f4f8;
+            border-left: 4px solid #1f75cb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .info-box {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #fc6d26;
+        }
+        .info-box strong {
+            display: block;
+            color: #292961;
+            margin-bottom: 5px;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #fc6d26;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table th {
+            background-color: #292961;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            margin-right: 10px;
+            color: #fc6d26;
+            font-weight: bold;
+        }
+        .structure {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            white-space: pre;
+        }
+        .phase {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .phase h3 {
+            margin-top: 0;
+            color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Bonus Lab 2: Web-Based Tetris Game with GitLab Pages Deployment</h1>
+
+        <div class="overview">
+            <h3>Lab Overview</h3>
+            <p>In this lab, you'll explore a complete real-world CI/CD workflow by deploying a web-based Tetris game to <strong>GitLab Pages</strong>. This teaches you how static web applications are validated, tested, and deployed automatically using industry-standard practices.</p>
+        </div>
+
+        <div class="info-section">
+            <div class="info-box">
+                <strong>Difficulty Level</strong>
+                Intermediate
+            </div>
+            <div class="info-box">
+                <strong>Estimated Duration</strong>
+                30-45 minutes
+            </div>
+            <div class="info-box">
+                <strong>Technologies</strong>
+                HTML5, JavaScript, CSS3, GitLab CI/CD, GitLab Pages
+            </div>
+        </div>
+
+        <h2>📋 Prerequisites</h2>
+        <div class="prerequisites">
+            <h3>Before Starting This Lab</h3>
+            <ul>
+                <li>Git installed and configured</li>
+                <li>Access to GitLab with repository ownership/permissions</li>
+                <li>Text editor or IDE (VS Code recommended)</li>
+                <li>Basic understanding of HTML, CSS, and JavaScript</li>
+                <li>Completed previous labs (understanding of <code>.gitlab-ci.yml</code> is helpful)</li>
+                <li>Modern web browser (Chrome, Firefox, Safari, or Edge)</li>
+            </ul>
+        </div>
+
+        <h2>🎮 Game Features</h2>
+        <p>This Tetris implementation includes:</p>
+        <ul>
+            <li><strong>7 Tetromino Pieces</strong>: T, L, L-reverse, I, Z, Z-reverse, O</li>
+            <li><strong>Complete Game Logic</strong>: Rotation, collision detection, line clearing, scoring</li>
+            <li><strong>Responsive Design</strong>: Playable on desktop browsers</li>
+            <li><strong>Keyboard Controls</strong>:
+                <ul>
+                    <li><code>A</code> / <code>D</code> - Move left/right</li>
+                    <li><code>S</code> - Move down (faster)</li>
+                    <li><code>O</code> - Rotate piece</li>
+                    <li><code>P</code> - Pause/resume</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h2>📁 Project Structure</h2>
+        <div class="structure">
+tetris-game-main/
+├── index.html          # Game UI (HTML5)
+├── game.js            # Game logic (432 lines, OOP design)
+├── style.css          # Styling and colors
+├── README.md          # Game documentation
+└── .gitlab-ci.yml     # CI/CD pipeline with GitLab Pages
+        </div>
+
+        <h2>🚀 Getting Started</h2>
+
+        <div class="step">
+            <span class="step-number">1</span><strong>Clone the Repository</strong>
+            <p>Navigate to the lab directory in your terminal:</p>
+            <pre><code>cd Day-3/Bonus-Lab-2-Game/tetris-game-main</code></pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span><strong>Review the Game Files</strong>
+            <p>Examine each file to understand the structure:</p>
+            <pre><code># View the HTML structure
+cat index.html
+
+# Check the game logic (432 lines of JavaScript)
+wc -l game.js
+head -50 game.js
+
+# Review styling
+cat style.css</code></pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">3</span><strong>Test Locally</strong>
+            <p>Open the game in your browser before pushing to GitLab:</p>
+            <pre><code># Windows (PowerShell)
+Start-Process index.html
+
+# macOS
+open index.html
+
+# Linux
+xdg-open index.html</code></pre>
+            <div class="success">
+                <strong>Expected Result:</strong> Tetris game appears with a 10x20 grid layout, falling blocks in different colors, working keyboard controls, and score display.
+            </div>
+        </div>
+
+        <h2>🔧 Understanding the CI/CD Pipeline</h2>
+
+        <h3>Pipeline Architecture</h3>
+        <p>The pipeline consists of <strong>3 stages</strong> with <strong>6 jobs</strong> total:</p>
+        <pre><code>VALIDATE → TEST → DEPLOY</code></pre>
+
+        <h3>Stage 1: VALIDATE</h3>
+        <table>
+            <tr>
+                <th>Job</th>
+                <th>Purpose</th>
+                <th>Checks</th>
+                <th>Image</th>
+            </tr>
+            <tr>
+                <td><code>validate:files</code></td>
+                <td>Ensure all required files exist</td>
+                <td>✅ index.html, game.js, style.css present</td>
+                <td>alpine:latest</td>
+            </tr>
+        </table>
+
+        <h3>Stage 2: TEST (3 Parallel Jobs)</h3>
+        <table>
+            <tr>
+                <th>Job</th>
+                <th>Purpose</th>
+                <th>Checks</th>
+                <th>Image</th>
+            </tr>
+            <tr>
+                <td><code>test:html</code></td>
+                <td>Validate HTML5 structure</td>
+                <td>✅ Valid doctype, title, game container div</td>
+                <td>alpine:latest</td>
+            </tr>
+            <tr>
+                <td><code>test:javascript</code></td>
+                <td>Validate JavaScript syntax</td>
+                <td>✅ No syntax errors, Block & TetrisGame classes</td>
+                <td>node:18-alpine</td>
+            </tr>
+            <tr>
+                <td><code>test:css</code></td>
+                <td>Validate CSS styling</td>
+                <td>✅ Cell styles, block styles, all 7 colors</td>
+                <td>alpine:latest</td>
+            </tr>
+        </table>
+
+        <h3>Stage 3: DEPLOY</h3>
+        <table>
+            <tr>
+                <th>Job</th>
+                <th>Purpose</th>
+                <th>Process</th>
+                <th>Image</th>
+            </tr>
+            <tr>
+                <td><code>pages</code></td>
+                <td>Deploy to GitLab Pages</td>
+                <td>Copy files to <code>public/</code>, create artifacts, go live</td>
+                <td>alpine:latest</td>
+            </tr>
+        </table>
+
+        <div class="note">
+            <strong>Runner Tag:</strong> All jobs have <code>tags: - kusai</code> which means jobs run on a specific runner. In your GitLab instance, only runners with this tag will execute these jobs.
+        </div>
+
+        <h2>🌐 GitLab Pages: A Complete Guide</h2>
+
+        <h3>What is GitLab Pages?</h3>
+        <p>GitLab Pages is a <strong>free static site hosting</strong> service integrated directly into GitLab:</p>
+        <ul>
+            <li>Automatically deploys code from the <code>public/</code> directory</li>
+            <li>Hosts static files (HTML, CSS, JavaScript, images, etc.)</li>
+            <li>Accessible at a public URL</li>
+            <li>HTTPS enabled by default</li>
+            <li>No server setup required</li>
+            <li>No manual deployment needed</li>
+        </ul>
+
+        <h3>How GitLab Pages Works</h3>
+        <pre><code>Your Commit
+    ↓
+Push to main branch
+    ↓
+GitLab CI/CD Pipeline Runs
+    ↓
+pages job copies files to public/
+    ↓
+GitLab Pages deploys automatically
+    ↓
+Game live at: https://your-username.gitlab.io/project-name/</code></pre>
+
+        <h3>Key Concepts</h3>
+        <table>
+            <tr>
+                <th>Concept</th>
+                <th>Explanation</th>
+            </tr>
+            <tr>
+                <td><strong><code>public/</code> directory</strong></td>
+                <td>All files here are deployed as-is. HTML files served, CSS/JS loaded automatically.</td>
+            </tr>
+            <tr>
+                <td><strong><code>index.html</code></strong></td>
+                <td>Automatically served as default when visiting the URL.</td>
+            </tr>
+            <tr>
+                <td><strong>Pages URL</strong></td>
+                <td>Format: <code>https://{username}.gitlab.io/{project-name}/</code></td>
+            </tr>
+            <tr>
+                <td><strong>Custom Domain</strong></td>
+                <td>Optional: You can configure a custom domain instead of gitlab.io.</td>
+            </tr>
+            <tr>
+                <td><strong>SSL/TLS</strong></td>
+                <td>Automatically enabled by default (HTTPS).</td>
+            </tr>
+            <tr>
+                <td><strong>CI/CD Requirement</strong></td>
+                <td>Pages job must have <code>artifacts:</code> with <code>public/</code> path.</td>
+            </tr>
+        </table>
+
+        <h2>⚙️ GitLab Configuration Required</h2>
+
+        <div class="success">
+            <h3>✅ Good News: No Setup Needed!</h3>
+            <p>GitLab Pages is <strong>enabled by default</strong> on most GitLab instances! You don't need to configure anything special.</p>
+        </div>
+
+        <h3>Verify Pages is Enabled</h3>
+        <div class="step">
+            <span class="step-number">1</span><strong>Go to your project in GitLab</strong>
+            <p>Navigate to <strong>Settings → General</strong></p>
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span><strong>Check project visibility</strong>
+            <p>Ensure project visibility is set appropriately:</p>
+            <ul>
+                <li><strong>Public</strong> - Anyone can access the game</li>
+                <li><strong>Internal</strong> - Only logged-in users can access</li>
+                <li><strong>Private</strong> - Only project members can access</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="step-number">3</span><strong>Verify Pages section exists</strong>
+            <p>Go to <strong>Settings → Pages</strong>. If no Pages section exists, contact your GitLab administrator.</p>
+        </div>
+
+        <h3>Get Your Pages URL</h3>
+        <p>After the first successful pipeline run:</p>
+        <div class="step">
+            <span class="step-number">1</span><strong>Go to Deployments</strong>
+            <p>Navigate to <strong>Project → Deployments</strong></p>
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span><strong>Find Pages deployment</strong>
+            <p>Look for "Pages" deployment and copy the URL</p>
+        </div>
+
+        <div class="step">
+            <span class="step-number">3</span><strong>Construct URL manually</strong>
+            <p>Or use this format:</p>
+            <pre><code>https://{gitlab-username}.gitlab.io/{project-slug}/</code></pre>
+            <p>Examples:</p>
+            <ul>
+                <li>GitLab username: <code>kusaimosbah</code></li>
+                <li>Project name: <code>Training-Guide-TFS-To-GitLab</code></li>
+                <li>URL: <code>https://kusaimosbah.gitlab.io/training-guide-tfs-to-gitlab/</code></li>
+            </ul>
+        </div>
+
+        <h2>📝 Step-by-Step Lab Instructions</h2>
+
+        <div class="phase">
+            <h3>Phase 1: Setup & Local Testing</h3>
+
+            <div class="step">
+                <span class="step-number">1</span><strong>Navigate to the lab directory</strong>
+                <pre><code>cd "Day-3/Bonus-Lab-2-Game/tetris-game-main"</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span><strong>List files to verify structure</strong>
+                <pre><code>ls -la</code></pre>
+                <p>Expected output:</p>
+                <pre><code>index.html
+game.js
+style.css
+README.md
+.gitlab-ci.yml</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span><strong>Open and play the game locally</strong>
+                <ul>
+                    <li>Right-click <code>index.html</code> → Open with browser</li>
+                    <li>Test keyboard controls (A, D, S, O, P)</li>
+                    <li>Verify pieces fall and rotate correctly</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span><strong>Document observations</strong>
+                <ul>
+                    <li>How many pieces can you control?</li>
+                    <li>What happens when lines are cleared?</li>
+                    <li>What is your high score? 😄</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="phase">
+            <h3>Phase 2: Examine the Pipeline</h3>
+
+            <div class="step">
+                <span class="step-number">1</span><strong>View the .gitlab-ci.yml file</strong>
+                <pre><code>cat .gitlab-ci.yml</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span><strong>Identify the 3 stages</strong>
+                <ul>
+                    <li>Write down what each stage does</li>
+                    <li>How many jobs total? <strong>Answer: 6 jobs</strong></li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span><strong>Find the Pages configuration</strong>
+                <pre><code>grep -A 15 "^pages:" .gitlab-ci.yml</code></pre>
+                <p>Answer these questions:</p>
+                <ul>
+                    <li>What files are copied to <code>public/</code>?</li>
+                    <li>What job runs before deploy?</li>
+                    <li>What triggers deployment (only main)?</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span><strong>Verify runner tag</strong>
+                <pre><code>grep "tags:" .gitlab-ci.yml</code></pre>
+                <p>All jobs should have: <code>- kusai</code></p>
+            </div>
+        </div>
+
+        <div class="phase">
+            <h3>Phase 3: Push and Deploy</h3>
+
+            <div class="step">
+                <span class="step-number">1</span><strong>Create a feature branch</strong>
+                <pre><code>git checkout -b feature/setup-pages</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span><strong>Commit the game files</strong>
+                <pre><code>git add .
+git commit -m "Add Tetris game with GitLab Pages deployment
+
+- HTML5 game interface
+- OOP game logic (432 lines)
+- Professional CI/CD pipeline
+- Automated deployment to GitLab Pages
+
+Deploys to: https://your-username.gitlab.io/project-name/"</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span><strong>Push to GitLab</strong>
+                <pre><code>git push -u origin feature/setup-pages</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span><strong>Create a Merge Request</strong>
+                <ul>
+                    <li>Go to GitLab → Merge Requests</li>
+                    <li>Create MR from <code>feature/setup-pages</code> → <code>main</code></li>
+                    <li>Add description explaining the addition</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">5</span><strong>Approve and merge to main</strong>
+                <ul>
+                    <li>Review the CI/CD pipeline execution</li>
+                    <li>All jobs should ✅ pass</li>
+                    <li>Merge the MR to main branch</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="phase">
+            <h3>Phase 4: Access the Deployed Game</h3>
+
+            <div class="step">
+                <span class="step-number">1</span><strong>Wait for pipeline to complete</strong>
+                <ul>
+                    <li>On main branch, the pipeline runs automatically</li>
+                    <li>All 3 stages complete (validate → test → deploy)</li>
+                    <li><code>pages</code> job creates the deployment</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span><strong>Find your Pages URL</strong>
+                <ul>
+                    <li>Go to <strong>Project → Deployments</strong></li>
+                    <li>Look for "Pages" deployment</li>
+                    <li>Copy the URL</li>
+                </ul>
+                <p>Or construct it manually:</p>
+                <pre><code>https://{your-gitlab-username}.gitlab.io/{project-name}/</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span><strong>Open the URL in browser</strong>
+                <ul>
+                    <li>Your game is now <strong>LIVE!</strong> 🎉</li>
+                    <li>Share the URL with friends/classmates</li>
+                    <li>Verify all features work (controls, scoring, line clearing)</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span><strong>Document the deployment</strong>
+                <ul>
+                    <li>Screenshot the game running</li>
+                    <li>Note the URL</li>
+                    <li>Verify HTTPS is working (look for 🔒)</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>🔍 Monitoring & Troubleshooting</h2>
+
+        <h3>Check Pipeline Execution</h3>
+        <pre><code># View recent commits
+git log --oneline -5
+
+# Go to GitLab → CI/CD → Pipelines
+# Click on the latest commit
+# View each job's output</code></pre>
+
+        <h3>Common Issues & Solutions</h3>
+        <table>
+            <tr>
+                <th>Issue</th>
+                <th>Cause</th>
+                <th>Solution</th>
+            </tr>
+            <tr>
+                <td>Pipeline fails at <code>validate:files</code></td>
+                <td>Missing game files</td>
+                <td>Ensure all 3 files (HTML, JS, CSS) exist in directory</td>
+            </tr>
+            <tr>
+                <td><code>test:javascript</code> fails</td>
+                <td>Syntax error in game.js</td>
+                <td>Check Node.js version, fix JS syntax errors</td>
+            </tr>
+            <tr>
+                <td><code>test:html</code> fails</td>
+                <td>Invalid HTML structure</td>
+                <td>Add missing <code>id="game"</code> div to index.html</td>
+            </tr>
+            <tr>
+                <td>Pages deployment fails</td>
+                <td><code>public/</code> directory not in artifacts</td>
+                <td>Verify pages job creates <code>public/</code> correctly</td>
+            </tr>
+            <tr>
+                <td>Can't access deployed game</td>
+                <td>Pages not enabled or project not visible</td>
+                <td>Check project visibility settings</td>
+            </tr>
+            <tr>
+                <td>URL returns 404</td>
+                <td>Wrong URL format</td>
+                <td>Verify format: https://username.gitlab.io/project-name/</td>
+            </tr>
+        </table>
+
+        <h3>View Job Logs</h3>
+        <p>In GitLab:</p>
+        <pre><code>Project → CI/CD → Pipelines → [Pipeline] → [Job Name] → Logs</code></pre>
+        <p>Example output:</p>
+        <pre><code>$ echo "🚀 Deploying to GitLab Pages..."
+🚀 Deploying to GitLab Pages...
+$ mkdir -p public
+$ cp index.html public/
+$ cp game.js public/
+$ cp style.css public/
+$ echo "✅ Deployment complete!"
+✅ Deployment complete!</code></pre>
+
+        <h2>📚 Learning Outcomes</h2>
+        <div class="outcomes">
+            <h3>After completing this lab, you will understand:</h3>
+            <ul>
+                <li>✅ Static site deployment via CI/CD pipelines</li>
+                <li>✅ GitLab Pages as free hosting solution</li>
+                <li>✅ Automated validation and testing before deployment</li>
+                <li>✅ Public URLs and web accessibility concepts</li>
+                <li>✅ Object-oriented JavaScript game development</li>
+                <li>✅ Professional workflow automation</li>
+                <li>✅ CI/CD as standard industry practice</li>
+            </ul>
+        </div>
+
+        <h2>🎯 Lab Verification Checklist</h2>
+        <ul class="checklist">
+            <li>Game runs locally with all controls working</li>
+            <li>Review all files in tetris-game-main/ directory</li>
+            <li>Understand each stage of the CI/CD pipeline</li>
+            <li>Create feature branch and commit game files</li>
+            <li>Push to GitLab and create merge request</li>
+            <li>Merge to main branch</li>
+            <li>Pipeline runs successfully (all jobs ✅)</li>
+            <li>Access deployed game via GitLab Pages URL</li>
+            <li>Verify game features work on deployed version</li>
+            <li>Share URL and test on different browsers</li>
+            <li>Document the deployment URL</li>
+            <li>Take screenshot of live game</li>
+        </ul>
+
+        <h2>🎓 Challenge Questions</h2>
+        <table>
+            <tr>
+                <th>Question</th>
+                <th>Answer</th>
+            </tr>
+            <tr>
+                <td><strong>Why separate test jobs instead of one large test job?</strong></td>
+                <td>Different test types (HTML, JS, CSS) can run in parallel, speeding up the pipeline. Keeps concerns separated.</td>
+            </tr>
+            <tr>
+                <td><strong>What if we changed pipeline to run on all branches?</strong></td>
+                <td>Every branch would deploy to Pages, potentially overwriting the main deployment. Not ideal for production.</td>
+            </tr>
+            <tr>
+                <td><strong>How could we add a second game to the same project?</strong></td>
+                <td>Create subdirectory structure (e.g., <code>/games/tetris/public/</code>) and configure multiple Pages jobs.</td>
+            </tr>
+            <tr>
+                <td><strong>Can we deploy to a custom domain?</strong></td>
+                <td>Yes! Go to Settings → Pages and configure a custom domain with DNS records.</td>
+            </tr>
+            <tr>
+                <td><strong>What security considerations exist for public Pages?</strong></td>
+                <td>No sensitive data in public/; Pages are accessible worldwide; validate user input in games.</td>
+            </tr>
+        </table>
+
+        <h2>📖 Additional Resources</h2>
+        <ul>
+            <li><strong>GitLab Pages Documentation:</strong> <a href="https://docs.gitlab.com/ee/user/project/pages/" target="_blank">Official GitLab Pages Guide</a></li>
+            <li><strong>Custom Domain Setup:</strong> <a href="https://docs.gitlab.com/ee/user/project/pages/custom_domains_ssl_tls_certification/" target="_blank">Custom Domain Configuration</a></li>
+            <li><strong>CI/CD Pipeline Architecture:</strong> <a href="https://docs.gitlab.com/ee/ci/pipeline_architecture.html" target="_blank">Pipeline Best Practices</a></li>
+            <li><strong>Web Game Development:</strong> <a href="https://developer.mozilla.org/en-US/docs/Games" target="_blank">MDN Game Development Guide</a></li>
+            <li><strong>JavaScript Classes:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes" target="_blank">MDN JavaScript Classes</a></li>
+        </ul>
+
+        <h2>🔧 GitLab Pages Server Configuration</h2>
+        <p><strong>For Self-Hosted GitLab Instances:</strong> Update your <code>/etc/gitlab/gitlab.rb</code> with the following configuration to enable GitLab Pages:</p>
+        
+        <pre><code>################################################################################
+## GitLab Pages
+##! Docs: https://docs.gitlab.com/ee/administration/pages/
+################################################################################
+
+##! Define to enable GitLab Pages
+pages_external_url "https://pages.your-domain.com"
+gitlab_pages['enable'] = true
+
+##! Configure cert when using external IP address
+gitlab_pages['cert'] = "/etc/gitlab/ssl/your-domain.com.crt"
+gitlab_pages['cert_key'] = "/etc/gitlab/ssl/your-domain.com.key"
+
+##! Optional: Configure HTTP/HTTPS listening ports
+# gitlab_pages['external_http'] = ['0.0.0.0:8080']
+# gitlab_pages['external_https'] = ['0.0.0.0:8443']</code></pre>
+
+        <p><strong>After updating gitlab.rb, run:</strong></p>
+        <pre><code>sudo gitlab-ctl reconfigure
+sudo gitlab-ctl restart gitlab-pages</code></pre>
+
+        <h3>📍 Cloudflare DNS Configuration</h3>
+        <p>Add these DNS records in your Cloudflare dashboard:</p>
+        <table>
+            <tr>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Content</th>
+                <th>Proxy Status</th>
+                <th>TTL</th>
+            </tr>
+            <tr>
+                <td><strong>A</strong></td>
+                <td><code>pages</code></td>
+                <td>Your server IP (e.g., 178.128.20.32)</td>
+                <td>DNS only ☁️</td>
+                <td>Auto</td>
+            </tr>
+            <tr>
+                <td><strong>A</strong></td>
+                <td><code>*.pages</code></td>
+                <td>Your server IP (e.g., 178.128.20.32)</td>
+                <td>DNS only ☁️</td>
+                <td>Auto</td>
+            </tr>
+        </table>
+
+        <p><strong>Result:</strong> Your game will be accessible at:</p>
+        <pre><code>https://pages.your-domain.com/&lt;group&gt;/&lt;project&gt;/</code></pre>
+
+        <h2>🎉 Next Steps</h2>
+        <p>After completing this lab:</p>
+        <ol>
+            <li><strong>Modify the game</strong> - Add features, change colors, adjust difficulty</li>
+            <li><strong>Extend the pipeline</strong> - Add security scanning, performance testing</li>
+            <li><strong>Deploy to multiple environments</strong> - Create staging/production environments</li>
+            <li><strong>Integrate with backend</strong> - Create a scoring API</li>
+            <li><strong>Share with others</strong> - Use the GitLab Pages URL for presentations</li>
+        </ol>
+
+        <hr style="margin-top: 40px; border: none; border-top: 2px solid #fc6d26;">
+        <p style="text-align: center; color: #666; margin-top: 20px;">
+            <strong>Lab Version:</strong> 1.0 | 
+            <strong>Last Updated:</strong> December 2025 | 
+            <strong>Difficulty:</strong> Intermediate
+        </p>
+    </div>
+</body>
+</html>
